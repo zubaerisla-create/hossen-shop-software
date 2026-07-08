@@ -1,0 +1,327 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Product } from '../../types';
+import { getProducts, purchaseProduct, addInvoice } from '../../utils/storage';
+import Header from '../../components/Header';
+import { Check, ArrowLeft, Terminal, Shield } from 'lucide-react';
+
+export default function ProductDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [product, setProduct] = useState<Product | null>(null);
+  
+  // Checkout States
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [pin, setPin] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'faq'>('overview');
+
+  useEffect(() => {
+    const prods = getProducts();
+    const found = prods.find(p => p.id === params.id);
+    if (found) {
+      setProduct(found);
+    }
+  }, [params.id]);
+
+  if (!product) {
+    return (
+      <div className="flex flex-col flex-1 bg-white dark:bg-[#09090b] text-zinc-500 dark:text-zinc-400 justify-center items-center h-screen">
+        <p className="text-xs">Loading codebase details...</p>
+      </div>
+    );
+  }
+
+  const handleCheckoutSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+      purchaseProduct(product.id);
+
+      // Create invoice
+      const invoiceNum = `INV-2026-${Math.floor(Math.random() * 9000) + 1000}`;
+      const newInvoice = {
+        id: `inv-${Math.floor(Math.random() * 10000)}`,
+        invoiceNumber: invoiceNum,
+        productId: product.id,
+        title: `${product.name} License Purchase`,
+        amount: product.price,
+        tax: Math.round(product.price * 0.05),
+        discount: 0,
+        total: product.price + Math.round(product.price * 0.05),
+        type: 'ready_product' as const,
+        status: 'Paid' as const,
+        date: new Date().toISOString().split('T')[0]
+      };
+      addInvoice(newInvoice);
+
+      setTimeout(() => {
+        setIsSuccess(false);
+        setShowCheckout(false);
+        localStorage.setItem('apex_user_role', 'customer');
+        router.push('/portal');
+      }, 1550);
+
+    }, 1500);
+  };
+
+  const handleCustomizationRequest = () => {
+    const estimateData = {
+      title: `Customized ${product.name}`,
+      desc: `I want to customize the ready-made template: ${product.name}. My features request: `,
+      budget: product.price + 15000,
+      tech: product.technologies.join(', ')
+    };
+    localStorage.setItem('apex_imported_estimate', JSON.stringify(estimateData));
+    localStorage.setItem('apex_user_role', 'customer');
+    router.push('/portal');
+  };
+
+  return (
+    <div className="flex flex-col flex-1 bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-300 font-sans min-h-screen transition-colors">
+      <Header />
+
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
+        
+        {/* Back Link */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white transition-colors text-xs font-semibold mb-8 cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to listings
+        </button>
+
+        {/* Core Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          
+          {/* Left Column: Technical Specs & Tabs */}
+          <div className="lg:col-span-8 space-y-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-400 text-[10px] px-2 py-0.5 rounded font-mono uppercase tracking-wide">
+                  {product.category}
+                </span>
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-500">v{product.version}</span>
+              </div>
+              <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white tracking-tight">{product.name}</h1>
+              <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed max-w-2xl">{product.description}</p>
+            </div>
+
+            {/* Tech Tags */}
+            <div className="flex flex-wrap gap-1.5 py-1">
+              {product.technologies.map((t, idx) => (
+                <span key={idx} className="bg-zinc-100 dark:bg-[#161618] border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded text-[10px] font-mono">
+                  {t}
+                </span>
+              ))}
+            </div>
+
+            {/* Clean Flat Tabs */}
+            <div className="border-b border-zinc-200 dark:border-zinc-800 flex gap-6 text-xs font-medium text-zinc-500">
+              {[
+                { id: 'overview', label: 'Features' },
+                { id: 'reviews', label: 'Feedback' },
+                { id: 'faq', label: 'FAQ' }
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id as any)}
+                  className={`pb-2 transition-colors cursor-pointer ${
+                    activeTab === t.id ? 'text-zinc-950 dark:text-white border-b-2 border-zinc-950 dark:border-white font-semibold' : 'hover:text-zinc-800 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs">
+                <div className="space-y-3">
+                  <span className="font-bold text-zinc-950 dark:text-white block">Functional Modules</span>
+                  <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
+                    {product.features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="w-3.5 h-3.5 text-zinc-500 shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="font-bold text-zinc-950 dark:text-white block">System Dependencies</span>
+                  <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
+                    {product.requirements.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 font-mono text-[11px]">
+                        <Terminal className="w-3.5 h-3.5 text-zinc-500 shrink-0 mt-0.5" />
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div className="space-y-4 text-xs">
+                <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 font-medium">
+                  <span>Client Rating:</span>
+                  <span className="text-zinc-950 dark:text-white font-bold">{product.rating} / 5.0</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {[
+                    { user: 'S. Talukder', comment: 'Clean Next.js layout structure. Integration took less than an hour.', date: '2026-06-28' },
+                    { user: 'Rahman K.', comment: 'Saves considerable design and setup hours.', date: '2026-06-15' }
+                  ].map((rev, i) => (
+                    <div key={i} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded bg-zinc-50 dark:bg-zinc-900/10 space-y-1">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-zinc-950 dark:text-white">{rev.user}</span>
+                        <span className="text-zinc-500">{rev.date}</span>
+                      </div>
+                      <p className="text-zinc-600 dark:text-zinc-400 leading-normal text-[11px]">{rev.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'faq' && (
+              <div className="space-y-3 text-xs">
+                {[
+                  { q: 'Will I receive updates?', a: 'Yes. Free updates and patch versions are downloadable directly from the dashboard client portal.' },
+                  { q: 'Is a developer license included?', a: 'Standard commercial license allows 1 production domain. Select custom deal request if you require unlimited deployment keys.' }
+                ].map((item, i) => (
+                  <div key={i} className="space-y-1">
+                    <span className="font-bold text-zinc-950 dark:text-white block">Q: {item.q}</span>
+                    <p className="text-zinc-600 dark:text-zinc-400 text-[11px] leading-relaxed">A: {item.a}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Checkout Widget */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="border border-zinc-200 dark:border-zinc-800 p-6 rounded bg-zinc-50 dark:bg-[#121214] space-y-5">
+              <div className="space-y-1">
+                <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Pricing</span>
+                <span className="text-xl font-extrabold text-zinc-950 dark:text-white block">{product.price.toLocaleString()} BDT</span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <button
+                  onClick={() => setShowCheckout(true)}
+                  className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded font-bold transition-colors cursor-pointer text-center"
+                >
+                  Buy License
+                </button>
+                <button
+                  onClick={handleCustomizationRequest}
+                  className="w-full py-2 bg-transparent border border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 text-zinc-700 dark:text-zinc-300 rounded font-semibold transition-colors cursor-pointer text-center"
+                >
+                  Request Customization
+                </button>
+              </div>
+
+              <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-2 text-[10px] text-zinc-500 font-medium">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-400" />
+                  <span>Instant license key dispatch</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      {/* Clean Mobile Wallet Simulation overlay */}
+      {showCheckout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded overflow-hidden shadow-2xl relative">
+            <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white">✕</button>
+            
+            <div className="bg-zinc-50 dark:bg-zinc-950 py-3.5 px-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
+              <span className="font-bold text-xs text-zinc-900 dark:text-white uppercase tracking-wider">bKash payment gateway</span>
+              <span className="text-[10px] text-zinc-500">ApexDevs Checkout</span>
+            </div>
+
+            {!isSuccess ? (
+              <form onSubmit={handleCheckoutSubmit} className="p-6 space-y-4 text-xs">
+                <div className="border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/60 p-4 rounded space-y-1 text-center">
+                  <span className="text-zinc-500 text-[10px] block uppercase tracking-wider">Amount to charge</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white text-sm block">{product.name}</span>
+                  <span className="text-lg font-bold text-zinc-950 dark:text-white block mt-1">{product.price.toLocaleString()} BDT</span>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-zinc-600 dark:text-zinc-400 text-[10px] uppercase font-bold mb-1">Mobile wallet account number</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g., 017XXXXXXXX"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-600 dark:text-zinc-400 text-[10px] uppercase font-bold mb-1">Security PIN</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="XXXX"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-700"
+                    />
+                  </div>
+                </div>
+
+                {isProcessing ? (
+                  <div className="text-center py-2 text-zinc-500 dark:text-zinc-400 font-semibold">
+                    Validating secure token...
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 bg-pink-700 hover:bg-pink-800 text-white rounded font-bold transition-colors cursor-pointer"
+                  >
+                    Pay with bKash
+                  </button>
+                )}
+              </form>
+            ) : (
+              <div className="p-8 text-center space-y-2">
+                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white flex items-center justify-center mx-auto text-sm font-bold">
+                  ✓
+                </div>
+                <div>
+                  <span className="font-bold text-xs block text-zinc-900 dark:text-white">Payment Confirmed</span>
+                  <p className="text-zinc-500 dark:text-zinc-500 text-[10px] mt-1">Routing to client workspace...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#09090b] py-8 text-center text-xs text-zinc-500">
+        <p>© 2026 ApexDevs. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+}

@@ -1,0 +1,207 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, Download, Laptop, Receipt, Ticket, Settings, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
+import { initializeStorage } from '../utils/storage';
+
+export default function PortalLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [toastText, setToastText] = useState<string | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    initializeStorage();
+    localStorage.setItem('apex_user_role', 'customer');
+
+    // Toast event subscriber
+    const handleToast = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setToastText(detail);
+      setTimeout(() => setToastText(null), 4000);
+    };
+
+    window.addEventListener('apex-portal-toast', handleToast);
+    return () => window.removeEventListener('apex-portal-toast', handleToast);
+  }, []);
+
+  const navItems = [
+    { href: '/portal', label: 'Overview Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { href: '/portal/deals', label: 'Custom Projects', icon: <Laptop className="w-4 h-4" /> },
+    { href: '/portal/invoices', label: 'PDF Invoices', icon: <Receipt className="w-4 h-4" /> },
+    { href: '/portal/support', label: 'Support Tickets', icon: <Ticket className="w-4 h-4" /> }
+  ];
+
+  const activeItem = navItems.find((item) => pathname === item.href) || navItems[0];
+
+  return (
+    <div className="flex flex-col h-screen w-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-150 font-sans overflow-hidden transition-colors">
+      
+      <main className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-white dark:bg-zinc-950 transition-colors">
+          
+          {/* Mobile Dropdown Navigation */}
+          <div className="md:hidden bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 p-4 flex flex-col gap-2 relative">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[9px]">
+                  PORTAL
+                </div>
+                <div>
+                  <span className="font-extrabold text-xs text-zinc-950 dark:text-white block">Client Workspace</span>
+                </div>
+              </div>
+              <span className="text-[9px] text-zinc-500 font-medium">v3.4.0</span>
+            </div>
+
+            <div className="relative mt-1">
+              <button
+                onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-xs font-bold text-zinc-900 dark:text-white transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  {activeItem.icon}
+                  <span>{activeItem.label}</span>
+                </div>
+                <svg className={`w-4 h-4 text-zinc-500 transition-transform ${isMobileNavOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isMobileNavOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsMobileNavOpen(false)} />
+                  <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded shadow-xl py-1 z-25 text-xs font-semibold">
+                    {navItems.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMobileNavOpen(false)}
+                          className={`w-full flex items-center gap-2.5 px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-left transition-colors cursor-pointer ${
+                            isActive
+                              ? 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-900 font-bold'
+                              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                          }`}
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+
+                    <div className="border-t border-zinc-200 dark:border-zinc-800 my-1"></div>
+
+                    <Link
+                      href="/"
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-left text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Exit to Home</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setIsMobileNavOpen(false);
+                        localStorage.removeItem('apex_user_role');
+                        router.push('/');
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-left text-rose-600 font-semibold transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Sidebar */}
+          <aside className="hidden md:flex w-64 bg-zinc-50 dark:bg-zinc-900/60 border-r border-zinc-200 dark:border-zinc-900 p-4 space-y-6 flex-col justify-between transition-colors">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2.5 px-2">
+                <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[10px]">
+                  PORTAL
+                </div>
+                <div>
+                  <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">Client Workspace</span>
+                  <span className="text-[10px] text-zinc-500 font-medium">John Doe (Demo)</span>
+                </div>
+              </div>
+
+              <nav className="space-y-1">
+                {navItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-zinc-200 dark:bg-zinc-900 text-zinc-950 dark:text-white border border-zinc-300 dark:border-zinc-800'
+                          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </div>
+                      <ArrowRight className="w-3 h-3 opacity-60" />
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="space-y-2">
+              <Link
+                href="/"
+                className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold text-zinc-500 hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Exit to Home</span>
+              </Link>
+              
+              <button
+                onClick={() => {
+                  localStorage.removeItem('apex_user_role');
+                  router.push('/');
+                }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/10 transition-colors cursor-pointer text-left"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </button>
+
+              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-3 rounded flex items-center justify-between text-xs text-zinc-500">
+                <span>Version 3.4.0</span>
+                <Settings className="w-4 h-4 hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-all" />
+              </div>
+            </div>
+          </aside>
+
+          {/* Tab Subpage Content */}
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-950 flex flex-col justify-between transition-colors">
+            {children}
+          </div>
+
+      </main>
+
+      {/* Toast Alert */}
+      {toastText && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-5 py-3 rounded shadow-2xl flex items-center gap-2 animate-slideIn text-xs">
+          <span className="font-bold text-zinc-600 dark:text-zinc-450">Portal:</span>
+          <span>{toastText}</span>
+        </div>
+      )}
+    </div>
+  );
+}
