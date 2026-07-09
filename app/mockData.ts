@@ -46,6 +46,8 @@ export const mockProducts: Product[] = [
     license: 'Single-Site Commercial License (Modify and use for 1 project)',
     salesCount: 142,
     rating: 4.8,
+    githubUrl: 'https://github.com/agency-internal/devflow-starter-kit',
+    zipUrl: 'https://storage.agency.com/assets/downloads/devflow-v2.1.0.zip',
     reviews: [
       {
         user: 'Tanvir Rahman',
@@ -386,7 +388,12 @@ export const mockCustomDeals: CustomDeal[] = [
           percentage: 30,
           status: 'Approved',
           paymentStatus: 'Paid',
-          dueDate: '2026-07-10'
+          progress: 100,
+          dueDate: '2026-07-10',
+          deliverables: [
+            { name: 'Figma_Branding_Prototypes.pdf', size: '4.8 MB', url: 'https://figma.com/file/mock-hospital-layout', type: 'pdf' },
+            { name: 'Wireframes_Specification_PRD.pdf', size: '1.5 MB', url: 'https://drive.google.com/mock-prd.pdf', type: 'pdf' }
+          ]
         },
         {
           id: 'm2',

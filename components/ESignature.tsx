@@ -102,7 +102,7 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
       <div className="bg-zinc-950 border border-zinc-800 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
+
         {/* Header */}
         <div className="bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center gap-3">
           <div className="bg-violet-500/10 p-2 rounded-lg border border-violet-500/20 text-violet-400">
@@ -110,7 +110,7 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
           </div>
           <div>
             <h3 className="text-base font-bold text-white">Online Service Contract & Agreement</h3>
-            <p className="text-[10px] text-zinc-400">ApexDevs Digital Agency Proposal Approval</p>
+            <p className="text-[10px] text-zinc-400">Hossen Shop Digital Agency Proposal Approval</p>
           </div>
         </div>
 
@@ -120,41 +120,41 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
             <p className="font-bold text-white text-sm uppercase border-b border-zinc-800 pb-2">CONTRACT FOR SERVICES</p>
             <p>
               This Digital Services Agreement (the "Agreement") is entered into as of the date of signing, by and between{' '}
-              <strong className="text-white">ApexDevs Digital Agency</strong> ("Agency") and the{' '}
+              <strong className="text-white">Hossen Shop Digital Agency</strong> ("Agency") and the{' '}
               <strong className="text-white">Client</strong> signing below, for development of:{' '}
               <strong className="text-violet-400">{dealTitle}</strong>.
             </p>
-            
+
             <p className="font-semibold text-zinc-300">1. SCOPE AND REVENUE</p>
             <p>
-              The Agency agrees to perform software development services as specified in the Custom Project Briefing. 
-              The total cost for the deliverables is agreed at <strong className="text-emerald-400">{totalCost.toLocaleString()} BDT</strong>, 
+              The Agency agrees to perform software development services as specified in the Custom Project Briefing.
+              The total cost for the deliverables is agreed at <strong className="text-emerald-400">{totalCost.toLocaleString()} BDT</strong>,
               which shall be paid according to the milestone schedule outlined in the project details.
             </p>
 
             <p className="font-semibold text-zinc-300">2. PAYMENT SCHEDULE (MILESTONES)</p>
             <p>
-              Work will begin immediately upon receipt of the <strong className="text-white">Advance Milestone Payment</strong> (amount outlined in the Quotation). 
-              Subsequent milestones must be reviewed and approved by the Client in the Project Portal. Each approval will generate the invoice and require the payment 
+              Work will begin immediately upon receipt of the <strong className="text-white">Advance Milestone Payment</strong> (amount outlined in the Quotation).
+              Subsequent milestones must be reviewed and approved by the Client in the Project Portal. Each approval will generate the invoice and require the payment
               of the next phase's cost before development of that phase initiates.
             </p>
 
             <p className="font-semibold text-zinc-300">3. INTELLECTUAL PROPERTY & DELIVERY</p>
             <p>
-              Upon final milestone payment completion and project delivery, all source codes, credentials, database nodes, 
+              Upon final milestone payment completion and project delivery, all source codes, credentials, database nodes,
               assets and configurations will be fully transferred to the Client.
             </p>
 
             <p className="font-semibold text-zinc-300">4. SUPPORT & WARRANTY</p>
             <p>
-              The project is backed by a 6-month free warranty period for fixing any performance bottlenecks, crashes, or bugs. 
+              The project is backed by a 6-month free warranty period for fixing any performance bottlenecks, crashes, or bugs.
               This warranty does not cover adding new features not outlined in the initial proposal.
             </p>
           </div>
 
           {/* Form Controls */}
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-            
+
             {/* Signature Pad Canvas */}
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -210,7 +210,7 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
                 className="mt-0.5 accent-violet-600"
               />
               <span className="text-zinc-400 group-hover:text-zinc-300">
-                I hereby declare that I have read the terms, understand the milestone payment schedule, and authorize ApexDevs to initiate development upon signing.
+                I hereby declare that I have read the terms, understand the milestone payment schedule, and authorize Hossen Shop to initiate development upon signing.
               </span>
             </label>
 

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket, Milestone } from '../types';
+import Link from 'next/link';
+import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket, Milestone } from '@/app/types';
 import {
   LayoutDashboard, ShoppingCart, FolderKanban, ShieldCheck,
   Receipt, Wrench, ArrowRight, Settings, Plus, Trash2,
@@ -265,7 +266,7 @@ export default function AdminPanel({
       {/* Sidebar navigation */}
       <aside className="w-full md:w-64 bg-zinc-50 dark:bg-zinc-900/60 border-r border-zinc-200 dark:border-zinc-900 p-4 space-y-6 flex flex-col justify-between transition-colors">
         <div className="space-y-4">
-          <div className="flex items-center gap-2.5 px-2">
+          <Link href="/" className="flex items-center gap-2.5 px-2 hover:opacity-85 transition-opacity cursor-pointer">
             <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[10px]">
               ADMIN
             </div>
@@ -273,7 +274,7 @@ export default function AdminPanel({
               <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">Agency Admin</span>
               <span className="text-[10px] text-zinc-500 font-medium">Control Dashboard</span>
             </div>
-          </div>
+          </Link>
 
           <nav className="space-y-1">
             {[

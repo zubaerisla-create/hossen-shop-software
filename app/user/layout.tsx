@@ -6,11 +6,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Download, Laptop, Receipt, Ticket, Settings, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
 import { initializeStorage } from '../utils/storage';
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
+export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [toastText, setToastText] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [userName, setUserName] = useState('John Doe (Demo)');
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -20,6 +21,11 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     initializeStorage();
     localStorage.setItem('apex_user_role', 'customer');
 
+    const storedName = localStorage.getItem('apex_user_name');
+    if (storedName) {
+      setUserName(storedName);
+    }
+
     // Toast event subscriber
     const handleToast = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -27,18 +33,34 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       setTimeout(() => setToastText(null), 4000);
     };
 
-    window.addEventListener('apex-portal-toast', handleToast);
-    return () => window.removeEventListener('apex-portal-toast', handleToast);
+    const handleProfileUpdate = () => {
+      const storedName = localStorage.getItem('apex_user_name');
+      if (storedName) {
+        setUserName(storedName);
+      }
+    };
+
+    window.addEventListener('apex-user-toast', handleToast);
+    window.addEventListener('apex-user-profile-update', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('apex-user-toast', handleToast);
+      window.removeEventListener('apex-user-profile-update', handleProfileUpdate);
+    };
   }, []);
 
   const navItems = [
-    { href: '/portal', label: 'Overview Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { href: '/portal/deals', label: 'Custom Projects', icon: <Laptop className="w-4 h-4" /> },
-    { href: '/portal/invoices', label: 'PDF Invoices', icon: <Receipt className="w-4 h-4" /> },
-    { href: '/portal/support', label: 'Support Tickets', icon: <Ticket className="w-4 h-4" /> }
+    { href: '/user', label: 'Overview Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { href: '/user/products', label: 'Purchased Templates', icon: <Download className="w-4 h-4" /> },
+    { href: '/user/deals', label: 'Custom Projects', icon: <Laptop className="w-4 h-4" /> },
+    { href: '/user/invoices', label: 'PDF Invoices', icon: <Receipt className="w-4 h-4" /> },
+    { href: '/user/support', label: 'Support Tickets', icon: <Ticket className="w-4 h-4" /> },
+    { href: '/user/settings', label: 'Account Settings', icon: <Settings className="w-4 h-4" /> }
   ];
 
-  const activeItem = navItems.find((item) => pathname === item.href) || navItems[0];
+  const activeItem = navItems.find((item) => {
+    if (item.href === '/user') return pathname === '/user';
+    return pathname.startsWith(item.href);
+  }) || navItems[0];
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-150 font-sans overflow-hidden transition-colors">
@@ -48,14 +70,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           {/* Mobile Dropdown Navigation */}
           <div className="md:hidden bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 p-4 flex flex-col gap-2 relative">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer">
                 <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[9px]">
-                  PORTAL
+                  USER
                 </div>
                 <div>
                   <span className="font-extrabold text-xs text-zinc-950 dark:text-white block">Client Workspace</span>
                 </div>
-              </div>
+              </Link>
               <span className="text-[9px] text-zinc-500 font-medium">v3.4.0</span>
             </div>
 
@@ -78,7 +100,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   <div className="fixed inset-0 z-10" onClick={() => setIsMobileNavOpen(false)} />
                   <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded shadow-xl py-1 z-25 text-xs font-semibold">
                     {navItems.map((item) => {
-                      const isActive = pathname === item.href;
+                      const isActive = item.href === '/user' ? pathname === '/user' : pathname.startsWith(item.href);
                       return (
                         <Link
                           key={item.href}
@@ -127,19 +149,19 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           {/* Desktop Sidebar */}
           <aside className="hidden md:flex w-64 bg-zinc-50 dark:bg-zinc-900/60 border-r border-zinc-200 dark:border-zinc-900 p-4 space-y-6 flex-col justify-between transition-colors">
             <div className="space-y-4">
-              <div className="flex items-center gap-2.5 px-2">
+              <Link href="/" className="flex items-center gap-2.5 px-2 hover:opacity-85 transition-opacity cursor-pointer">
                 <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[10px]">
-                  PORTAL
+                  USER
                 </div>
                 <div>
                   <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">Client Workspace</span>
-                  <span className="text-[10px] text-zinc-500 font-medium">John Doe (Demo)</span>
+                  <span className="text-[10px] text-zinc-500 font-medium">{userName}</span>
                 </div>
-              </div>
+              </Link>
 
               <nav className="space-y-1">
                 {navItems.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = item.href === '/user' ? pathname === '/user' : pathname.startsWith(item.href);
                   return (
                     <Link
                       key={item.href}
@@ -183,7 +205,9 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
               <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-3 rounded flex items-center justify-between text-xs text-zinc-500">
                 <span>Version 3.4.0</span>
-                <Settings className="w-4 h-4 hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-all" />
+                <Link href="/user/settings">
+                  <Settings className="w-4 h-4 hover:text-zinc-950 dark:hover:text-white cursor-pointer transition-all" />
+                </Link>
               </div>
             </div>
           </aside>
@@ -198,7 +222,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       {/* Toast Alert */}
       {toastText && (
         <div className="fixed bottom-6 right-6 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-5 py-3 rounded shadow-2xl flex items-center gap-2 animate-slideIn text-xs">
-          <span className="font-bold text-zinc-600 dark:text-zinc-450">Portal:</span>
+          <span className="font-bold text-zinc-600 dark:text-zinc-450">Workspace:</span>
           <span>{toastText}</span>
         </div>
       )}

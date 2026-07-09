@@ -4,14 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Product } from '../../types';
 import { getProducts, purchaseProduct, addInvoice } from '../../utils/storage';
-import Header from '../../components/Header';
-import { Check, ArrowLeft, Terminal, Shield } from 'lucide-react';
+import Header from '@/components/Header';
+import { Check, ArrowLeft, Terminal, Shield, ExternalLink } from 'lucide-react';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
-  
+
   // Checkout States
   const [showCheckout, setShowCheckout] = useState(false);
   const [phone, setPhone] = useState('');
@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
         setIsSuccess(false);
         setShowCheckout(false);
         localStorage.setItem('apex_user_role', 'customer');
-        router.push('/portal');
+        router.push('/user/products');
       }, 1550);
 
     }, 1500);
@@ -83,7 +83,7 @@ export default function ProductDetailPage() {
     };
     localStorage.setItem('apex_imported_estimate', JSON.stringify(estimateData));
     localStorage.setItem('apex_user_role', 'customer');
-    router.push('/portal');
+    router.push('/user');
   };
 
   return (
@@ -91,7 +91,7 @@ export default function ProductDetailPage() {
       <Header />
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
-        
+
         {/* Back Link */}
         <button
           onClick={() => router.back()}
@@ -102,7 +102,7 @@ export default function ProductDetailPage() {
 
         {/* Core Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
+
           {/* Left Column: Technical Specs & Tabs */}
           <div className="lg:col-span-8 space-y-8">
             <div className="space-y-4">
@@ -135,9 +135,8 @@ export default function ProductDetailPage() {
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id as any)}
-                  className={`pb-2 transition-colors cursor-pointer ${
-                    activeTab === t.id ? 'text-zinc-950 dark:text-white border-b-2 border-zinc-950 dark:border-white font-semibold' : 'hover:text-zinc-800 dark:hover:text-zinc-300'
-                  }`}
+                  className={`pb-2 transition-colors cursor-pointer ${activeTab === t.id ? 'text-zinc-950 dark:text-white border-b-2 border-zinc-950 dark:border-white font-semibold' : 'hover:text-zinc-800 dark:hover:text-zinc-300'
+                    }`}
                 >
                   {t.label}
                 </button>
@@ -220,6 +219,18 @@ export default function ProductDetailPage() {
                 <span className="text-xl font-extrabold text-zinc-950 dark:text-white block">{product.price.toLocaleString()} BDT</span>
               </div>
 
+              {product.demoUrl && (
+                <a
+                  href={product.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:via-indigo-500 hover:to-blue-500 text-white rounded font-bold transition-all duration-300 cursor-pointer text-center flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-xl hover:shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  <span>Live Preview Demo</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+
               <div className="space-y-2 text-xs">
                 <button
                   onClick={() => setShowCheckout(true)}
@@ -235,10 +246,32 @@ export default function ProductDetailPage() {
                 </button>
               </div>
 
-              <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-2 text-[10px] text-zinc-500 font-medium">
+              {/* Purchase Notice */}
+              <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-3 text-[10px] text-zinc-500 font-medium">
+                <div className="bg-zinc-100/50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/80 p-3 rounded space-y-2 font-normal text-zinc-500">
+                  <div className="font-bold text-zinc-900 dark:text-white uppercase tracking-wider text-[8px] flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                    <span>Purchase &amp; Support Info</span>
+                  </div>
+                  <p className="leading-relaxed">
+                    Paying the listed price grants you immediate license ownership and codebase zip access.
+                  </p>
+                  <p className="leading-relaxed">
+                    Every template purchase includes <strong className="text-zinc-900 dark:text-white">6 months of free support and maintenance</strong> covering bugs and version updates.
+                  </p>
+                  <div className="border-t border-zinc-205 dark:border-zinc-800/85 pt-2 mt-1">
+                    <p className="leading-relaxed font-bold text-zinc-800 dark:text-zinc-300">
+                      Need Permanent Support?
+                    </p>
+                    <p className="leading-relaxed mt-0.5">
+                      If you require lifetime support, additional customized features, or a dedicated developer workspace, you can request a <strong className="text-zinc-950 dark:text-white">Custom Deal</strong> for separate estimation.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2">
-                  <Shield className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-400" />
-                  <span>Instant license key dispatch</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Instant dispatch via Client Portal</span>
                 </div>
               </div>
             </div>
@@ -252,10 +285,10 @@ export default function ProductDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded overflow-hidden shadow-2xl relative">
             <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white">✕</button>
-            
+
             <div className="bg-zinc-50 dark:bg-zinc-950 py-3.5 px-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
               <span className="font-bold text-xs text-zinc-900 dark:text-white uppercase tracking-wider">bKash payment gateway</span>
-              <span className="text-[10px] text-zinc-500">ApexDevs Checkout</span>
+              <span className="text-[10px] text-zinc-500">Hossen Shop Checkout</span>
             </div>
 
             {!isSuccess ? (
@@ -320,7 +353,7 @@ export default function ProductDetailPage() {
       )}
 
       <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#09090b] py-8 text-center text-xs text-zinc-500">
-        <p>© 2026 ApexDevs. All rights reserved.</p>
+        <p>© 2026 Hossen Shop. All rights reserved.</p>
       </footer>
     </div>
   );

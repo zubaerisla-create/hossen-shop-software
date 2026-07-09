@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Invoice } from '../types';
+import { Invoice } from '@/app/types';
 import { Download, Printer, ShieldCheck, X } from 'lucide-react';
 
 interface InvoicePrintProps {
@@ -17,7 +17,7 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm print:bg-white print:p-0">
       <div className="bg-white text-zinc-900 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl p-8 relative print:shadow-none print:rounded-none print:w-full print:max-w-none print:p-0">
-        
+
         {/* Controls (hidden in print) */}
         <div className="absolute top-4 right-4 flex items-center gap-2 print:hidden">
           <button
@@ -41,12 +41,12 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
               <div className="bg-violet-600 text-white p-1.5 rounded-lg font-black text-sm tracking-wider uppercase">
                 AGENCY
               </div>
-              <span className="font-extrabold text-lg text-zinc-900 tracking-tight">ApexDevs</span>
+              <span className="font-extrabold text-lg text-zinc-900 tracking-tight">Hossen Shop</span>
             </div>
             <p className="text-[11px] text-zinc-500 leading-normal">
               Road 4, Sector 11, Uttara<br />
               Dhaka 1230, Bangladesh<br />
-              billing@apexdevs.com | +880 1711 000000
+              billing@Hossen Shop.com | +880 1711 000000
             </p>
           </div>
           <div className="text-right">
@@ -74,9 +74,8 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
           <div className="bg-zinc-50 border border-zinc-100 rounded-xl p-4 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
               <span className="text-zinc-500">Payment Status</span>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                invoice.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-              }`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${invoice.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                }`}>
                 {invoice.status}
               </span>
             </div>

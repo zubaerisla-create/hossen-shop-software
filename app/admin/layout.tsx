@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package } from 'lucide-react';
 import { initializeStorage } from '../utils/storage';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,12 +34,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: '/admin', label: 'Agency Analytics', icon: <LayoutDashboard className="w-4 h-4" /> },
     { href: '/admin/products', label: 'Ready Products', icon: <ShoppingCart className="w-4 h-4" /> },
+    { href: '/admin/orders', label: 'Client Orders', icon: <Package className="w-4 h-4" /> },
     { href: '/admin/deals', label: 'Custom Deals', icon: <FolderKanban className="w-4 h-4" /> },
     { href: '/admin/support', label: 'Resolve Tickets', icon: <Wrench className="w-4 h-4" /> },
     { href: '/admin/payments', label: 'bKash Invoices', icon: <Receipt className="w-4 h-4" /> }
   ];
 
-  const activeItem = navItems.find((item) => pathname === item.href) || navItems[0];
+  const activeItem = navItems.find((item) => {
+    if (item.href === '/admin') return pathname === '/admin';
+    return pathname.startsWith(item.href);
+  }) || navItems[0];
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-150 font-sans overflow-hidden transition-colors">
@@ -49,14 +53,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Mobile Dropdown Navigation */}
           <div className="md:hidden bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 p-4 flex flex-col gap-2 relative">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer">
                 <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[9px]">
                   ADMIN
                 </div>
                 <div>
                   <span className="font-extrabold text-xs text-zinc-950 dark:text-white block">Agency Admin</span>
                 </div>
-              </div>
+              </Link>
               <span className="text-[9px] text-zinc-500 font-medium">v3.4.0</span>
             </div>
 
@@ -79,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <div className="fixed inset-0 z-10" onClick={() => setIsMobileNavOpen(false)} />
                   <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded shadow-xl py-1 z-25 text-xs font-semibold">
                     {navItems.map((item) => {
-                      const isActive = pathname === item.href;
+                      const isActive = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
                       return (
                         <Link
                           key={item.href}
@@ -128,7 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Desktop Sidebar */}
           <aside className="hidden md:flex w-64 bg-zinc-50 dark:bg-zinc-900/60 border-r border-zinc-200 dark:border-zinc-900 p-4 space-y-6 flex-col justify-between transition-colors">
             <div className="space-y-4">
-              <div className="flex items-center gap-2.5 px-2">
+              <Link href="/" className="flex items-center gap-2.5 px-2 hover:opacity-85 transition-opacity cursor-pointer">
                 <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[10px]">
                   ADMIN
                 </div>
@@ -136,11 +140,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">Agency Admin</span>
                   <span className="text-[10px] text-zinc-500 font-medium">Control Dashboard</span>
                 </div>
-              </div>
+              </Link>
 
               <nav className="space-y-1">
                 {navItems.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
                   return (
                     <Link
                       key={item.href}

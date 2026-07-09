@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Product } from '../types';
+import { Product } from '@/app/types';
 import { X, ExternalLink, BookOpen, Shield, Download, Check, Star, RefreshCw, Smartphone, CreditCard, Gift, AlertCircle, ShoppingBag } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -220,7 +220,7 @@ export default function ProductDetailModal({
                         href={product.demoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1"
+                        className="bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:via-indigo-500 hover:to-blue-500 text-white px-3.5 py-1.8 rounded-lg font-bold flex items-center gap-1.5 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                       >
                         <ExternalLink className="w-3.5 h-3.5" /> View Demo
                       </a>

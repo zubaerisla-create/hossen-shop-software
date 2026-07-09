@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Invoice } from '../../types';
 import { getInvoices } from '../../utils/storage';
-import InvoicePrint from '../../components/InvoicePrint';
+import InvoicePrint from '@/components/InvoicePrint';
 
 export default function InvoicePage() {
   const params = useParams();
@@ -31,7 +31,7 @@ export default function InvoicePage() {
     <div className="min-h-screen bg-black">
       <InvoicePrint
         invoice={invoice}
-        onClose={() => router.push('/portal')}
+        onClose={() => router.push('/user')}
       />
     </div>
   );

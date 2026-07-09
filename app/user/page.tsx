@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Product, CustomDeal } from '../types';
 import { getProducts, getPurchasedProducts, getDeals } from '../utils/storage';
-import { Download, Laptop, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Download, Laptop, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PortalDashboardPage() {
@@ -19,7 +19,7 @@ export default function PortalDashboardPage() {
   }, []);
 
   const triggerToast = (text: string) => {
-    const event = new CustomEvent('apex-portal-toast', { detail: text });
+    const event = new CustomEvent('apex-user-toast', { detail: text });
     window.dispatchEvent(event);
   };
 
@@ -42,7 +42,7 @@ export default function PortalDashboardPage() {
             <span className="text-2xl font-bold text-zinc-950 dark:text-white block">
               {deals.filter(d => d.status !== 'Delivered' && d.status !== 'Completed' && d.status !== 'Rejected').length}
             </span>
-            <Link href="/portal/deals" className="text-[10px] text-zinc-950 dark:text-white font-bold hover:underline block">View active projects</Link>
+            <Link href="/user/deals" className="text-[10px] text-zinc-950 dark:text-white font-bold hover:underline block">View active projects</Link>
           </div>
 
           <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-5 rounded space-y-3">
@@ -83,7 +83,7 @@ export default function PortalDashboardPage() {
                   </div>
                 </div>
 
-                <Link href="/portal/deals" className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded">
+                <Link href="/user/deals" className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded">
                   Workspace
                 </Link>
               </div>
@@ -112,23 +112,13 @@ export default function PortalDashboardPage() {
                   <p className="text-zinc-500 dark:text-zinc-500 text-[11px] line-clamp-2 leading-relaxed">{prod.description}</p>
                 </div>
 
-                <div className="flex gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-900/60 text-[10px]">
-                  <button
-                    onClick={() => triggerToast(`Source code zip for ${prod.name} download initiated.`)}
+                 <div className="flex gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-900/60 text-[10px]">
+                  <Link
+                    href={`/user/products/${prod.id}`}
                     className="flex-1 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <Download className="w-3.5 h-3.5" /> Download zip
-                  </button>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      triggerToast(`Documentation opened for ${prod.name}`);
-                    }}
-                    className="px-3 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold rounded flex items-center justify-center transition-colors"
-                  >
-                    Docs
-                  </a>
+                    Open Workspace <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
             ))}

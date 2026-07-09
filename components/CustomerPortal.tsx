@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket, Milestone } from '../types';
+import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket, Milestone } from '@/app/types';
 import {
   LayoutDashboard, Download, Laptop, MessageSquare, Receipt,
   Ticket, ArrowRight, ShieldCheck, ChevronRight, CheckCircle2,
@@ -51,7 +51,7 @@ export default function CustomerPortal({
   const router = useRouter();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
-  
+
   // Custom Project Form fields
   const [dealTitle, setDealTitle] = useState('');
   const [dealDesc, setDealDesc] = useState('');
@@ -140,7 +140,7 @@ export default function CustomerPortal({
   const executeMilestonePayment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!payingMilestone) return;
-    
+
     setPaymentStep('success');
     setTimeout(() => {
       onPayMilestone(payingMilestone.dealId, payingMilestone.mil.id, payingMilestone.mil.cost, payingMilestone.mil.title);
@@ -168,7 +168,7 @@ export default function CustomerPortal({
 
   return (
     <div className="flex flex-col md:flex-row flex-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded overflow-hidden shadow-sm min-h-[75vh] transition-colors">
-      
+
       {/* Sidebar Navigation */}
       <aside className="w-full md:w-64 bg-zinc-50 dark:bg-zinc-900/60 border-r border-zinc-200 dark:border-zinc-900 p-4 space-y-6 flex flex-col justify-between transition-colors">
         <div className="space-y-4">
@@ -194,11 +194,10 @@ export default function CustomerPortal({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                  activeTab === tab.id
+                className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-semibold tracking-wide transition-all cursor-pointer ${activeTab === tab.id
                     ? 'bg-zinc-200 dark:bg-zinc-900 text-zinc-950 dark:text-white border border-zinc-300 dark:border-zinc-800'
                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   {tab.icon}
@@ -221,7 +220,7 @@ export default function CustomerPortal({
 
       {/* Main Content Pane */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto max-h-[80vh] bg-white dark:bg-zinc-950 flex flex-col justify-between transition-colors">
-        
+
         {/* Dashboard Overview */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6 animate-fadeIn text-xs">
@@ -347,11 +346,10 @@ export default function CustomerPortal({
                     <button
                       key={d.id}
                       onClick={() => setSelectedDealId(d.id)}
-                      className={`px-3 py-1.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
-                        selectedDealId === d.id
+                      className={`px-3 py-1.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${selectedDealId === d.id
                           ? 'bg-zinc-950 dark:bg-white text-white dark:text-black border-zinc-950'
                           : 'bg-zinc-100 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-500 border-zinc-200 dark:border-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-400'
-                      }`}
+                        }`}
                     >
                       {d.title.slice(0, 15)}...
                     </button>
@@ -362,7 +360,7 @@ export default function CustomerPortal({
 
             {selectedDeal ? (
               <div className="space-y-6">
-                
+
                 {/* Status card */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-4 rounded space-y-1">
@@ -424,7 +422,7 @@ export default function CustomerPortal({
                       <p className="text-zinc-500 text-[10px] max-w-md mx-auto">The agency has reviewed your scope and formulated a pricing and milestone plan. You must review the contract and sign to launch project.</p>
                     </div>
                     <button
-                      onClick={() => router.push(`/portal/contracts/${selectedDeal.id}`)}
+                      onClick={() => router.push(`/user/contracts/${selectedDeal.id}`)}
                       className="px-6 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded font-bold text-xs cursor-pointer transition-colors"
                     >
                       Review & Sign Agreement
@@ -436,7 +434,7 @@ export default function CustomerPortal({
                 {selectedDeal.quotation && selectedDeal.contractSigned && (
                   <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded p-5 space-y-4">
                     <span className="text-xs font-bold text-zinc-950 dark:text-white uppercase tracking-wider block">Project Milestones</span>
-                    
+
                     <div className="space-y-2.5">
                       {selectedDeal.quotation.milestones.map((mil, idx) => {
                         const milestonesList = selectedDeal.quotation?.milestones || [];
@@ -453,13 +451,12 @@ export default function CustomerPortal({
 
                             <div className="flex items-center gap-3">
                               {/* Status Display */}
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${
-                                mil.status === 'Approved'
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${mil.status === 'Approved'
                                   ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
                                   : mil.status === 'Awaiting Approval'
-                                  ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
-                                  : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
-                              }`}>
+                                    ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
+                                    : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
+                                }`}>
                                 {mil.status}
                               </span>
 
@@ -472,7 +469,7 @@ export default function CustomerPortal({
                                   Pay Milestone
                                 </button>
                               )}
-                              
+
                               {mil.status === 'Pending' && idx === milestonesList.findIndex(m => m.status === 'Pending') && !milestonesList.some(m => m.status === 'Awaiting Approval') && (
                                 <span className="text-[10px] text-zinc-500 italic">Work in progress...</span>
                               )}
@@ -541,7 +538,7 @@ export default function CustomerPortal({
                 {/* Submit Requirement Form */}
                 <form onSubmit={handleSubmitDeal} className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded p-6 space-y-4">
                   <h3 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider">Submit Project Requirements</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-zinc-500 text-[10px] uppercase font-bold mb-1.5">Project Title</label>
@@ -670,16 +667,15 @@ export default function CustomerPortal({
                   const isAdmin = msg.sender === 'admin';
                   return (
                     <div key={msg.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
-                      <div className={`max-w-md rounded p-4 space-y-2 border shadow-sm ${
-                        isAdmin
+                      <div className={`max-w-md rounded p-4 space-y-2 border shadow-sm ${isAdmin
                           ? 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-tl-none'
                           : 'bg-zinc-950 dark:bg-white border-zinc-900 dark:border-zinc-100 text-white dark:text-black rounded-tr-none'
-                      }`}>
+                        }`}>
                         <div className="flex justify-between items-center text-[9px] text-zinc-500 border-b border-zinc-200 dark:border-zinc-800/40 pb-1">
-                          <span className="font-bold uppercase tracking-wider">{isAdmin ? 'ApexDevs Admin' : 'John Doe (Client)'}</span>
+                          <span className="font-bold uppercase tracking-wider">{isAdmin ? 'Hossen Shop Admin' : 'John Doe (Client)'}</span>
                           <span>{msg.timestamp}</span>
                         </div>
-                        
+
                         <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
 
                         {/* File Attachment */}
@@ -778,9 +774,8 @@ export default function CustomerPortal({
                         <td className="p-4">{inv.date}</td>
                         <td className="p-4 font-semibold text-zinc-950 dark:text-white">{inv.total.toLocaleString()} BDT</td>
                         <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${
-                            inv.status === 'Paid' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${inv.status === 'Paid' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                            }`}>
                             {inv.status}
                           </span>
                         </td>
@@ -816,32 +811,30 @@ export default function CustomerPortal({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-              
+
               {/* Ticket list */}
               <div className="space-y-4 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-5 rounded">
                 <span className="text-xs font-bold text-zinc-950 dark:text-white uppercase tracking-wider block">Active Tickets</span>
-                
+
                 {tickets.length > 0 ? (
                   <div className="space-y-3.5">
                     {tickets.map((tkt) => (
                       <div
                         key={tkt.id}
                         onClick={() => setSelectedTicketId(tkt.id)}
-                        className={`border rounded p-4 cursor-pointer transition-colors ${
-                          selectedTicketId === tkt.id
+                        className={`border rounded p-4 cursor-pointer transition-colors ${selectedTicketId === tkt.id
                             ? 'bg-white dark:bg-zinc-950 border-zinc-400 dark:border-zinc-700'
                             : 'bg-white/40 dark:bg-zinc-950/40 border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-800'
-                        }`}
+                          }`}
                       >
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-zinc-950 dark:text-white">{tkt.subject}</span>
-                          <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-                            tkt.status === 'Open'
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${tkt.status === 'Open'
                               ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                               : tkt.status === 'In Progress'
-                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
-                              : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
-                          }`}>
+                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
+                                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'
+                            }`}>
                             {tkt.status}
                           </span>
                         </div>
@@ -883,7 +876,7 @@ export default function CustomerPortal({
               {/* Create Ticket Form */}
               <form onSubmit={handleCreateTicket} className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-6 rounded space-y-4">
                 <span className="text-xs font-bold text-zinc-950 dark:text-white uppercase tracking-wider block">Open a New Support Ticket</span>
-                
+
                 <div className="space-y-3">
                   <div>
                     <label className="block text-zinc-500 text-[10px] uppercase font-bold mb-1.5">Subject</label>
@@ -956,7 +949,7 @@ export default function CustomerPortal({
       {payingMilestone && (
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-pink-600 text-white w-full max-w-sm rounded-lg overflow-hidden shadow-2xl relative flex flex-col items-center">
-            
+
             {/* Header logo */}
             <div className="w-full bg-pink-700 py-3.5 px-6 flex justify-between items-center border-b border-pink-850">
               <span className="font-extrabold tracking-wide uppercase text-xs">bKash Checkout</span>

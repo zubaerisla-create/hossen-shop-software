@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { CustomDeal, ChatMessage } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
-import ESignature from '../../../components/ESignature';
+import ESignature from '@/components/ESignature';
 
 export default function ContractPage() {
   const params = useParams();
@@ -64,7 +64,7 @@ export default function ContractPage() {
     };
     saveChats(updatedChats);
 
-    router.push('/portal');
+    router.push('/user');
   };
 
   return (
@@ -73,7 +73,7 @@ export default function ContractPage() {
         dealTitle={deal.title}
         totalCost={deal.quotation.totalCost}
         onSign={handleSign}
-        onCancel={() => router.push('/portal')}
+        onCancel={() => router.push('/user')}
       />
     </div>
   );

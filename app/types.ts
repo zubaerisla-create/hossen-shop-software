@@ -36,6 +36,8 @@ export interface Product {
   description: string;
   salesCount: number;
   rating: number;
+  githubUrl?: string;
+  zipUrl?: string;
 }
 
 export interface Milestone {
@@ -47,6 +49,8 @@ export interface Milestone {
   status: 'Pending' | 'In Progress' | 'Awaiting Approval' | 'Approved';
   paymentStatus: 'Unpaid' | 'Paid';
   dueDate: string;
+  progress?: number; // Progress of this specific phase (0 to 100)
+  deliverables?: FileAttachment[]; // Submitted files / documents for this phase
 }
 
 export interface ProjectTask {

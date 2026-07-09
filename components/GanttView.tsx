@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Milestone } from '../types';
+import { Milestone } from '@/app/types';
 import { Calendar, CheckCircle2, Clock, Play, HelpCircle } from 'lucide-react';
 
 interface GanttViewProps {

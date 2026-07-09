@@ -65,9 +65,9 @@ export default function AuthModal({
       triggerAuthChangeEvent();
       if (isModal) {
         onClose();
-        router.push('/portal');
+        router.push('/user');
       } else {
-        router.push('/portal');
+        router.push('/user');
       }
     }, 800);
   };
@@ -109,13 +109,13 @@ export default function AuthModal({
         setTimeout(() => {
           if (isModal) {
             onClose();
-            router.push('/portal');
+            router.push('/user');
           } else {
-            router.push('/portal');
+            router.push('/user');
           }
         }, 1000);
       } else {
-        if (email.toLowerCase() === 'admin@apexdevs.com') {
+        if (email.toLowerCase() === 'admin@Hossen Shop.com') {
           localStorage.setItem('apex_user_role', 'admin');
           localStorage.setItem('apex_user_email', email);
           triggerAuthChangeEvent();
@@ -131,9 +131,9 @@ export default function AuthModal({
           triggerAuthChangeEvent();
           if (isModal) {
             onClose();
-            router.push('/portal');
+            router.push('/user');
           } else {
-            router.push('/portal');
+            router.push('/user');
           }
         }
       }
@@ -142,10 +142,10 @@ export default function AuthModal({
 
   const modalContent = (
     <div className={`relative w-full overflow-hidden bg-white dark:bg-zinc-950 md:grid md:grid-cols-12 ${isModal ? 'rounded-2xl shadow-2xl max-w-[840px] border border-zinc-200 dark:border-zinc-800' : 'rounded-2xl shadow-xl'}`}>
-      
+
       {/* Close button - visible only in modal view */}
       {isModal && (
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-4 top-4 z-50 p-1.5 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition-colors cursor-pointer"
         >
@@ -187,9 +187,9 @@ export default function AuthModal({
 
         {/* Worker Image at desk */}
         <div className="relative mt-auto w-full pt-4 z-10 flex justify-center">
-          <img 
-            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" 
-            alt="Professional at work" 
+          <img
+            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
+            alt="Professional at work"
             className="w-full max-w-[200px] aspect-[4/3] object-cover rounded-lg border border-white/10 shadow-lg"
           />
         </div>
@@ -205,7 +205,7 @@ export default function AuthModal({
             </h2>
             <p className="text-xs text-zinc-500">
               {mode === 'signup' ? 'Already have an account? ' : 'Don\'t have an account? '}
-              <button 
+              <button
                 onClick={handleModeSwitch}
                 className="font-bold text-[#6A2D3D] dark:text-[#a05a6e] hover:underline cursor-pointer"
               >
@@ -230,21 +230,21 @@ export default function AuthModal({
           {!showEmailForm ? (
             <div className="space-y-3">
               {/* Google Button */}
-              <button 
+              <button
                 onClick={() => handleSocialLogin('Google')}
                 className="w-full flex items-center justify-center gap-3 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 px-4 py-2.5 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
                 <span>Continue with Google</span>
               </button>
 
               {/* Apple Button */}
-              <button 
+              <button
                 onClick={() => handleSocialLogin('Apple')}
                 className="w-full flex items-center justify-center gap-3 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 px-4 py-2.5 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
               >
@@ -253,19 +253,19 @@ export default function AuthModal({
               </button>
 
               {/* Facebook Button */}
-              <button 
+              <button
                 onClick={() => handleSocialLogin('Facebook')}
                 className="w-full flex items-center justify-center gap-3 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 px-4 py-2.5 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4 text-[#1877F2] fill-current" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
                 <span>Continue with Facebook</span>
               </button>
 
               {/* Toggle to Email Form */}
               <div className="text-center pt-3">
-                <button 
+                <button
                   onClick={() => setShowEmailForm(true)}
                   className="text-xs font-bold text-zinc-500 hover:text-zinc-800 dark:hover:text-white underline cursor-pointer"
                 >
@@ -372,7 +372,7 @@ export default function AuthModal({
         <div className="text-[9px] text-zinc-400 dark:text-zinc-500 leading-relaxed pt-6 border-t border-zinc-100 dark:border-zinc-900/60 mt-4">
           <p className="text-center mb-1">Additional verification may be required at a later stage</p>
           <p className="text-left">
-            By joining, you agree to the ApexDevs <a href="#" className="underline font-bold hover:text-zinc-700">Terms of Service</a> and to occasionally receive emails from us. Please read our <a href="#" className="underline font-bold hover:text-zinc-700">Privacy Policy</a> to learn how we use your personal data.
+            By joining, you agree to the Hossen Shop <a href="#" className="underline font-bold hover:text-zinc-700">Terms of Service</a> and to occasionally receive emails from us. Please read our <a href="#" className="underline font-bold hover:text-zinc-700">Privacy Policy</a> to learn how we use your personal data.
           </p>
         </div>
 

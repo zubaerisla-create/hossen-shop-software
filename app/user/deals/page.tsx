@@ -6,7 +6,7 @@ import { getDeals, saveDeals, getChats, saveChats } from '../../utils/storage';
 import { useRouter } from 'next/navigation';
 import { UploadCloud } from 'lucide-react';
 
-export default function PortalDealsPage() {
+export default function UserDealsPage() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -40,7 +40,7 @@ export default function PortalDealsPage() {
   }, []);
 
   const triggerToast = (text: string) => {
-    const event = new CustomEvent('apex-portal-toast', { detail: text });
+    const event = new CustomEvent('apex-user-toast', { detail: text });
     window.dispatchEvent(event);
   };
 
@@ -92,7 +92,7 @@ export default function PortalDealsPage() {
     setShowRequestForm(false);
 
     triggerToast('Requirements submitted! Workspace is now active.');
-    router.push(`/portal/deals/${newDealId}`);
+    router.push(`/user/deals/${newDealId}`);
   };
 
   return (
@@ -121,7 +121,7 @@ export default function PortalDealsPage() {
 
         <div className="p-6 md:p-8 space-y-6 flex-1">
           {showRequestForm ? (
-            <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-6 rounded space-y-4 max-w-2xl mx-auto">
+            <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-6 rounded space-y-4 w-full">
               <div className="border-b border-zinc-200 dark:border-zinc-800 pb-2">
                 <h3 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider">Start A Custom Project</h3>
                 <p className="text-zinc-500 text-[10px]">Fill the form to get a detailed quotation from our engineers.</p>
@@ -294,7 +294,7 @@ export default function PortalDealsPage() {
                         </td>
                         <td className="p-4 text-right">
                           <button
-                            onClick={() => router.push(`/portal/deals/${d.id}`)}
+                            onClick={() => router.push(`/user/deals/${d.id}`)}
                             className="bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black px-3 py-1.5 rounded font-bold text-[10px] transition-colors cursor-pointer"
                           >
                             View Details

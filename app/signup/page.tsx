@@ -3,7 +3,7 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import AuthModal from '../components/AuthModal';
+import AuthModal from '@/components/AuthModal';
 
 export default function SignupPage() {
   return (

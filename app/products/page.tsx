@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Header from '../components/Header';
+import Header from '@/components/Header';
 import { Product } from '../types';
 import { getProducts, initializeStorage } from '../utils/storage';
 import { Search, ArrowRight, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen } from 'lucide-react';
@@ -12,8 +12,8 @@ export default function AllProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'All' | 'SaaS' | 'Full Website' | 'Mobile App' | 'UI/UX' | 'AI Project'>('All');
-  
+  const [activeCategory, setActiveCategory] = useState<'All' | Product['category']>('All');
+
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -27,12 +27,12 @@ export default function AllProductsPage() {
   const filteredProducts = products.filter((prod) => {
     const matchesCategory = activeCategory === 'All' || prod.category === activeCategory;
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       prod.name.toLowerCase().includes(searchLower) ||
       prod.description.toLowerCase().includes(searchLower) ||
       prod.technologies.some((t) => t.toLowerCase().includes(searchLower)) ||
       prod.category.toLowerCase().includes(searchLower);
-    
+
     return matchesCategory && matchesSearch;
   });
 
@@ -53,7 +53,7 @@ export default function AllProductsPage() {
       <Header />
 
       <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 md:px-6 py-10 space-y-8">
-        
+
         {/* Breadcrumb & Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 uppercase font-bold tracking-wider">
@@ -85,15 +85,14 @@ export default function AllProductsPage() {
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>Filter:</span>
             </div>
-            {(['All', 'SaaS', 'Full Website', 'Mobile App', 'UI/UX', 'AI Project'] as const).map((cat) => (
+            {(['All', 'SaaS', 'Full Website', 'Website Template', 'Mobile App', 'Source Code', 'UI/UX', 'AI Project'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
-                  activeCategory === cat
+                className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${activeCategory === cat
                     ? 'bg-zinc-950 dark:bg-white text-white dark:text-black'
                     : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white border border-zinc-200 dark:border-zinc-800'
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -195,7 +194,7 @@ export default function AllProductsPage() {
       </main>
 
       <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-950/40 py-8 text-center text-xs text-zinc-500">
-        <p>© 2026 ApexDevs Hybrid Marketplace & Software Engineering Firm. Uttara Sector 11 Dhaka BD.</p>
+        <p>© 2026 Hossen Shop Hybrid Marketplace & Software Engineering Firm. Uttara Sector 11 Dhaka BD.</p>
       </footer>
     </div>
   );

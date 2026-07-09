@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { SupportTicket } from '../../types';
 import { getTickets, replyToTicket } from '../../utils/storage';
+import { Send, FileText } from 'lucide-react';
 
 export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -90,46 +91,106 @@ export default function AdminSupportPage() {
         </div>
 
         {/* Chat replying stream */}
-        <div className="lg:col-span-7 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-5 rounded space-y-4">
+        <div className="lg:col-span-7 bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between h-[520px] overflow-hidden">
           {selectedTicket ? (
-            <div className="space-y-4">
-              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3 flex justify-between items-center">
+            <div className="flex flex-col h-full justify-between">
+              {/* Header */}
+              <div className="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-200 dark:border-zinc-900 px-5 py-4 flex justify-between items-center">
                 <div>
-                  <span className="font-bold text-zinc-950 dark:text-white text-sm block">{selectedTicket.subject}</span>
-                  <span className="text-[10px] text-zinc-500">Category: {selectedTicket.category} | Priority: {selectedTicket.priority}</span>
+                  <span className="font-bold text-zinc-955 dark:text-white text-xs block truncate">{selectedTicket.subject}</span>
+                  <span className="text-[9px] text-zinc-400 font-mono block">Category: {selectedTicket.category} | Priority: {selectedTicket.priority}</span>
                 </div>
-                {selectedTicket.status !== 'Resolved' && (
-                  <button
-                    onClick={() => closeTicket(selectedTicket.id)}
-                    className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-3 py-1 rounded text-[10px] font-bold cursor-pointer hover:border-zinc-400 transition-colors"
-                  >
-                    Close Ticket
-                  </button>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold uppercase shrink-0 ${
+                    selectedTicket.status === 'Open' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-450' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-550'
+                  }`}>{selectedTicket.status}</span>
+                  {selectedTicket.status !== 'Resolved' && (
+                    <button
+                      onClick={() => closeTicket(selectedTicket.id)}
+                      className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 text-zinc-700 dark:text-zinc-300 px-2.5 py-1 rounded text-[9px] font-bold cursor-pointer transition-colors"
+                    >
+                      Close Ticket
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Chat message logs */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 pr-3 scrollbar-thin bg-white dark:bg-zinc-955/20">
+                {selectedTicket.messages.map((m, idx) => {
+                  const isAdmin = m.sender === 'admin';
+                  return (
+                    <div key={idx} className={`flex gap-3 items-start ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
+                      {/* Avatar */}
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase shadow-sm border transition-all ${
+                        isAdmin 
+                          ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:border-zinc-200 dark:text-zinc-900' 
+                          : 'bg-zinc-100 border-zinc-200 text-zinc-700 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
+                      }`}>
+                        {isAdmin ? 'S' : 'C'}
+                      </div>
+
+                      <div className={`space-y-1 max-w-[78%] flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}>
+                        <div className="flex items-center gap-1.5 px-1">
+                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">
+                            {isAdmin ? 'You (Support Specialist)' : 'Client'}
+                          </span>
+                          <span className="text-[8px] text-zinc-400 font-mono">• {m.timestamp}</span>
+                        </div>
+
+                        <div className={`rounded-2xl px-4 py-3 text-[11px] leading-relaxed shadow-sm border transition-all ${
+                          isAdmin
+                            ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:border-zinc-200 rounded-tr-none'
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-805 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
+                        }`}>
+                          <p className="whitespace-pre-wrap font-sans">{m.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Compose Form */}
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 border-t border-zinc-200 dark:border-zinc-900">
+                {selectedTicket.status !== 'Resolved' ? (
+                  <form onSubmit={handleTicketReplySubmit} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm overflow-hidden focus-within:border-zinc-450 dark:focus-within:border-zinc-700 transition-colors flex flex-col">
+                    <textarea
+                      rows={2}
+                      placeholder="Type response, troubleshooting suggestions or solutions..."
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleTicketReplySubmit(e as any);
+                        }
+                      }}
+                      className="w-full bg-transparent border-0 text-zinc-900 dark:text-white placeholder-zinc-400 p-3 text-xs focus:ring-0 focus:outline-none resize-none"
+                    />
+                    
+                    {/* Action bar */}
+                    <div className="bg-zinc-50/50 dark:bg-zinc-900/30 px-3 py-2 border-t border-zinc-100 dark:border-zinc-900 flex justify-end">
+                      <button 
+                        type="submit" 
+                        className="bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black px-4 py-1.5 rounded-md font-bold flex items-center gap-1 text-[9px] uppercase tracking-wide cursor-pointer transition-colors shadow-xs"
+                      >
+                        Send Solution <Send className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="text-center py-2 text-zinc-400 text-[10px]">
+                    🔒 This ticket is resolved & closed.
+                  </div>
                 )}
               </div>
-
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-3 rounded max-h-48 overflow-y-auto space-y-2">
-                {selectedTicket.messages.map((m, idx) => (
-                  <div key={idx} className={`p-2 rounded text-[10px] ${m.sender === 'admin' ? 'bg-zinc-950 dark:bg-zinc-800 text-white dark:text-zinc-200' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}>
-                    <span className="block text-[8px] font-bold uppercase text-zinc-500">{m.sender === 'admin' ? 'You (Support Rep)' : 'Client'}</span>
-                    <p>{m.content}</p>
-                  </div>
-                ))}
-              </div>
-
-              <form onSubmit={handleTicketReplySubmit} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Type solution or connection answers..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none"
-                />
-                <button type="submit" className="bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black px-4 rounded font-bold cursor-pointer transition-colors">Send</button>
-              </form>
             </div>
           ) : (
-            <p className="text-zinc-500 text-center py-6">Select a ticket from the left panel to reply.</p>
+            <div className="flex flex-col items-center justify-center h-full text-zinc-400 space-y-2 p-6">
+              <span className="text-xl">🎟️</span>
+              <p className="text-[10px] text-center">Select a query ticket from the list to respond.</p>
+            </div>
           )}
         </div>
 
