@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Download, Laptop, Receipt, Ticket, Settings, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
-import { initializeStorage } from '../utils/storage';
+import { initializeStorage, syncWithBackend } from '../utils/storage';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   const [toastText, setToastText] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [userName, setUserName] = useState('John Doe (Demo)');
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -19,11 +20,16 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     initializeStorage();
+    syncWithBackend();
     localStorage.setItem('apex_user_role', 'customer');
 
     const storedName = localStorage.getItem('apex_user_name');
     if (storedName) {
       setUserName(storedName);
+    }
+    const storedAvatar = localStorage.getItem('apex_user_avatar');
+    if (storedAvatar) {
+      setUserAvatar(storedAvatar);
     }
 
     // Toast event subscriber
@@ -38,6 +44,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       if (storedName) {
         setUserName(storedName);
       }
+      const storedAvatar = localStorage.getItem('apex_user_avatar');
+      setUserAvatar(storedAvatar || null);
     };
 
     window.addEventListener('apex-user-toast', handleToast);
@@ -150,12 +158,18 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
           <aside className="hidden md:flex w-64 bg-zinc-50 dark:bg-zinc-900/60 border-r border-zinc-200 dark:border-zinc-900 p-4 space-y-6 flex-col justify-between transition-colors">
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2.5 px-2 hover:opacity-85 transition-opacity cursor-pointer">
-                <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[10px]">
-                  USER
-                </div>
-                <div>
-                  <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">Client Workspace</span>
-                  <span className="text-[10px] text-zinc-500 font-medium">{userName}</span>
+                {userAvatar ? (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+                    <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="bg-zinc-950 dark:bg-white px-2 py-0.5 rounded text-white dark:text-black font-extrabold text-[10px] flex-shrink-0">
+                    USER
+                  </div>
+                )}
+                <div className="overflow-hidden">
+                  <span className="font-extrabold text-xs text-zinc-950 dark:text-white block truncate">Client Workspace</span>
+                  <span className="text-[10px] text-zinc-500 font-medium truncate block">{userName}</span>
                 </div>
               </Link>
 

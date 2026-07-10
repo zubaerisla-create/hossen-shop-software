@@ -44,55 +44,63 @@ export default function UserDealsPage() {
     window.dispatchEvent(event);
   };
 
-  const handleSubmitDeal = (e: React.FormEvent) => {
+  const handleSubmitDeal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!dealTitle || !dealDesc) return;
 
-    const newDealId = `deal-${Math.floor(Math.random() * 900) + 100}`;
-    const newDeal: CustomDeal = {
-      id: newDealId,
-      title: dealTitle,
-      description: dealDesc,
-      projectType: dealType,
-      budget: dealBudget,
-      deadline: dealDeadline,
-      technology: dealTech,
-      priority: dealPriority,
-      status: 'New',
-      uploadedFiles: [],
-      overallProgress: 0,
-      contractSigned: false,
-      unreadAdmin: true,
-      unreadPortal: false
-    };
+    if (dealDesc.length < 10) {
+      triggerToast('Description must be at least 10 characters.');
+      return;
+    }
 
-    const updatedDeals = [...deals, newDeal];
-    saveDeals(updatedDeals);
-    setDeals(updatedDeals);
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication required. Please log in.');
+      return;
+    }
 
-    // Initial message
-    const welcomeMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'admin',
-      content: `Hello! Welcome to your project workspace. Our engineering team is reviewing your requirements for "${dealTitle}". We will start discussion shortly.`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    try {
+      const response = await fetch('http://localhost:5000/api/deals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: dealTitle,
+          description: dealDesc,
+          projectType: dealType,
+          budget: dealBudget,
+          deadline: dealDeadline,
+          technology: dealTech,
+          priority: dealPriority
+        })
+      });
 
-    const updatedChats = {
-      ...chatMessages,
-      [newDealId]: [welcomeMsg]
-    };
-    saveChats(updatedChats);
-    setChatMessages(updatedChats);
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || 'Failed to submit requirements.');
+      }
 
-    // Reset inputs
-    setDealTitle('');
-    setDealDesc('');
-    setDealTech('');
-    setShowRequestForm(false);
+      const createdDeal = resData.data.deal;
 
-    triggerToast('Requirements submitted! Workspace is now active.');
-    router.push(`/user/deals/${newDealId}`);
+      // Update local state with the deal generated from the database
+      const updatedDeals = [...deals, createdDeal];
+      saveDeals(updatedDeals);
+      setDeals(updatedDeals);
+
+      // Reset inputs
+      setDealTitle('');
+      setDealDesc('');
+      setDealTech('');
+      setShowRequestForm(false);
+
+      triggerToast('Requirements submitted! Workspace is now active.');
+      router.push(`/user/deals/${createdDeal.id}`);
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err.message || 'Failed to submit requirements.');
+    }
   };
 
   return (

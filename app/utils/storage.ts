@@ -165,3 +165,69 @@ export function replyToTicket(ticketId: string, reply: { sender: 'customer' | 'a
   });
   saveTickets(updated);
 }
+
+export async function syncWithBackend() {
+  if (typeof window === 'undefined') return;
+  const token = localStorage.getItem('apex_user_token');
+  if (!token) return;
+
+  try {
+    // 1. Fetch Products
+    const productsRes = await fetch('http://localhost:5000/api/products');
+    if (productsRes.ok) {
+      const data = await productsRes.json();
+      if (data.data?.products) {
+        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(data.data.products));
+      }
+    }
+
+    // 2. Fetch Deals
+    const dealsRes = await fetch('http://localhost:5000/api/deals', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (dealsRes.ok) {
+      const data = await dealsRes.json();
+      if (data.data?.deals) {
+        localStorage.setItem(DEALS_KEY, JSON.stringify(data.data.deals));
+      }
+    }
+
+    // 3. Fetch Invoices
+    const invoicesRes = await fetch('http://localhost:5000/api/invoices', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (invoicesRes.ok) {
+      const data = await invoicesRes.json();
+      if (data.data?.invoices) {
+        localStorage.setItem(INVOICES_KEY, JSON.stringify(data.data.invoices));
+      }
+    }
+
+    // 4. Fetch Support Tickets
+    const ticketsRes = await fetch('http://localhost:5000/api/tickets', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (ticketsRes.ok) {
+      const data = await ticketsRes.json();
+      if (data.data?.tickets) {
+        localStorage.setItem(TICKETS_KEY, JSON.stringify(data.data.tickets));
+      }
+    }
+
+    // 5. Update Purchased templates (Paid ready-product invoices)
+    const storedInvoices = localStorage.getItem(INVOICES_KEY);
+    if (storedInvoices) {
+      const invoices = JSON.parse(storedInvoices) as Invoice[];
+      const purchasedIds = invoices
+        .filter(inv => inv.status === 'Paid' && inv.type === 'ready_product' && inv.productId)
+        .map(inv => inv.productId as string);
+      
+      const currentPurchased = JSON.parse(localStorage.getItem(PURCHASED_KEY) || '[]');
+      const merged = Array.from(new Set([...currentPurchased, ...purchasedIds]));
+      localStorage.setItem(PURCHASED_KEY, JSON.stringify(merged));
+    }
+
+  } catch (err) {
+    console.error('Failed to sync state with backend:', err);
+  }
+}

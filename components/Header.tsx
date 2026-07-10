@@ -12,6 +12,8 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [role, setRole] = useState<'visitor' | 'customer' | 'admin'>('visitor');
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -42,6 +44,8 @@ export default function Header() {
     const handleAuthChange = () => {
       const storedRole = localStorage.getItem('apex_user_role') as any;
       setRole(storedRole || 'visitor');
+      setAvatar(localStorage.getItem('apex_user_avatar'));
+      setEmail(localStorage.getItem('apex_user_email'));
     };
 
     handleAuthChange();
@@ -65,7 +69,12 @@ export default function Header() {
   const handleSignOut = () => {
     localStorage.removeItem('apex_user_role');
     localStorage.removeItem('apex_user_email');
+    localStorage.removeItem('apex_user_avatar');
+    localStorage.removeItem('apex_user_name');
+    localStorage.removeItem('apex_user_token');
     setRole('visitor');
+    setAvatar(null);
+    setEmail(null);
     setIsMobileMenuOpen(false);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('auth-change'));
@@ -550,10 +559,14 @@ export default function Header() {
               <div className="hidden sm:block relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="avatar-btn"
+                  className="avatar-btn overflow-hidden p-0 flex items-center justify-center"
                   title="Account"
                 >
-                  <User className="w-4 h-4 text-[#6A2D3D]" />
+                  {avatar ? (
+                    <img src={avatar} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <User className="w-4 h-4 text-[#6A2D3D]" />
+                  )}
                   <span
                     className="pulse-dot absolute top-0 right-0 w-2 h-2 rounded-full bg-emerald-400 border-2 border-white dark:border-[#09090b]"
                     title="Online"
@@ -570,12 +583,18 @@ export default function Header() {
                       {/* Header */}
                       <div className="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
                         <div className="flex items-center gap-2.5 mb-1">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6A2D3D] to-[#8B3A50] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                            {(localStorage.getItem('apex_user_email') || 'U')[0].toUpperCase()}
-                          </div>
+                          {avatar ? (
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                              <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6A2D3D] to-[#8B3A50] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                              {(email || 'U')[0].toUpperCase()}
+                            </div>
+                          )}
                           <div className="overflow-hidden">
                             <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                              {localStorage.getItem('apex_user_email') || 'user@example.com'}
+                              {email || 'user@example.com'}
                             </p>
                             <p className="text-[9px] text-zinc-400 font-medium capitalize mt-0.5">
                               {role === 'admin' ? '⚡ Agency Admin' : '👤 Client Workspace'}
@@ -689,12 +708,18 @@ export default function Header() {
                 <div className="flex flex-col gap-2">
                   {/* User info */}
                   <div className="flex items-center gap-3 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6A2D3D] to-[#8B3A50] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {(localStorage.getItem('apex_user_email') || 'U')[0].toUpperCase()}
-                    </div>
+                    {avatar ? (
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                        <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6A2D3D] to-[#8B3A50] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {(email || 'U')[0].toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                        {localStorage.getItem('apex_user_email') || 'user@example.com'}
+                        {email || 'user@example.com'}
                       </p>
                       <p className="text-[9px] text-zinc-400">{role === 'admin' ? 'Agency Admin' : 'Client'}</p>
                     </div>

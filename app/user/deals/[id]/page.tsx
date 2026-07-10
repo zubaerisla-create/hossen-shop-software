@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CustomDeal, ChatMessage } from '../../../types';
+import { io } from 'socket.io-client';
+import { FileText, Paperclip, Send } from 'lucide-react';
+import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
-import {
-  Paperclip, Send, FileText
-} from 'lucide-react';
 
 export default function UserDealDetailWorkspace() {
   const params = useParams();
@@ -16,6 +15,7 @@ export default function UserDealDetailWorkspace() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
   const [chatInput, setChatInput] = useState('');
+  const [loading, setLoading] = useState(true);
 
   // Payment Sim modal state
   const [payingMilestone, setPayingMilestone] = useState<{ milId: string; mil: any } | null>(null);
@@ -25,50 +25,115 @@ export default function UserDealDetailWorkspace() {
   const [viewingDeliverablesMilestone, setViewingDeliverablesMilestone] = useState<any | null>(null);
 
   useEffect(() => {
-    let loadedDeals = getDeals();
-    let modified = false;
+    const initializeDeal = async () => {
+      let loadedDeals = getDeals();
+      let modified = false;
 
-    // Ensure mock data for deal-101 contains deliverables for verification demo
-    loadedDeals = loadedDeals.map(d => {
-      if (d.id === 'deal-101' && d.quotation) {
-        const hasM1Deliverables = d.quotation.milestones.some(m => m.id === 'm1' && m.deliverables && m.deliverables.length > 0);
-        if (!hasM1Deliverables) {
-          modified = true;
-          return {
-            ...d,
-            quotation: {
-              ...d.quotation,
-              milestones: d.quotation.milestones.map(m => {
-                if (m.id === 'm1') {
-                  return {
-                    ...m,
-                    progress: 100,
-                    deliverables: [
-                      { name: 'Figma_Branding_Prototypes.pdf', size: '4.8 MB', url: 'https://figma.com/file/mock-hospital-layout', type: 'pdf' },
-                      { name: 'Wireframes_Specification_PRD.pdf', size: '1.5 MB', url: 'https://drive.google.com/mock-prd.pdf', type: 'pdf' }
-                    ]
-                  };
-                }
-                return m;
-              })
+      // Ensure mock data for deal-101 contains deliverables for verification demo
+      loadedDeals = loadedDeals.map(d => {
+        if (d.id === 'deal-101' && d.quotation) {
+          const hasM1Deliverables = d.quotation.milestones.some(m => m.id === 'm1' && m.deliverables && m.deliverables.length > 0);
+          if (!hasM1Deliverables) {
+            modified = true;
+            return {
+              ...d,
+              quotation: {
+                ...d.quotation,
+                milestones: d.quotation.milestones.map(m => {
+                  if (m.id === 'm1') {
+                    return {
+                      ...m,
+                      progress: 100,
+                      deliverables: [
+                        { name: 'Figma_Branding_Prototypes.pdf', size: '4.8 MB', url: 'https://figma.com/file/mock-hospital-layout', type: 'pdf' },
+                        { name: 'Wireframes_Specification_PRD.pdf', size: '1.5 MB', url: 'https://drive.google.com/mock-prd.pdf', type: 'pdf' }
+                      ]
+                    };
+                  }
+                  return m;
+                })
+              }
+            };
+          }
+        }
+        return d;
+      });
+
+      if (modified) {
+        saveDeals(loadedDeals);
+      }
+
+      // If deal doesn't exist in local storage, query the backend
+      let dealExists = loadedDeals.some(d => d.id === dealId);
+      if (!dealExists) {
+        const token = localStorage.getItem('apex_user_token');
+        if (token) {
+          try {
+            const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const resData = await response.json();
+            if (response.ok && resData.data?.deal) {
+              loadedDeals.push(resData.data.deal);
+              saveDeals(loadedDeals);
             }
-          };
+          } catch (err) {
+            console.error('Failed to load deal from database:', err);
+          }
         }
       }
-      return d;
+
+      setDeals(loadedDeals);
+      setChatMessages(getChats());
+
+      // Mark as read when client opens it
+      const updated = loadedDeals.map(d => d.id === dealId ? { ...d, unreadPortal: false } : d);
+      saveDeals(updated);
+      setDeals(updated);
+      setLoading(false);
+
+      // Fetch messages from database
+      const fetchMessages = async () => {
+        const token = localStorage.getItem('apex_user_token');
+        if (!token) return;
+        try {
+          const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const resData = await response.json();
+          if (response.ok && resData.data?.messages) {
+            setChatMessages(prev => ({
+              ...prev,
+              [dealId]: resData.data.messages
+            }));
+          }
+        } catch (err) {
+          console.error('Failed to load chat history:', err);
+        }
+      };
+      fetchMessages();
+    };
+
+    initializeDeal();
+
+    // WebSocket real-time connection
+    const socket = io('http://localhost:5000');
+    socket.emit('join_deal', dealId);
+
+    socket.on('new_deal_message', (msg: ChatMessage) => {
+      setChatMessages(prev => {
+        const thread = prev[dealId] || [];
+        if (thread.some(m => m.id === msg.id)) return prev;
+        return {
+          ...prev,
+          [dealId]: [...thread, msg]
+        };
+      });
     });
 
-    if (modified) {
-      saveDeals(loadedDeals);
-    }
-
-    setDeals(loadedDeals);
-    setChatMessages(getChats());
-
-    // Mark as read when client opens it
-    const updated = loadedDeals.map(d => d.id === dealId ? { ...d, unreadPortal: false } : d);
-    saveDeals(updated);
-    setDeals(updated);
+    return () => {
+      socket.disconnect();
+    };
   }, [dealId]);
 
   const selectedDeal = deals.find(d => d.id === dealId);
@@ -77,6 +142,14 @@ export default function UserDealDetailWorkspace() {
     const event = new CustomEvent('apex-user-toast', { detail: text });
     window.dispatchEvent(event);
   };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <p className="text-zinc-500 font-bold animate-pulse">Loading project workspace...</p>
+      </div>
+    );
+  }
 
   if (!selectedDeal) {
     return (
@@ -91,8 +164,6 @@ export default function UserDealDetailWorkspace() {
       </div>
     );
   }
-
-
 
   const handleSignContract = () => {
     const updatedDeals = deals.map(d => {
@@ -126,52 +197,63 @@ export default function UserDealDetailWorkspace() {
     triggerToast('Contract E-Signed! Phase 1 initiated.');
   };
 
-  const handleSendChat = (e: React.FormEvent) => {
+  const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'customer',
-      content: chatInput,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication error.');
+      return;
+    }
 
-    const updatedChats = {
-      ...chatMessages,
-      [dealId]: [...(chatMessages[dealId] || []), newMsg]
-    };
-    saveChats(updatedChats);
-    setChatMessages(updatedChats);
-    setChatInput('');
+    try {
+      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: chatInput }),
+      });
 
-    // Trigger admin unread flag
-    const updatedDeals = deals.map(d => d.id === dealId ? { ...d, unreadAdmin: true } : d);
-    saveDeals(updatedDeals);
-    setDeals(updatedDeals);
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      setChatInput('');
+    } catch (err) {
+      console.error(err);
+      triggerToast('Failed to send message.');
+    }
   };
 
-  const triggerMockUpload = () => {
-    const attachment = { name: 'Specs_revision_v1.zip', size: '12 MB', url: '#', type: 'zip' };
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'customer',
-      content: 'Shared updated zip archive with revised specs.',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      file: attachment
-    };
-    const updatedChats = {
-      ...chatMessages,
-      [dealId]: [...(chatMessages[dealId] || []), newMsg]
-    };
-    saveChats(updatedChats);
-    setChatMessages(updatedChats);
+  const triggerMockUpload = async () => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication error.');
+      return;
+    }
 
-    const updatedDeals = deals.map(d => d.id === dealId ? { ...d, unreadAdmin: true } : d);
-    saveDeals(updatedDeals);
-    setDeals(updatedDeals);
+    try {
+      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: 'Shared updated zip archive with revised specs.' }),
+      });
 
-    triggerToast('Uploaded Specs file.');
+      if (!response.ok) {
+        throw new Error('Failed to upload mock file');
+      }
+
+      triggerToast('Uploaded Specs file.');
+    } catch (err) {
+      console.error(err);
+      triggerToast('Failed to upload mock specs.');
+    }
   };
 
   const startMilestonePayment = (milId: string, mil: any) => {

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Product } from '../../types';
 import { getProducts, purchaseProduct, addInvoice } from '../../utils/storage';
 import Header from '@/components/Header';
-import { Check, ArrowLeft, Terminal, Shield, ExternalLink } from 'lucide-react';
+import { Check, ArrowLeft, Terminal, Shield, ExternalLink, ArrowRight } from 'lucide-react';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -14,10 +14,8 @@ export default function ProductDetailPage() {
 
   // Checkout States
   const [showCheckout, setShowCheckout] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [pin, setPin] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'faq'>('overview');
@@ -38,40 +36,75 @@ export default function ProductDetailPage() {
     );
   }
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleBuyClick = () => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+    
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
     setIsProcessing(true);
 
-    setTimeout(() => {
+    try {
+      // 1. Create Invoice on backend
+      const response = await fetch('http://localhost:5000/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          title: `Purchase: ${product.name}`,
+          amount: product.price,
+          tax: Math.round(product.price * 0.05),
+          type: 'ready_product'
+        })
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || 'Failed to initialize invoice');
+      }
+
+      const invoiceId = resData.data.invoice.id;
+
+      // 2. Create Stripe checkout session
+      const payResponse = await fetch(`http://localhost:5000/api/invoices/${invoiceId}/pay`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const payData = await payResponse.json();
+      if (!payResponse.ok) {
+        throw new Error(payData.message || 'Failed to start payment session');
+      }
+
+      const checkoutUrl = payData.data.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error('Stripe checkout session was not returned');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err?.message || 'Payment initialization failed. Please try again.');
       setIsProcessing(false);
-      setIsSuccess(true);
-      purchaseProduct(product.id);
-
-      // Create invoice
-      const invoiceNum = `INV-2026-${Math.floor(Math.random() * 9000) + 1000}`;
-      const newInvoice = {
-        id: `inv-${Math.floor(Math.random() * 10000)}`,
-        invoiceNumber: invoiceNum,
-        productId: product.id,
-        title: `${product.name} License Purchase`,
-        amount: product.price,
-        tax: Math.round(product.price * 0.05),
-        discount: 0,
-        total: product.price + Math.round(product.price * 0.05),
-        type: 'ready_product' as const,
-        status: 'Paid' as const,
-        date: new Date().toISOString().split('T')[0]
-      };
-      addInvoice(newInvoice);
-
-      setTimeout(() => {
-        setIsSuccess(false);
-        setShowCheckout(false);
-        localStorage.setItem('apex_user_role', 'customer');
-        router.push('/user/products');
-      }, 1550);
-
-    }, 1500);
+    }
   };
 
   const handleCustomizationRequest = () => {
@@ -233,7 +266,7 @@ export default function ProductDetailPage() {
 
               <div className="space-y-2 text-xs">
                 <button
-                  onClick={() => setShowCheckout(true)}
+                  onClick={handleBuyClick}
                   className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded font-bold transition-colors cursor-pointer text-center"
                 >
                   Buy License
@@ -280,74 +313,84 @@ export default function ProductDetailPage() {
         </div>
       </main>
 
-      {/* Clean Mobile Wallet Simulation overlay */}
+      {/* Stripe Payment Checkout overlay */}
       {showCheckout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded overflow-hidden shadow-2xl relative">
-            <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white">✕</button>
+          <div className="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl relative font-sans">
+            <button 
+              onClick={() => setShowCheckout(false)} 
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+            >
+              ✕
+            </button>
 
-            <div className="bg-zinc-50 dark:bg-zinc-950 py-3.5 px-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
-              <span className="font-bold text-xs text-zinc-900 dark:text-white uppercase tracking-wider">bKash payment gateway</span>
-              <span className="text-[10px] text-zinc-500">Hossen Shop Checkout</span>
+            <div className="bg-zinc-50 dark:bg-zinc-950 py-3.5 px-6 border-b border-zinc-200 dark:border-zinc-850 flex justify-between items-center">
+              <span className="font-extrabold text-[10px] text-zinc-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-zinc-400" /> Stripe Secure Checkout
+              </span>
+              <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wide">License Order</span>
             </div>
 
-            {!isSuccess ? (
-              <form onSubmit={handleCheckoutSubmit} className="p-6 space-y-4 text-xs">
-                <div className="border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/60 p-4 rounded space-y-1 text-center">
-                  <span className="text-zinc-500 text-[10px] block uppercase tracking-wider">Amount to charge</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white text-sm block">{product.name}</span>
-                  <span className="text-lg font-bold text-zinc-950 dark:text-white block mt-1">{product.price.toLocaleString()} BDT</span>
+            <form onSubmit={handleCheckoutSubmit} className="p-6 space-y-5 text-xs">
+              {errorMessage && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 p-3 rounded text-[10px] font-semibold">
+                  {errorMessage}
                 </div>
+              )}
 
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-zinc-600 dark:text-zinc-400 text-[10px] uppercase font-bold mb-1">Mobile wallet account number</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g., 017XXXXXXXX"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-700"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-zinc-600 dark:text-zinc-400 text-[10px] uppercase font-bold mb-1">Security PIN</label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="XXXX"
-                      value={pin}
-                      onChange={(e) => setPin(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-700"
-                    />
-                  </div>
+              {/* Order Invoice Breakdown */}
+              <div className="border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/60 p-4 rounded-lg space-y-2">
+                <div className="text-center pb-2 border-b border-zinc-200/60 dark:border-zinc-900/60">
+                  <span className="text-zinc-500 text-[9px] block uppercase tracking-wider">Item Selected</span>
+                  <span className="font-bold text-zinc-950 dark:text-white text-xs block truncate mt-0.5">{product.name}</span>
                 </div>
-
-                {isProcessing ? (
-                  <div className="text-center py-2 text-zinc-500 dark:text-zinc-400 font-semibold">
-                    Validating secure token...
-                  </div>
-                ) : (
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 bg-pink-700 hover:bg-pink-800 text-white rounded font-bold transition-colors cursor-pointer"
-                  >
-                    Pay with bKash
-                  </button>
-                )}
-              </form>
-            ) : (
-              <div className="p-8 text-center space-y-2">
-                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white flex items-center justify-center mx-auto text-sm font-bold">
-                  ✓
+                <div className="flex justify-between text-[10px] text-zinc-500">
+                  <span>Base Price</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{product.price.toLocaleString()} BDT</span>
                 </div>
-                <div>
-                  <span className="font-bold text-xs block text-zinc-900 dark:text-white">Payment Confirmed</span>
-                  <p className="text-zinc-500 dark:text-zinc-500 text-[10px] mt-1">Routing to client workspace...</p>
+                <div className="flex justify-between text-[10px] text-zinc-500">
+                  <span>VAT (5%)</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{(Math.round(product.price * 0.05)).toLocaleString()} BDT</span>
+                </div>
+                <div className="flex justify-between text-xs pt-1.5 border-t border-zinc-200/60 dark:border-zinc-900/60 font-bold">
+                  <span className="text-zinc-900 dark:text-white">Total Amount</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">{(product.price + Math.round(product.price * 0.05)).toLocaleString()} BDT</span>
                 </div>
               </div>
-            )}
+
+              {/* Card illustration decoration */}
+              <div className="relative h-20 bg-gradient-to-br from-violet-600/10 to-indigo-600/10 dark:from-violet-600/5 dark:to-indigo-600/5 border border-zinc-200/50 dark:border-zinc-850 rounded-lg flex items-center justify-center overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
+                <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                <div className="flex items-center gap-3 z-10">
+                  {/* Credit Card Icon representation */}
+                  <div className="w-10 h-6 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded flex flex-col justify-between p-1 shadow-md border border-zinc-800 dark:border-zinc-200">
+                    <span className="text-[4px] font-bold tracking-widest font-mono">STRIPE</span>
+                    <span className="text-[5px] text-right font-mono mt-1">••••</span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-zinc-900 dark:text-white text-[10px] block">Pay Securely with Card</span>
+                    <span className="text-zinc-400 text-[8px] block">Visa, Mastercard, American Express</span>
+                  </div>
+                </div>
+              </div>
+
+              {isProcessing ? (
+                <button
+                  disabled
+                  className="w-full py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg font-bold flex items-center justify-center gap-2 text-[10px] uppercase tracking-wider opacity-60"
+                >
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-zinc-400 border-t-white animate-spin"></span>
+                  Redirecting to Stripe...
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded-lg font-bold transition-all hover:scale-[1.01] cursor-pointer text-center text-[10px] uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5"
+                >
+                  Proceed to Payment <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </form>
           </div>
         </div>
       )}

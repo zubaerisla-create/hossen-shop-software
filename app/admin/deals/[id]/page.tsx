@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { io } from 'socket.io-client';
+import { Info, CheckCircle2, XCircle, RefreshCw, FileText, Paperclip, Send } from 'lucide-react';
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
-import {
-  Paperclip, Send, FileText, AlertTriangle, ArrowRight, RefreshCw, Info, CheckCircle2, XCircle
-} from 'lucide-react';
 
 export default function AdminDealDetailWorkspace() {
   const params = useParams();
@@ -71,16 +70,83 @@ export default function AdminDealDetailWorkspace() {
   // New deliverable builder state
   const [deliverableNameInput, setDeliverableNameInput] = useState('');
   const [deliverableUrlInput, setDeliverableUrlInput] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadedDeals = getDeals();
-    setDeals(loadedDeals);
-    setChatMessages(getChats());
+    const initializeDeal = async () => {
+      let loadedDeals = getDeals();
 
-    // Mark as read when admin opens it
-    const updated = loadedDeals.map(d => d.id === dealId ? { ...d, unreadAdmin: false } : d);
-    saveDeals(updated);
-    setDeals(updated);
+      // If deal doesn't exist in local storage, query the backend
+      let dealExists = loadedDeals.some(d => d.id === dealId);
+      if (!dealExists) {
+        const token = localStorage.getItem('apex_user_token');
+        if (token) {
+          try {
+            const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const resData = await response.json();
+            if (response.ok && resData.data?.deal) {
+              loadedDeals.push(resData.data.deal);
+              saveDeals(loadedDeals);
+            }
+          } catch (err) {
+            console.error('Failed to load deal from database:', err);
+          }
+        }
+      }
+
+      setDeals(loadedDeals);
+      setChatMessages(getChats());
+
+      // Mark as read when admin opens it
+      const updated = loadedDeals.map(d => d.id === dealId ? { ...d, unreadAdmin: false } : d);
+      saveDeals(updated);
+      setDeals(updated);
+      setLoading(false);
+
+      // Fetch messages from database
+      const fetchMessages = async () => {
+        const token = localStorage.getItem('apex_user_token');
+        if (!token) return;
+        try {
+          const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const resData = await response.json();
+          if (response.ok && resData.data?.messages) {
+            setChatMessages(prev => ({
+              ...prev,
+              [dealId]: resData.data.messages
+            }));
+          }
+        } catch (err) {
+          console.error('Failed to load chat history:', err);
+        }
+      };
+      fetchMessages();
+    };
+
+    initializeDeal();
+
+    // WebSocket real-time connection
+    const socket = io('http://localhost:5000');
+    socket.emit('join_deal', dealId);
+
+    socket.on('new_deal_message', (msg: ChatMessage) => {
+      setChatMessages(prev => {
+        const thread = prev[dealId] || [];
+        if (thread.some(m => m.id === msg.id)) return prev;
+        return {
+          ...prev,
+          [dealId]: [...thread, msg]
+        };
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [dealId]);
 
   const selectedDeal = deals.find(d => d.id === dealId);
@@ -89,6 +155,14 @@ export default function AdminDealDetailWorkspace() {
     const event = new CustomEvent('apex-admin-toast', { detail: text });
     window.dispatchEvent(event);
   };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <p className="text-zinc-500 font-bold animate-pulse">Loading deal workspace...</p>
+      </div>
+    );
+  }
 
   if (!selectedDeal) {
     return (
@@ -626,52 +700,63 @@ export default function AdminDealDetailWorkspace() {
     setEditDeliverables([...editDeliverables, mock]);
   };
 
-  const handleSendChat = (e: React.FormEvent) => {
+  const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'admin',
-      content: chatInput,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication error.');
+      return;
+    }
 
-    const updatedChats = {
-      ...chatMessages,
-      [dealId]: [...(chatMessages[dealId] || []), newMsg]
-    };
-    saveChats(updatedChats);
-    setChatMessages(updatedChats);
-    setChatInput('');
+    try {
+      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: chatInput }),
+      });
 
-    // Trigger client side unread flag
-    const updatedDeals = deals.map(d => d.id === dealId ? { ...d, unreadPortal: true } : d);
-    saveDeals(updatedDeals);
-    setDeals(updatedDeals);
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      setChatInput('');
+    } catch (err) {
+      console.error(err);
+      triggerToast('Failed to send message.');
+    }
   };
 
-  const triggerMockUpload = () => {
-    const attachment = { name: 'Admin_Specs_v2.pdf', size: '2.4 MB', url: '#', type: 'pdf' };
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'admin',
-      content: 'Shared supplementary requirements breakdown spec sheet.',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      file: attachment
-    };
-    const updatedChats = {
-      ...chatMessages,
-      [dealId]: [...(chatMessages[dealId] || []), newMsg]
-    };
-    saveChats(updatedChats);
-    setChatMessages(updatedChats);
+  const triggerMockUpload = async () => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication error.');
+      return;
+    }
 
-    const updatedDeals = deals.map(d => d.id === dealId ? { ...d, unreadPortal: true } : d);
-    saveDeals(updatedDeals);
-    setDeals(updatedDeals);
+    try {
+      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: 'Shared supplementary requirements breakdown spec sheet.' }),
+      });
 
-    triggerToast('Document uploaded to Client Chat.');
+      if (!response.ok) {
+        throw new Error('Failed to upload mock spec');
+      }
+
+      triggerToast('Document uploaded to Client Chat.');
+    } catch (err) {
+      console.error(err);
+      triggerToast('Failed to upload document.');
+    }
   };
 
   return (

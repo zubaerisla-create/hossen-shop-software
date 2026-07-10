@@ -8,6 +8,7 @@ export default function UserSettingsPage() {
   const [name, setName] = useState('John Doe (Demo)');
   const [email, setEmail] = useState('john.doe@example.com');
   const [phone, setPhone] = useState('+880 1711 000000');
+  const [avatar, setAvatar] = useState('');
   
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -24,16 +25,41 @@ export default function UserSettingsPage() {
   const [notifyWhatsApp, setNotifyWhatsApp] = useState(false);
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      const token = localStorage.getItem('apex_user_token');
+      if (!token) return;
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const resData = await response.json();
+        if (response.ok && resData.data?.user) {
+          const user = resData.data.user;
+          setName(user.name);
+          setEmail(user.email);
+          setAvatar(user.avatar || '');
+          localStorage.setItem('apex_user_name', user.name);
+          localStorage.setItem('apex_user_email', user.email);
+          localStorage.setItem('apex_user_avatar', user.avatar || '');
+          dispatchProfileUpdate();
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile from backend:', err);
+      }
+    };
+
+    fetchUserProfile();
+
     // Load initial values from localStorage
-    const storedName = localStorage.getItem('apex_user_name');
-    const storedEmail = localStorage.getItem('apex_user_email');
     const storedPhone = localStorage.getItem('apex_user_phone');
+    const storedAvatar = localStorage.getItem('apex_user_avatar');
     const storedMilestones = localStorage.getItem('apex_notify_milestones');
     const storedWhatsApp = localStorage.getItem('apex_notify_whatsapp');
 
-    if (storedName) setName(storedName);
-    if (storedEmail) setEmail(storedEmail);
     if (storedPhone) setPhone(storedPhone);
+    if (storedAvatar) setAvatar(storedAvatar);
     if (storedMilestones !== null) setNotifyMilestones(storedMilestones === 'true');
     if (storedWhatsApp !== null) setNotifyWhatsApp(storedWhatsApp === 'true');
   }, []);
@@ -48,23 +74,50 @@ export default function UserSettingsPage() {
     window.dispatchEvent(event);
   };
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Error: Authentication token missing.');
+      return;
+    }
     
-    // Persist profile in storage
-    localStorage.setItem('apex_user_name', name);
-    localStorage.setItem('apex_user_email', email);
-    localStorage.setItem('apex_user_phone', phone);
-    
-    // Persist notifications
-    localStorage.setItem('apex_notify_milestones', String(notifyMilestones));
-    localStorage.setItem('apex_notify_whatsapp', String(notifyWhatsApp));
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name, email, avatar }),
+      });
 
-    triggerToast('Profile settings saved successfully.');
-    dispatchProfileUpdate();
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.message || 'Failed to update profile');
+      }
+
+      // Persist profile in storage
+      localStorage.setItem('apex_user_name', name);
+      localStorage.setItem('apex_user_email', email);
+      localStorage.setItem('apex_user_avatar', avatar);
+      localStorage.setItem('apex_user_phone', phone);
+      
+      // Persist notifications
+      localStorage.setItem('apex_notify_milestones', String(notifyMilestones));
+      localStorage.setItem('apex_notify_whatsapp', String(notifyWhatsApp));
+
+      triggerToast('Profile settings saved successfully.');
+      dispatchProfileUpdate();
+
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err?.message || 'Failed to save profile details.');
+    }
   };
 
-  const handlePasswordSave = (e: React.FormEvent) => {
+  const handlePasswordSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!currentPassword) {
@@ -80,11 +133,37 @@ export default function UserSettingsPage() {
       return;
     }
 
-    // Success simulation
-    triggerToast('Password updated successfully.');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Error: Authentication token missing.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.message || 'Failed to update password');
+      }
+
+      triggerToast('Password updated successfully.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err?.message || 'Failed to update password.');
+    }
   };
 
   return (
@@ -149,6 +228,26 @@ export default function UserSettingsPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-9 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-700 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Profile Avatar URL</label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center border border-zinc-300 dark:border-zinc-700">
+                      {avatar ? (
+                        <img src={avatar} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-3 h-3 text-zinc-400" />
+                      )}
+                    </div>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/avatar.jpg"
+                      value={avatar}
+                      onChange={(e) => setAvatar(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-700 transition-all"
                     />
                   </div>
                 </div>
@@ -303,9 +402,15 @@ export default function UserSettingsPage() {
             {/* Profile Overview Card */}
             <div className="bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 p-5 rounded-lg space-y-4">
               <div className="flex flex-col items-center py-4 border-b border-zinc-200 dark:border-zinc-900 text-center space-y-3">
-                <div className="w-16 h-16 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-xl uppercase shadow-md select-none">
-                  {name.charAt(0)}
-                </div>
+                {avatar ? (
+                  <div className="w-16 h-16 rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-700 shadow-md">
+                    <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-xl uppercase shadow-md select-none">
+                    {name.charAt(0)}
+                  </div>
+                )}
                 <div className="space-y-0.5">
                   <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">{name}</span>
                   <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">Client Role Profile</span>

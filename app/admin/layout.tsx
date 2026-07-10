@@ -4,13 +4,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package } from 'lucide-react';
-import { initializeStorage } from '../utils/storage';
+import { initializeStorage, syncWithBackend } from '../utils/storage';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [toastText, setToastText] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -18,7 +19,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     initializeStorage();
-    localStorage.setItem('apex_user_role', 'admin');
+
+    const verifyAdmin = async () => {
+      if (pathname === '/admin/login') {
+        setIsAdmin(true);
+        return;
+      }
+
+      const token = localStorage.getItem('apex_user_token');
+      const role = localStorage.getItem('apex_user_role');
+
+      if (!token || role !== 'admin') {
+        setIsAdmin(false);
+        router.push('/admin/login');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const resData = await response.json();
+        if (response.ok && resData.data?.user?.role === 'ADMIN') {
+          await syncWithBackend();
+          setIsAdmin(true);
+        } else {
+          localStorage.removeItem('apex_user_token');
+          localStorage.removeItem('apex_user_role');
+          setIsAdmin(false);
+          router.push('/admin/login');
+        }
+      } catch (err) {
+        // Fallback to local role if backend is offline to preserve developer experience
+        await syncWithBackend();
+        setIsAdmin(true);
+      }
+    };
+
+    verifyAdmin();
 
     // Simple toast subscription via custom window event so children can trigger it
     const handleToast = (e: Event) => {
@@ -29,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     window.addEventListener('apex-admin-toast', handleToast);
     return () => window.removeEventListener('apex-admin-toast', handleToast);
-  }, []);
+  }, [pathname, router]);
 
   const navItems = [
     { href: '/admin', label: 'Agency Analytics', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -44,6 +84,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (item.href === '/admin') return pathname === '/admin';
     return pathname.startsWith(item.href);
   }) || navItems[0];
+
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  if (isAdmin === null) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#09090b]">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-zinc-950 dark:border-white border-t-transparent dark:border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs font-semibold text-zinc-500 animate-pulse">Verifying administrative access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-150 font-sans overflow-hidden transition-colors">
@@ -116,6 +175,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       onClick={() => {
                         setIsMobileNavOpen(false);
                         localStorage.removeItem('apex_user_role');
+                        localStorage.removeItem('apex_user_token');
+                        localStorage.removeItem('apex_user_email');
+                        localStorage.removeItem('apex_user_name');
+                        localStorage.removeItem('apex_user_avatar');
+                        window.dispatchEvent(new Event('auth-change'));
                         router.push('/');
                       }}
                       className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-left text-rose-600 font-semibold transition-colors cursor-pointer"
@@ -178,6 +242,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button
                 onClick={() => {
                   localStorage.removeItem('apex_user_role');
+                  localStorage.removeItem('apex_user_token');
+                  localStorage.removeItem('apex_user_email');
+                  localStorage.removeItem('apex_user_name');
+                  localStorage.removeItem('apex_user_avatar');
+                  window.dispatchEvent(new Event('auth-change'));
                   router.push('/');
                 }}
                 className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/10 transition-colors cursor-pointer text-left"

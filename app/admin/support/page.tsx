@@ -1,22 +1,64 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+import { Send } from 'lucide-react';
 import { SupportTicket } from '../../types';
-import { getTickets, replyToTicket } from '../../utils/storage';
-import { Send, FileText } from 'lucide-react';
 
 export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState('');
 
-  useEffect(() => {
-    const tkts = getTickets();
-    setTickets(tkts);
-    if (tkts.length > 0) {
-      setSelectedTicketId(tkts[0].id);
+  // Fetch tickets from database
+  const fetchTickets = async () => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) return;
+    try {
+      const response = await fetch('http://localhost:5000/api/tickets', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const resData = await response.json();
+      if (response.ok && resData.data?.tickets) {
+        setTickets(resData.data.tickets);
+        if (resData.data.tickets.length > 0 && !selectedTicketId) {
+          setSelectedTicketId(resData.data.tickets[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load tickets:', err);
     }
+  };
+
+  useEffect(() => {
+    fetchTickets();
   }, []);
+
+  // WebSocket real-time updates for selected ticket
+  useEffect(() => {
+    if (!selectedTicketId) return;
+
+    const socket = io('http://localhost:5000');
+    socket.emit('join_ticket', selectedTicketId);
+
+    socket.on('new_ticket_message', (msg: any) => {
+      setTickets(prev => prev.map(t => {
+        if (t.id === selectedTicketId) {
+          const alreadyExists = t.messages.some((m: any) => m.id === msg.id || (m.content === msg.content && m.timestamp === msg.timestamp));
+          if (alreadyExists) return t;
+          return {
+            ...t,
+            messages: [...t.messages, msg]
+          };
+        }
+        return t;
+      }));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [selectedTicketId]);
 
   const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
@@ -25,29 +67,62 @@ export default function AdminSupportPage() {
     window.dispatchEvent(event);
   };
 
-  const handleTicketReplySubmit = (e: React.FormEvent) => {
+  const handleTicketReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || !selectedTicketId) return;
 
-    const reply = {
-      sender: 'admin' as const,
-      content: chatInput,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication error.');
+      return;
+    }
 
-    replyToTicket(selectedTicketId, reply);
-    setTickets(getTickets());
-    setChatInput('');
-    triggerToast('Reply sent to customer ticket.');
+    try {
+      const response = await fetch(`http://localhost:5000/api/tickets/${selectedTicketId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: chatInput })
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || 'Failed to send reply');
+      }
+
+      setChatInput('');
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err?.message || 'Failed to send reply.');
+    }
   };
 
-  const closeTicket = (ticketId: string) => {
-    const updated = tickets.map(t => t.id === ticketId ? { ...t, status: 'Resolved' as const } : t);
-    // Write back to storage
-    const TICKETS_KEY = 'apex_tickets';
-    localStorage.setItem(TICKETS_KEY, JSON.stringify(updated));
-    setTickets(updated);
-    triggerToast(`Ticket ${ticketId} closed.`);
+  const closeTicket = async (ticketId: string) => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/tickets/${ticketId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'Resolved' })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to resolve ticket');
+      }
+
+      triggerToast(`Ticket ${ticketId} resolved.`);
+      fetchTickets();
+    } catch (err) {
+      console.error(err);
+      triggerToast('Failed to resolve ticket.');
+    }
   };
 
   return (

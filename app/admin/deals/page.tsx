@@ -7,11 +7,33 @@ import { useRouter } from 'next/navigation';
 
 export default function AdminDealsPage() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Force initialize/load deals
-    setDeals(getDeals());
+    const fetchDeals = async () => {
+      const token = localStorage.getItem('apex_user_token');
+      if (token) {
+        try {
+          const response = await fetch('http://localhost:5000/api/deals', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const resData = await response.json();
+          if (response.ok && resData.data?.deals) {
+            setDeals(resData.data.deals);
+            saveDeals(resData.data.deals);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error('Failed to fetch deals from database:', err);
+        }
+      }
+      setDeals(getDeals());
+      setLoading(false);
+    };
+
+    fetchDeals();
   }, []);
 
   return (
@@ -27,7 +49,11 @@ export default function AdminDealsPage() {
 
         {/* Table view */}
         <div className="p-6 md:p-8 flex-1">
-          {deals.length === 0 ? (
+          {loading ? (
+            <div className="bg-zinc-50 dark:bg-zinc-900/25 border border-zinc-200 dark:border-zinc-800 rounded py-12 text-center text-zinc-500 animate-pulse">
+              Loading deals from database...
+            </div>
+          ) : deals.length === 0 ? (
             <div className="bg-zinc-50 dark:bg-zinc-900/25 border border-zinc-200 dark:border-zinc-800 rounded py-12 text-center text-zinc-500">
               No custom deals found. Open Customer Portal and submit requirement form!
             </div>

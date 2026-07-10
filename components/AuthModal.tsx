@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Apple, Mail, Lock, User, X, Check, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, X, Check, ArrowRight } from 'lucide-react';
+import { auth, googleProvider, signInWithPopup } from '../lib/firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -55,24 +56,59 @@ export default function AuthModal({
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
+  const handleSocialLogin = async (provider: string) => {
+    if (provider !== 'Google') return;
     setLoading(true);
     setError('');
-    setTimeout(() => {
-      setLoading(false);
-      localStorage.setItem('apex_user_role', 'customer');
-      localStorage.setItem('apex_user_email', `social_${provider.toLowerCase()}@example.com`);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      
+      // Make backend API request to authenticate Google user
+      const response = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || 'Google User',
+          avatar: firebaseUser.photoURL || '',
+        }),
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.message || 'Backend Google authentication failed');
+      }
+
+      const user = resData.data.user;
+      const role = user.role.toLowerCase(); // 'admin' or 'customer'
+
+      // Save user session
+      localStorage.setItem('apex_user_token', resData.token);
+      localStorage.setItem('apex_user_role', role);
+      localStorage.setItem('apex_user_email', user.email);
+      localStorage.setItem('apex_user_name', user.name);
+      localStorage.setItem('apex_user_avatar', user.avatar || '');
+
       triggerAuthChangeEvent();
       if (isModal) {
         onClose();
-        router.push('/user');
+        router.push(role === 'admin' ? '/admin' : '/user/deals');
       } else {
-        router.push('/user');
+        router.push(role === 'admin' ? '/admin' : '/user/deals');
       }
-    }, 800);
+    } catch (err: any) {
+      console.error("Firebase Google Auth failed:", err);
+      setError(err?.message || 'Firebase sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -99,45 +135,55 @@ export default function AuthModal({
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      if (mode === 'signup') {
-        setSuccess('Account created successfully! Redirecting...');
-        localStorage.setItem('apex_user_role', 'customer');
-        localStorage.setItem('apex_user_email', email);
-        triggerAuthChangeEvent();
-        setTimeout(() => {
-          if (isModal) {
-            onClose();
-            router.push('/user');
-          } else {
-            router.push('/user');
-          }
-        }, 1000);
-      } else {
-        if (email.toLowerCase() === 'admin@Hossen Shop.com') {
-          localStorage.setItem('apex_user_role', 'admin');
-          localStorage.setItem('apex_user_email', email);
-          triggerAuthChangeEvent();
-          if (isModal) {
-            onClose();
-            router.push('/admin');
-          } else {
-            router.push('/admin');
-          }
-        } else {
-          localStorage.setItem('apex_user_role', 'customer');
-          localStorage.setItem('apex_user_email', email);
-          triggerAuthChangeEvent();
-          if (isModal) {
-            onClose();
-            router.push('/user');
-          } else {
-            router.push('/user');
-          }
-        }
+    try {
+      const url = mode === 'signup' 
+        ? 'http://localhost:5000/api/auth/register' 
+        : 'http://localhost:5000/api/auth/login';
+      
+      const body = mode === 'signup' 
+        ? { name, email, password }
+        : { email, password };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.message || 'Authentication failed');
       }
-    }, 800);
+
+      const user = resData.data.user;
+      const role = user.role.toLowerCase(); // 'admin' or 'customer'
+
+      // Save user session
+      localStorage.setItem('apex_user_token', resData.token);
+      localStorage.setItem('apex_user_role', role);
+      localStorage.setItem('apex_user_email', user.email);
+      localStorage.setItem('apex_user_name', user.name);
+      localStorage.setItem('apex_user_avatar', user.avatar || '');
+
+      setSuccess(mode === 'signup' ? 'Account created successfully! Redirecting...' : 'Signed in successfully! Redirecting...');
+      triggerAuthChangeEvent();
+
+      setTimeout(() => {
+        if (isModal) {
+          onClose();
+        }
+        router.push(role === 'admin' ? '/admin' : '/user/deals');
+      }, 1000);
+
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || 'Authentication failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const modalContent = (
@@ -241,26 +287,6 @@ export default function AuthModal({
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
                 <span>Continue with Google</span>
-              </button>
-
-              {/* Apple Button */}
-              <button
-                onClick={() => handleSocialLogin('Apple')}
-                className="w-full flex items-center justify-center gap-3 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 px-4 py-2.5 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
-              >
-                <Apple className="w-4 h-4 fill-current" />
-                <span>Continue with Apple</span>
-              </button>
-
-              {/* Facebook Button */}
-              <button
-                onClick={() => handleSocialLogin('Facebook')}
-                className="w-full flex items-center justify-center gap-3 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 px-4 py-2.5 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
-              >
-                <svg className="w-4 h-4 text-[#1877F2] fill-current" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-                <span>Continue with Facebook</span>
               </button>
 
               {/* Toggle to Email Form */}

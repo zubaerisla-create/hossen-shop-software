@@ -137,17 +137,40 @@ export default function AdminProductsPage() {
   };
 
   // Delete Product
-  const handleDeleteProduct = (id: string, name: string) => {
+  const handleDeleteProduct = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
-      const updated = products.filter(p => p.id !== id);
-      saveProducts(updated);
-      setProducts(updated);
-      triggerToast('Product deleted from listings.');
+      const token = localStorage.getItem('apex_user_token');
+      if (!token) {
+        triggerToast('Authentication token not found. Please log in.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const updated = products.filter(p => p.id !== id);
+          saveProducts(updated);
+          setProducts(updated);
+          triggerToast('Product deleted from listings.');
+        } else {
+          const resData = await response.json();
+          throw new Error(resData.message || 'Failed to delete product from database');
+        }
+      } catch (err: any) {
+        console.error(err);
+        triggerToast(err.message || 'Failed to delete product.');
+      }
     }
   };
 
   // Handle Form Submit
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
       triggerToast('Product name is required.');
@@ -159,8 +182,7 @@ export default function AdminProductsPage() {
       imgList.push('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
     }
 
-    const updatedProduct: Product = {
-      id: isEditMode && editingProduct ? editingProduct.id : `prod-${Math.floor(Math.random() * 10000)}`,
+    const payload = {
       name: formName.trim(),
       price: Number(formPrice),
       category: formCategory,
@@ -168,39 +190,62 @@ export default function AdminProductsPage() {
       technologies: formTech.split(',').map(t => t.trim()).filter(Boolean),
       features: formFeatures.split('\n').map(f => f.trim()).filter(Boolean),
       requirements: formRequirements.split('\n').map(r => r.trim()).filter(Boolean),
-      demoUrl: formDemoUrl.trim(),
+      demoUrl: formDemoUrl.trim() || 'https://demo.agency.com',
       images: imgList,
-      videoUrl: formVideoUrl.trim() || undefined,
-      documentationUrl: formDocUrl.trim() || undefined,
-      githubUrl: formGithubUrl.trim() || undefined,
-      zipUrl: formZipUrl.trim() || undefined,
+      videoUrl: formVideoUrl.trim() || null,
+      documentationUrl: formDocUrl.trim() || null,
+      githubUrl: formGithubUrl.trim() || null,
+      zipUrl: formZipUrl.trim() || null,
       version: formVersion.trim() || '1.0.0',
-      changelog: formChangelog.map(item => ({
-        version: item.version.trim(),
-        date: item.date.trim(),
-        changes: Array.isArray(item.changes) 
-          ? item.changes.map(c => c.trim()).filter(Boolean) 
-          : (item.changes as string).split('\n').map(c => c.trim()).filter(Boolean)
-      })).filter(item => item.version),
-      license: formLicense.trim() || 'Commercial License',
-      salesCount: Number(formSalesCount),
-      rating: Number(formRating),
-      reviews: isEditMode && editingProduct ? editingProduct.reviews : [],
-      faqs: formFaqs.map(faq => ({ q: faq.q.trim(), a: faq.a.trim() })).filter(faq => faq.q)
+      license: formLicense.trim() || 'Commercial License'
     };
 
-    let updatedList: Product[];
-    if (isEditMode && editingProduct) {
-      updatedList = products.map(p => p.id === editingProduct.id ? updatedProduct : p);
-      triggerToast('Product catalog updated successfully.');
-    } else {
-      updatedList = [updatedProduct, ...products];
-      triggerToast('New product added to catalog.');
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      triggerToast('Authentication token not found. Please log in.');
+      return;
     }
 
-    saveProducts(updatedList);
-    setProducts(updatedList);
-    setShowModal(false);
+    try {
+      const url = isEditMode && editingProduct 
+        ? `http://localhost:5000/api/products/${editingProduct.id}`
+        : 'http://localhost:5000/api/products';
+      
+      const method = isEditMode && editingProduct ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.message || 'Failed to save product to database');
+      }
+
+      const savedProduct = resData.data.product;
+
+      let updatedList: Product[];
+      if (isEditMode && editingProduct) {
+        updatedList = products.map(p => p.id === editingProduct.id ? savedProduct : p);
+        triggerToast('Product catalog updated successfully.');
+      } else {
+        updatedList = [savedProduct, ...products];
+        triggerToast('New product added to catalog.');
+      }
+
+      saveProducts(updatedList);
+      setProducts(updatedList);
+      setShowModal(false);
+    } catch (err: any) {
+      console.error(err);
+      triggerToast(err.message || 'Failed to save product.');
+    }
   };
 
   // FAQ handlers
