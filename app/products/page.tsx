@@ -1,18 +1,49 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import { Product } from '../types';
 import { getProducts, initializeStorage } from '../utils/storage';
 import { Search, ArrowRight, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen } from 'lucide-react';
 
-export default function AllProductsPage() {
+function ProductCardVideo({ src, isHovered }: { src: string; isHovered: boolean }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isHovered) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [isHovered]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 z-10 ${
+        isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+      muted
+      loop
+      playsInline
+    />
+  );
+}
+
+function ProductsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<'All' | Product['category']>('All');
+  const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,7 +52,23 @@ export default function AllProductsPage() {
   useEffect(() => {
     initializeStorage();
     setProducts(getProducts());
+
+    // Sync with backend to get the latest database products (including videoUrls)
+    const sync = async () => {
+      const { syncWithBackend } = await import('../utils/storage');
+      await syncWithBackend();
+      setProducts(getProducts());
+    };
+    sync();
   }, []);
+
+  // Read search query parameter from URL
+  useEffect(() => {
+    const searchVal = searchParams.get('search');
+    if (searchVal !== null) {
+      setSearchQuery(searchVal);
+    }
+  }, [searchParams]);
 
   // Filter products by category and search query
   const filteredProducts = products.filter((prod) => {
@@ -108,16 +155,26 @@ export default function AllProductsPage() {
                 <div
                   key={prod.id}
                   onClick={() => router.push(`/products/${prod.id}`)}
+                  onMouseEnter={() => setHoveredProductId(prod.id)}
+                  onMouseLeave={() => setHoveredProductId(null)}
                   className="bg-zinc-50 dark:bg-[#121214]/60 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden group cursor-pointer transition-colors flex flex-col justify-between"
                 >
                   {/* Thumbnail */}
-                  <div className="relative aspect-video overflow-hidden bg-zinc-200 dark:bg-zinc-950">
+                  <div className="relative aspect-video overflow-hidden bg-zinc-200 dark:bg-zinc-955">
+                    {prod.videoUrl && (
+                      <ProductCardVideo
+                        src={prod.videoUrl}
+                        isHovered={hoveredProductId === prod.id}
+                      />
+                    )}
                     <img
                       src={prod.images[0]}
                       alt={prod.name}
-                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                      className={`w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300 ${
+                        hoveredProductId === prod.id ? 'opacity-0' : ''
+                      }`}
                     />
-                    <span className="absolute top-2.5 left-2.5 bg-white/90 dark:bg-black/70 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-700 dark:text-zinc-300">
+                    <span className="absolute top-2.5 left-2.5 bg-white/90 dark:bg-black/70 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-700 dark:text-zinc-300 z-20 font-bold">
                       {prod.category}
                     </span>
                   </div>
@@ -197,5 +254,17 @@ export default function AllProductsPage() {
         <p>© 2026 Hossen Shop Hybrid Marketplace & Software Engineering Firm. Uttara Sector 11 Dhaka BD.</p>
       </footer>
     </div>
+  );
+}
+
+export default function AllProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col flex-1 bg-white dark:bg-[#09090b] text-zinc-500 justify-center items-center h-screen text-xs">
+        Loading catalog...
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }

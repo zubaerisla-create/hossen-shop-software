@@ -83,6 +83,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
     technologies: ['Next.js 15', 'Tailwind CSS', 'Redux Toolkit', 'Stripe', 'NodeJS', 'Express', 'MongoDB'],
     description: 'EcoShop is a lightning-fast, fully responsive fashion and electronics e-commerce storefront. Designed with conversion optimization in mind, it features search autocomplete, advanced multi-facet filters, slide-out cart, checkout progress indicator, and custom admin dashboard for product inventory tracking.',
     features: [
@@ -133,6 +134,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
     technologies: ['Flutter', 'Dart', 'Firebase', 'Google Maps API', 'NodeJS', 'Socket.io'],
     description: 'SwiftRide is a dual-app template (Rider App and Driver App) built with Flutter. It utilizes WebSockets (Socket.io) for real-time location tracking on Google Maps, route calculation, push notifications, and ride fare estimation. Highly optimized and clean code based on BLoC pattern.',
     features: [
@@ -183,6 +185,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1541462608141-ad4979e408c9?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://placeholdervideo.dev/1280x720',
     technologies: ['Figma', 'Auto Layout 5.0', 'Design System', 'Component Variables'],
     description: 'FinTrack is a premium Figma UI kit meticulously crafted for financial, stock trading, and crypto wallet management platforms. Contains over 150 component variants, dark/light modes, reusable design tokens, charts, invoices, and comprehensive wireframes.',
     features: [
@@ -226,6 +229,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1680814907495-752110058760?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
     technologies: ['Python', 'LangChain', 'FastAPI', 'Next.js 15', 'OpenAI API', 'VectorDB (Pinecone)'],
     description: 'An AI-powered autonomous agent system that allows users to create visual prompt pipelines, connect web scrapers, parse PDFs, index vectorized documentation, and deploy custom chatbot assistants to Slack, Discord, or WhatsApp in minutes.',
     features: [
@@ -271,6 +275,7 @@ export const mockProducts: Product[] = [
     images: [
       'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://placeholdervideo.dev/1280x720',
     technologies: ['Next.js 15', 'React 19', 'Tailwind CSS', 'TypeScript', 'Prisma', 'PostgreSQL', 'Socket.io'],
     description: 'TaskFlow is a multi-tenant project management platform with real-time kanban boards, Gantt charts, file sharing, role-based access control, and team chat rooms. Includes full dashboard analytics.',
     features: [
@@ -300,6 +305,7 @@ export const mockProducts: Product[] = [
     images: [
       'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
     technologies: ['Flutter', 'Dart', 'Firebase', 'Agora WebRTC SDK', 'NodeJS'],
     description: 'MediCall is a premium cross-platform mobile application supporting online appointment bookings, virtual prescription management, and encrypted Agora video consulting.',
     features: [
@@ -329,6 +335,7 @@ export const mockProducts: Product[] = [
     images: [
       'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80'
     ],
+    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
     technologies: ['React', 'Next.js', 'OpenAI API', 'Tailwind CSS', 'NodeJS'],
     description: 'Generate high-conversion blog posts, marketing copies, and social media captions using tailored AI agents trained on industry best practices.',
     features: [

@@ -14,6 +14,14 @@ export default function Home() {
   useEffect(() => {
     initializeStorage();
     setProducts(getProducts());
+
+    // Sync with backend to get the latest database products (including videoUrls)
+    const sync = async () => {
+      const { syncWithBackend } = await import('./utils/storage');
+      await syncWithBackend();
+      setProducts(getProducts());
+    };
+    sync();
   }, []);
 
   const handleSelectProduct = (prod: Product) => {

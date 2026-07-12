@@ -14,13 +14,41 @@ function SuccessPageContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     async function sync() {
+      if (invoiceId) {
+        const token = localStorage.getItem('apex_user_token');
+        if (token) {
+          try {
+            await fetch(`http://localhost:5000/api/invoices/${invoiceId}/confirm-payment`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+          } catch (e) {
+            console.error('Failed to confirm payment on backend:', e);
+          }
+        }
+      }
+
       // Sync local storage state with the backend
       await syncWithBackend();
-      setLoading(false);
+      if (active) {
+        setLoading(false);
+        // Automatically redirect to Purchased Templates workspace after 2.5 seconds
+        setTimeout(() => {
+          if (active) {
+            router.push('/user/products');
+          }
+        }, 2500);
+      }
     }
     sync();
-  }, [invoiceId]);
+    return () => {
+      active = false;
+    };
+  }, [invoiceId, router]);
 
   return (
     <div className="w-full max-w-md bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-8 text-center space-y-6 animate-fade-in-up">
@@ -37,6 +65,11 @@ function SuccessPageContent() {
         <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed">
           Thank you for your purchase. Your payment was verified and processed securely.
         </p>
+        {!loading && (
+          <p className="text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold animate-pulse pt-1">
+            Redirecting you to your Purchased Templates workspace...
+          </p>
+        )}
       </div>
 
       {invoiceId && (

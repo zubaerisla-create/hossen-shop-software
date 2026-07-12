@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Product } from '../../types';
-import { getProducts, purchaseProduct, addInvoice } from '../../utils/storage';
+import { getProducts, purchaseProduct, addInvoice, saveProducts, getPurchasedProducts } from '../../utils/storage';
 import Header from '@/components/Header';
+import AuthModal from '@/components/AuthModal';
+import Link from 'next/link';
 import { Check, ArrowLeft, Terminal, Shield, ExternalLink, ArrowRight } from 'lucide-react';
 
 export default function ProductDetailPage() {
@@ -20,13 +22,156 @@ export default function ProductDetailPage() {
   // Active Tab
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'faq'>('overview');
 
+  // Purchased & Feedback States
+  const [isPurchased, setIsPurchased] = useState(false);
+  const [feedbacks, setFeedbacks] = useState<{ user: string; comment: string; date: string }[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentError, setCommentError] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   useEffect(() => {
-    const prods = getProducts();
-    const found = prods.find(p => p.id === params.id);
-    if (found) {
-      setProduct(found);
-    }
+    const fetchProduct = async () => {
+      // 1. Try local storage first
+      const prods = getProducts();
+      const found = prods.find(p => p.id === params.id);
+      if (found) {
+        setProduct(found);
+      }
+
+      // 2. Fetch from backend API
+      try {
+        const response = await fetch(`http://localhost:5000/api/products/${params.id}`);
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData.data?.product) {
+            setProduct(resData.data.product);
+            
+            // Sync local storage so it has this product too
+            if (!prods.some(p => p.id === params.id)) {
+              saveProducts([...prods, resData.data.product]);
+            } else {
+              saveProducts(prods.map(p => p.id === params.id ? resData.data.product : p));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch product details from backend:', err);
+      }
+    };
+
+    fetchProduct();
   }, [params.id]);
+
+  useEffect(() => {
+    if (!product) return;
+
+    // Check if purchased
+    const purchasedIds = getPurchasedProducts();
+    if (purchasedIds.includes(product.id)) {
+      setIsPurchased(true);
+    }
+
+    // Load feedbacks from database if present, otherwise fall back to local storage
+    if (product.reviews && Array.isArray(product.reviews) && product.reviews.length > 0) {
+      setFeedbacks(product.reviews as any);
+    } else {
+      const key = `apex_feedbacks_${product.id}`;
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        setFeedbacks(JSON.parse(stored));
+      } else {
+        const initial = [
+          { user: 'S. Talukder', comment: 'Clean Next.js layout structure. Integration took less than an hour.', date: '2026-06-28' },
+          { user: 'Rahman K.', comment: 'Saves considerable design and setup hours.', date: '2026-06-15' }
+        ];
+        localStorage.setItem(key, JSON.stringify(initial));
+        setFeedbacks(initial);
+      }
+    }
+  }, [product]);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const token = localStorage.getItem('apex_user_token');
+      if (token) {
+        setShowAuthModal(false);
+        // Refresh purchased state
+        if (product) {
+          const purchasedIds = getPurchasedProducts();
+          if (purchasedIds.includes(product.id)) {
+            setIsPurchased(true);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, [product]);
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCommentError('');
+
+    if (!product) return;
+
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (!newComment.trim()) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          comment: newComment.trim(),
+          rating: 5
+        })
+      });
+
+      const resData = await response.json();
+      if (response.ok) {
+        if (resData.data?.product?.reviews) {
+          const dbReviews = resData.data.product.reviews;
+          setFeedbacks(dbReviews);
+          localStorage.setItem(`apex_feedbacks_${product.id}`, JSON.stringify(dbReviews));
+          setNewComment('');
+          return;
+        }
+      } else {
+        setCommentError(resData.message || 'Failed to submit feedback.');
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to post review to backend, falling back to local storage:', err);
+    }
+
+    // Fallback to local storage only
+    const userName = localStorage.getItem('apex_user_name') || 'Customer';
+    const userAvatar = localStorage.getItem('apex_user_avatar') || null;
+    const newFeedback = {
+      user: userName,
+      avatar: userAvatar,
+      comment: newComment.trim(),
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    const updated = [newFeedback, ...feedbacks];
+    setFeedbacks(updated);
+    localStorage.setItem(`apex_feedbacks_${product.id}`, JSON.stringify(updated));
+    setNewComment('');
+  };
 
   if (!product) {
     return (
@@ -108,6 +253,7 @@ export default function ProductDetailPage() {
   };
 
   const handleCustomizationRequest = () => {
+    const token = localStorage.getItem('apex_user_token');
     const estimateData = {
       title: `Customized ${product.name}`,
       desc: `I want to customize the ready-made template: ${product.name}. My features request: `,
@@ -115,8 +261,13 @@ export default function ProductDetailPage() {
       tech: product.technologies.join(', ')
     };
     localStorage.setItem('apex_imported_estimate', JSON.stringify(estimateData));
-    localStorage.setItem('apex_user_role', 'customer');
-    router.push('/user');
+
+    if (!token) {
+      router.push(`/login?redirect=${encodeURIComponent('/user/deals')}`);
+      return;
+    }
+    
+    router.push('/user/deals');
   };
 
   return (
@@ -158,8 +309,49 @@ export default function ProductDetailPage() {
               ))}
             </div>
 
-            {/* Clean Flat Tabs */}
-            <div className="border-b border-zinc-200 dark:border-zinc-800 flex gap-6 text-xs font-medium text-zinc-500">
+            {/* Live Demo Video Section */}
+            {product.videoUrl && (
+              <div className="space-y-3 pt-4">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 font-bold text-zinc-950 dark:text-white uppercase tracking-wider text-[10px]">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Interactive Product Walkthrough</span>
+                  </div>
+                  <span className="text-zinc-450 dark:text-zinc-500 text-[10px] font-mono">Demo Preview</span>
+                </div>
+                
+                {/* Browser / Mock Window Frame */}
+                <div className="border border-zinc-200 dark:border-zinc-800/80 rounded-xl overflow-hidden shadow-2xl bg-zinc-50 dark:bg-[#121214]/60">
+                  {/* Browser Header Bar */}
+                  <div className="bg-zinc-150/80 dark:bg-zinc-950/80 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-400 dark:bg-red-500/80 block"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 dark:bg-amber-500/80 block"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 dark:bg-emerald-500/80 block"></span>
+                    </div>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono select-none truncate max-w-[200px] md:max-w-xs">{product.name.toLowerCase().replace(/\s+/g, '_')}_demo.mp4</span>
+                    <div className="w-12"></div> {/* spacer */}
+                  </div>
+                  
+                  {/* Video Element */}
+                  <div className="relative aspect-video bg-black flex items-center justify-center">
+                    <video
+                      src={product.videoUrl}
+                      controls
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      poster={product.images[0]}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* High-Contrast Segmented Tabs */}
+            <div className="flex gap-1.5 bg-zinc-100 dark:bg-zinc-900/60 p-1 rounded-lg max-w-sm mb-6 border border-zinc-200/50 dark:border-zinc-800/80 shadow-sm">
               {[
                 { id: 'overview', label: 'Features' },
                 { id: 'reviews', label: 'Feedback' },
@@ -168,8 +360,11 @@ export default function ProductDetailPage() {
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id as any)}
-                  className={`pb-2 transition-colors cursor-pointer ${activeTab === t.id ? 'text-zinc-950 dark:text-white border-b-2 border-zinc-950 dark:border-white font-semibold' : 'hover:text-zinc-800 dark:hover:text-zinc-300'
-                    }`}
+                  className={`flex-1 py-2 px-3 rounded-md text-[10px] font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer text-center ${
+                    activeTab === t.id
+                      ? 'bg-white dark:bg-zinc-800 text-[#6A2D3D] dark:text-[#fca5a5] shadow-md ring-1 ring-zinc-200/10'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  }`}
                 >
                   {t.label}
                 </button>
@@ -206,23 +401,65 @@ export default function ProductDetailPage() {
             )}
 
             {activeTab === 'reviews' && (
-              <div className="space-y-4 text-xs">
+              <div className="space-y-5 text-xs">
                 <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 font-medium">
                   <span>Client Rating:</span>
                   <span className="text-zinc-950 dark:text-white font-bold">{product.rating} / 5.0</span>
                 </div>
 
-                <div className="space-y-2.5">
-                  {[
-                    { user: 'S. Talukder', comment: 'Clean Next.js layout structure. Integration took less than an hour.', date: '2026-06-28' },
-                    { user: 'Rahman K.', comment: 'Saves considerable design and setup hours.', date: '2026-06-15' }
-                  ].map((rev, i) => (
-                    <div key={i} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded bg-zinc-50 dark:bg-zinc-900/10 space-y-1">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="font-bold text-zinc-950 dark:text-white">{rev.user}</span>
-                        <span className="text-zinc-500">{rev.date}</span>
+                {/* Leave feedback form */}
+                <form onSubmit={handleAddComment} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded bg-zinc-50 dark:bg-zinc-900/10 space-y-3">
+                  <span className="font-bold text-zinc-950 dark:text-white block text-[10px] uppercase tracking-wider">Leave Feedback</span>
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => {
+                      setNewComment(e.target.value);
+                      setCommentError('');
+                    }}
+                    onFocus={() => {
+                      const token = localStorage.getItem('apex_user_token');
+                      if (!token) {
+                        setShowAuthModal(true);
+                      }
+                    }}
+                    placeholder="Write your review, feedback or comments about this template..."
+                    className="w-full bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 border border-zinc-200 dark:border-zinc-800 focus:border-zinc-400 dark:focus:border-zinc-700 rounded p-2 text-xs font-semibold focus:outline-none min-h-[70px] resize-y"
+                  />
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="text-red-500 font-bold text-[10px] uppercase tracking-wide">
+                      {commentError}
+                    </div>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
+                    >
+                      Post Feedback
+                    </button>
+                  </div>
+                </form>
+
+                <div className="space-y-3">
+                  {feedbacks.map((rev: any, i) => (
+                    <div key={i} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/10 flex gap-3 items-start transition-all hover:border-zinc-300 dark:hover:border-zinc-800">
+                      {/* Avatar */}
+                      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center border border-zinc-350 dark:border-zinc-700 shadow-xs font-bold text-xs uppercase text-zinc-650 dark:text-zinc-300 select-none">
+                        {rev.avatar ? (
+                          <img src={rev.avatar} alt={rev.user} className="w-full h-full object-cover" />
+                        ) : (
+                          rev.user ? rev.user.charAt(0) : 'C'
+                        )}
                       </div>
-                      <p className="text-zinc-600 dark:text-zinc-400 leading-normal text-[11px]">{rev.comment}</p>
+
+                      {/* Content */}
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between items-center text-[10px]">
+                          <span className="font-bold text-zinc-950 dark:text-white">{rev.user}</span>
+                          <span className="text-zinc-500 font-mono">
+                            {rev.date ? (rev.date.includes('T') ? rev.date.split('T')[0] : rev.date) : ''}
+                          </span>
+                        </div>
+                        <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-[11px] pt-0.5">{rev.comment}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -245,39 +482,77 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Right Column: Checkout Widget */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 lg:sticky lg:top-[92px] space-y-6">
             <div className="border border-zinc-200 dark:border-zinc-800 p-6 rounded bg-zinc-50 dark:bg-[#121214] space-y-5">
               <div className="space-y-1">
                 <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Pricing</span>
                 <span className="text-xl font-extrabold text-zinc-950 dark:text-white block">{product.price.toLocaleString()} BDT</span>
               </div>
 
-              {product.demoUrl && (
-                <a
-                  href={product.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:via-indigo-500 hover:to-blue-500 text-white rounded font-bold transition-all duration-300 cursor-pointer text-center flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-xl hover:shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <span>Live Preview Demo</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              )}
+              {isPurchased ? (
+                <div className="space-y-3">
+                  <div className="bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 dark:text-emerald-405 p-3 rounded flex flex-col items-center justify-center gap-1 text-center">
+                    <span className="text-[9px] uppercase font-black tracking-widest text-emerald-600 dark:text-emerald-400">License Acquired</span>
+                    <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300">You already purchased this product.</span>
+                  </div>
+                  
+                  {product.demoUrl && (
+                    <a
+                      href={product.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:via-indigo-500 hover:to-blue-500 text-white rounded font-bold transition-all duration-300 cursor-pointer text-center flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-xl hover:shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <span>Live Preview Demo</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
 
-              <div className="space-y-2 text-xs">
-                <button
-                  onClick={handleBuyClick}
-                  className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded font-bold transition-colors cursor-pointer text-center"
-                >
-                  Buy License
-                </button>
-                <button
-                  onClick={handleCustomizationRequest}
-                  className="w-full py-2 bg-transparent border border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 text-zinc-700 dark:text-zinc-300 rounded font-semibold transition-colors cursor-pointer text-center"
-                >
-                  Request Customization
-                </button>
-              </div>
+                  <Link
+                    href={`/user/products/${product.id}`}
+                    className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded font-bold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 text-xs"
+                  >
+                    <span>View Workspace</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+
+                  <button
+                    onClick={handleCustomizationRequest}
+                    className="w-full py-2 bg-transparent border border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 text-zinc-700 dark:text-zinc-300 rounded font-semibold transition-colors cursor-pointer text-center text-xs"
+                  >
+                    Request Customization
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {product.demoUrl && (
+                    <a
+                      href={product.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:via-indigo-500 hover:to-blue-500 text-white rounded font-bold transition-all duration-300 cursor-pointer text-center flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-xl hover:shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <span>Live Preview Demo</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+
+                  <div className="space-y-2 text-xs">
+                    <button
+                      onClick={handleBuyClick}
+                      className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded font-bold transition-colors cursor-pointer text-center"
+                    >
+                      Buy License
+                    </button>
+                    <button
+                      onClick={handleCustomizationRequest}
+                      className="w-full py-2 bg-transparent border border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 text-zinc-700 dark:text-zinc-300 rounded font-semibold transition-colors cursor-pointer text-center"
+                    >
+                      Request Customization
+                    </button>
+                  </div>
+                </>
+              )}
 
               {/* Purchase Notice */}
               <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-3 text-[10px] text-zinc-500 font-medium">
@@ -393,6 +668,15 @@ export default function ProductDetailPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          initialMode="signin"
+          isModal={true}
+        />
       )}
 
       <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#09090b] py-8 text-center text-xs text-zinc-500">

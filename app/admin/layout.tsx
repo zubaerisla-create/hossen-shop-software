@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare } from 'lucide-react';
 import { initializeStorage, syncWithBackend } from '../utils/storage';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -76,6 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/products', label: 'Ready Products', icon: <ShoppingCart className="w-4 h-4" /> },
     { href: '/admin/orders', label: 'Client Orders', icon: <Package className="w-4 h-4" /> },
     { href: '/admin/deals', label: 'Custom Deals', icon: <FolderKanban className="w-4 h-4" /> },
+    { href: '/admin/feedbacks', label: 'Manage Feedbacks', icon: <MessageSquare className="w-4 h-4" /> },
     { href: '/admin/support', label: 'Resolve Tickets', icon: <Wrench className="w-4 h-4" /> },
     { href: '/admin/payments', label: 'bKash Invoices', icon: <Receipt className="w-4 h-4" /> }
   ];

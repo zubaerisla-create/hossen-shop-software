@@ -568,6 +568,29 @@ export default function AdminProductsPage() {
                           </div>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-zinc-650 dark:text-zinc-400 font-bold mb-1 uppercase tracking-wider text-[9px]">Demo URL (Live Preview)</label>
+                            <input 
+                              type="url" 
+                              placeholder="e.g. https://demo.example.com" 
+                              value={formDemoUrl} 
+                              onChange={(e) => setFormDemoUrl(e.target.value)} 
+                              className="w-full bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none focus:border-zinc-450 dark:focus:border-zinc-700" 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-zinc-650 dark:text-zinc-400 font-bold mb-1 uppercase tracking-wider text-[9px]">Video Walkthrough URL (Demo Video)</label>
+                            <input 
+                              type="url" 
+                              placeholder="e.g. https://www.w3schools.com/html/mov_bbb.mp4" 
+                              value={formVideoUrl} 
+                              onChange={(e) => setFormVideoUrl(e.target.value)} 
+                              className="w-full bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 text-xs focus:outline-none focus:border-zinc-450 dark:focus:border-zinc-700" 
+                            />
+                          </div>
+                        </div>
+
                         <div>
                           <label className="block text-zinc-650 dark:text-zinc-400 font-bold mb-1 uppercase tracking-wider text-[9px]">Marketing Description *</label>
                           <textarea 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { initializeStorage } from '@/app/utils/storage';
-import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers, Handshake } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { servicesData } from '@/app/data/services';
 import { ServiceIcon } from '@/app/utils/icons';
@@ -111,9 +111,28 @@ export default function Header() {
   };
 
   const otherNavLinks = [
-    { label: 'Templates', action: () => handleNavClick('products') },
+    { 
+      label: 'Templates', 
+      action: () => { setIsMobileMenuOpen(false); router.push('/products'); },
+      path: '/products',
+      highlight: 'purple'
+    },
     { label: 'Portfolio', action: () => handleNavClick('portfolio') },
     { label: 'AI Estimator', action: () => { setIsMobileMenuOpen(false); router.push('/estimator'); }, path: '/estimator' },
+    { 
+      label: 'Custom Deals', 
+      action: () => {
+        setIsMobileMenuOpen(false);
+        if (role !== 'visitor') {
+          router.push('/user/deals');
+        } else {
+          setAuthModalMode('signin');
+          setShowAuthModal(true);
+        }
+      }, 
+      path: '/user/deals',
+      highlight: 'rose'
+    }
   ];
 
   const handleServicesEnter = () => {
@@ -190,6 +209,74 @@ export default function Header() {
           height: 4px;
           border-radius: 50%;
           background: #6A2D3D;
+        }
+
+        .nav-link-highlighted-purple {
+          color: #4f46e5 !important;
+          font-weight: 700 !important;
+          border: 1px solid rgba(79, 70, 229, 0.25) !important;
+          background: rgba(79, 70, 229, 0.04) !important;
+          box-shadow: 0 0 12px rgba(79, 70, 229, 0.08) !important;
+        }
+        .dark .nav-link-highlighted-purple {
+          color: #a5b4fc !important;
+          border-color: rgba(165, 180, 252, 0.35) !important;
+          background: rgba(165, 180, 252, 0.08) !important;
+          box-shadow: 0 0 12px rgba(165, 180, 252, 0.1) !important;
+        }
+        .nav-link-highlighted-purple:hover {
+          background: rgba(79, 70, 229, 0.1) !important;
+          box-shadow: 0 0 16px rgba(79, 70, 229, 0.15) !important;
+        }
+        .dark .nav-link-highlighted-purple:hover {
+          background: rgba(165, 180, 252, 0.15) !important;
+          box-shadow: 0 0 16px rgba(165, 180, 252, 0.18) !important;
+        }
+
+        .nav-link-highlighted-rose {
+          color: #be123c !important;
+          font-weight: 700 !important;
+          border: 1px solid rgba(190, 18, 60, 0.25) !important;
+          background: rgba(190, 18, 60, 0.04) !important;
+          box-shadow: 0 0 12px rgba(190, 18, 60, 0.08) !important;
+        }
+        .dark .nav-link-highlighted-rose {
+          color: #fca5a5 !important;
+          border-color: rgba(252, 165, 165, 0.35) !important;
+          background: rgba(252, 165, 165, 0.08) !important;
+          box-shadow: 0 0 12px rgba(252, 165, 165, 0.1) !important;
+        }
+        .nav-link-highlighted-rose:hover {
+          background: rgba(190, 18, 60, 0.1) !important;
+          box-shadow: 0 0 16px rgba(190, 18, 60, 0.15) !important;
+        }
+        .dark .nav-link-highlighted-rose:hover {
+          background: rgba(252, 165, 165, 0.15) !important;
+          box-shadow: 0 0 16px rgba(252, 165, 165, 0.18) !important;
+        }
+
+        .mobile-nav-highlighted-purple {
+          color: #4f46e5 !important;
+          font-weight: 700 !important;
+          background: rgba(79, 70, 229, 0.05) !important;
+          border-left: 4px solid #4f46e5 !important;
+        }
+        .dark .mobile-nav-highlighted-purple {
+          color: #a5b4fc !important;
+          background: rgba(165, 180, 252, 0.08) !important;
+          border-left-color: #818cf8 !important;
+        }
+        
+        .mobile-nav-highlighted-rose {
+          color: #be123c !important;
+          font-weight: 700 !important;
+          background: rgba(190, 18, 60, 0.05) !important;
+          border-left: 4px solid #be123c !important;
+        }
+        .dark .mobile-nav-highlighted-rose {
+          color: #fca5a5 !important;
+          background: rgba(252, 165, 165, 0.08) !important;
+          border-left-color: #f43f5e !important;
         }
 
         .header-nav {
@@ -310,16 +397,17 @@ export default function Header() {
         .theme-btn:hover { transform: rotate(15deg); }
 
         .logo-badge {
-          background: linear-gradient(135deg, #09090b 0%, #27272a 100%);
+          background: linear-gradient(135deg, #6A2D3D 0%, #8b3c4f 100%);
           color: white;
-          font-size: 0.65rem;
-          font-weight: 800;
-          letter-spacing: 0.15em;
-          padding: 3px 8px;
-          border-radius: 5px;
+          font-size: 0.75rem;
+          font-weight: 900;
+          letter-spacing: 0.18em;
+          padding: 4px 10px;
+          border-radius: 6px;
           text-transform: uppercase;
           position: relative;
           overflow: hidden;
+          box-shadow: 0 0 14px rgba(106, 45, 61, 0.3);
         }
         .logo-badge::after {
           content: '';
@@ -327,12 +415,13 @@ export default function Header() {
           top: 0; left: -100%;
           width: 60%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
           animation: shimmer 3s infinite;
         }
         .dark .logo-badge {
-          background: linear-gradient(135deg, #f4f4f5 0%, #d4d4d8 100%);
+          background: linear-gradient(135deg, #be123c 0%, #fda4af 100%);
           color: #09090b;
+          box-shadow: 0 0 14px rgba(244, 63, 94, 0.2);
         }
         @keyframes shimmer {
           0%   { left: -100%; }
@@ -445,11 +534,11 @@ export default function Header() {
           {/* ─── Logo ─── */}
           <div
             onClick={() => router.push('/')}
-            className="flex items-center gap-2.5 cursor-pointer select-none flex-shrink-0"
+            className="flex items-center gap-2.5 cursor-pointer select-none flex-shrink-0 group"
           >
-            <span className="logo-badge">HOSSEN</span>
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 logo-text tracking-tight hidden sm:block transition-colors">
-              Software<span className="text-zinc-300 dark:text-zinc-600 logo-dot mx-0.5 transition-colors">·</span>Shop
+            <span className="logo-badge transition-transform duration-300 group-hover:scale-105">HOSSEN</span>
+            <span className="text-[13px] font-extrabold text-zinc-800 dark:text-zinc-100 logo-text tracking-tight hidden sm:block transition-all duration-300 group-hover:translate-x-0.5">
+              Software<span className="text-[#6A2D3D] dark:text-[#fca5a5] logo-dot mx-0.5 transition-colors font-black">·</span><span className="text-[#6A2D3D] dark:text-[#fca5a5] font-black">Shop</span>
             </span>
           </div>
 
@@ -509,20 +598,34 @@ export default function Header() {
             </div>
 
             {/* Other nav links */}
-            {otherNavLinks.map((link) => (
-              <button
-                key={link.label}
-                onClick={link.action}
-                className={`nav-link-pill ${'path' in link && link.path && pathname === link.path ? 'active' : ''}`}
-              >
-                {link.label === 'AI Estimator' ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Zap className="w-3 h-3 text-amber-500" />
-                    {link.label}
-                  </span>
-                ) : link.label}
-              </button>
-            ))}
+            {otherNavLinks.map((link) => {
+              const isHighlightPurple = link.highlight === 'purple';
+              const isHighlightRose = link.highlight === 'rose';
+              const highlightClass = isHighlightPurple 
+                ? 'nav-link-highlighted-purple' 
+                : isHighlightRose 
+                ? 'nav-link-highlighted-rose' 
+                : '';
+              return (
+                <button
+                  key={link.label}
+                  onClick={link.action}
+                  className={`nav-link-pill ${'path' in link && link.path && pathname === link.path ? 'active' : ''} ${highlightClass}`}
+                >
+                  {link.label === 'AI Estimator' ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Zap className="w-3 h-3 text-amber-500" />
+                      {link.label}
+                    </span>
+                  ) : link.label === 'Custom Deals' ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Handshake className="w-3.5 h-3.5 text-[#be123c] dark:text-[#fca5a5]" />
+                      {link.label}
+                    </span>
+                  ) : link.label}
+                </button>
+              );
+            })}
           </nav>
 
           {/* ─── Right Controls ─── */}
@@ -675,16 +778,26 @@ export default function Header() {
               </div>
 
               {/* Other links */}
-              {otherNavLinks.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={link.action}
-                  className={`mobile-nav-item ${'path' in link && link.path && pathname === link.path ? 'active' : ''}`}
-                >
-                  {link.label === 'AI Estimator' && <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
-                  {link.label}
-                </button>
-              ))}
+              {otherNavLinks.map((link) => {
+                const isHighlightPurple = link.highlight === 'purple';
+                const isHighlightRose = link.highlight === 'rose';
+                const highlightClass = isHighlightPurple 
+                  ? 'mobile-nav-highlighted-purple' 
+                  : isHighlightRose 
+                  ? 'mobile-nav-highlighted-rose' 
+                  : '';
+                return (
+                  <button
+                    key={link.label}
+                    onClick={link.action}
+                    className={`mobile-nav-item ${'path' in link && link.path && pathname === link.path ? 'active' : ''} ${highlightClass}`}
+                  >
+                    {link.label === 'AI Estimator' && <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
+                    {link.label === 'Custom Deals' && <Handshake className="w-3.5 h-3.5 text-[#be123c] dark:text-[#fca5a5] flex-shrink-0" />}
+                    {link.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Mobile Auth */}

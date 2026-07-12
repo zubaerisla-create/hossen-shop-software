@@ -76,23 +76,24 @@ export default function AdminDealDetailWorkspace() {
     const initializeDeal = async () => {
       let loadedDeals = getDeals();
 
-      // If deal doesn't exist in local storage, query the backend
-      let dealExists = loadedDeals.some(d => d.id === dealId);
-      if (!dealExists) {
-        const token = localStorage.getItem('apex_user_token');
-        if (token) {
-          try {
-            const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const resData = await response.json();
-            if (response.ok && resData.data?.deal) {
-              loadedDeals.push(resData.data.deal);
-              saveDeals(loadedDeals);
+      // Always fetch latest deal details from database on page load
+      const token = localStorage.getItem('apex_user_token');
+      if (token) {
+        try {
+          const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const resData = await response.json();
+          if (response.ok && resData.data?.deal) {
+            const backendDeal = resData.data.deal;
+            loadedDeals = loadedDeals.map(d => d.id === dealId ? backendDeal : d);
+            if (!loadedDeals.some(d => d.id === dealId)) {
+              loadedDeals.push(backendDeal);
             }
-          } catch (err) {
-            console.error('Failed to load deal from database:', err);
+            saveDeals(loadedDeals);
           }
+        } catch (err) {
+          console.error('Failed to load deal from database:', err);
         }
       }
 
@@ -144,6 +145,17 @@ export default function AdminDealDetailWorkspace() {
       });
     });
 
+    socket.on('deal_updated', (updatedDeal: CustomDeal) => {
+      setDeals(prev => {
+        const updated = prev.map(d => d.id === updatedDeal.id ? updatedDeal : d);
+        if (!updated.some(d => d.id === updatedDeal.id)) {
+          updated.push(updatedDeal);
+        }
+        saveDeals(updated);
+        return updated;
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -178,7 +190,25 @@ export default function AdminDealDetailWorkspace() {
     );
   }
 
+  const syncDealWithBackend = async (dataToUpdate: any) => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) return;
+    try {
+      await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(dataToUpdate)
+      });
+    } catch (err) {
+      console.error('Failed to sync deal with backend:', err);
+    }
+  };
+
   const handleReviewRequest = () => {
+    syncDealWithBackend({ status: 'Reviewing' });
     const updated = deals.map(d => d.id === dealId ? { ...d, status: 'Reviewing' as const, unreadPortal: true } : d);
     saveDeals(updated);
     setDeals(updated);
@@ -201,6 +231,7 @@ export default function AdminDealDetailWorkspace() {
   };
 
   const handleStartDiscussion = () => {
+    syncDealWithBackend({ status: 'Discussion' });
     const updated = deals.map(d => d.id === dealId ? { ...d, status: 'Discussion' as const, unreadPortal: true } : d);
     saveDeals(updated);
     setDeals(updated);
@@ -225,6 +256,7 @@ export default function AdminDealDetailWorkspace() {
   const handleRejectProposal = (reason: string) => {
     if (!reason.trim()) return;
 
+    syncDealWithBackend({ status: 'Rejected' });
     const updated = deals.map(d => d.id === dealId ? { ...d, status: 'Rejected' as const, unreadPortal: true } : d);
     saveDeals(updated);
     setDeals(updated);
@@ -249,6 +281,7 @@ export default function AdminDealDetailWorkspace() {
   };
 
   const handleRestoreProposal = () => {
+    syncDealWithBackend({ status: 'Discussion' });
     const updated = deals.map(d => d.id === dealId ? { ...d, status: 'Discussion' as const, unreadPortal: true } : d);
     saveDeals(updated);
     setDeals(updated);
@@ -308,6 +341,18 @@ export default function AdminDealDetailWorkspace() {
       ]
     };
 
+    const token = localStorage.getItem('apex_user_token');
+    if (token) {
+      fetch(`http://localhost:5000/api/deals/${dealId}/quotation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(quote)
+      }).catch(err => console.error('Failed to save quotation on backend:', err));
+    }
+
     const updatedDeals = deals.map(d => d.id === dealId ? {
       ...d,
       quotation: quote,
@@ -339,17 +384,24 @@ export default function AdminDealDetailWorkspace() {
   const handleDeliverProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const credentials = {
+      github: githubUrl || 'https://github.com/',
+      cPanel: cpanelUrl || 'https://cpanel.domain.com',
+      database: dbCreds || 'Database configuration finalized.'
+    };
+
+    syncDealWithBackend({
+      status: 'Delivered',
+      credentials
+    });
+
     const updatedDeals = deals.map(d => {
       if (d.id === dealId) {
         return {
           ...d,
           status: 'Delivered' as const,
           unreadPortal: true,
-          credentials: {
-            github: githubUrl || 'https://github.com/',
-            cPanel: cpanelUrl || 'https://cpanel.domain.com',
-            database: dbCreds || 'Database configuration finalized.'
-          }
+          credentials
         };
       }
       return d;
@@ -379,6 +431,8 @@ export default function AdminDealDetailWorkspace() {
     e.preventDefault();
     if (!devName.trim()) return;
 
+    syncDealWithBackend({ developer: devName });
+
     const updatedDeals = deals.map(d => d.id === dealId ? { ...d, developer: devName, unreadPortal: true } : d);
     saveDeals(updatedDeals);
     setDeals(updatedDeals);
@@ -404,6 +458,8 @@ export default function AdminDealDetailWorkspace() {
   const handleUpdateProgressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    syncDealWithBackend({ overallProgress: progressVal });
+
     const updatedDeals = deals.map(d => d.id === dealId ? { ...d, overallProgress: progressVal, unreadPortal: true } : d);
     saveDeals(updatedDeals);
     setDeals(updatedDeals);
@@ -426,22 +482,29 @@ export default function AdminDealDetailWorkspace() {
   };
 
   const handleAdvanceMilestoneStage = (milestoneId: string, nextStage: 'Pending' | 'Awaiting Approval' | 'Approved') => {
+    let targetQuotation: any = null;
+
     const updatedDeals = deals.map(d => {
       if (d.id === dealId && d.quotation) {
         const milestones = d.quotation.milestones.map(m =>
           m.id === milestoneId ? { ...m, status: nextStage } : m
         );
+        targetQuotation = {
+          ...d.quotation,
+          milestones
+        };
         return {
           ...d,
           unreadPortal: true,
-          quotation: {
-            ...d.quotation,
-            milestones
-          }
+          quotation: targetQuotation
         };
       }
       return d;
     });
+
+    if (targetQuotation) {
+      syncDealWithBackend({ quotation: targetQuotation });
+    }
 
     saveDeals(updatedDeals);
     setDeals(updatedDeals);
@@ -484,6 +547,9 @@ export default function AdminDealDetailWorkspace() {
       return;
     }
 
+    let targetQuotation: any = null;
+    let targetProgress = 0;
+
     const updatedDeals = deals.map(d => {
       if (d.id === dealId && d.quotation) {
         const milestones = d.quotation.milestones.map(m => {
@@ -508,22 +574,32 @@ export default function AdminDealDetailWorkspace() {
           ? Math.round((milestones.reduce((acc, m) => acc + (m.progress || 0), 0)) / milestones.length)
           : 0;
 
+        targetProgress = calcProgress;
+        targetQuotation = {
+          ...d.quotation,
+          totalCost: newTotalCost,
+          milestones: milestones.map(m => ({
+            ...m,
+            percentage: newTotalCost > 0 ? Math.round((m.cost / newTotalCost) * 100) : 0
+          }))
+        };
+
         return {
           ...d,
           overallProgress: calcProgress,
           unreadPortal: true,
-          quotation: {
-            ...d.quotation,
-            totalCost: newTotalCost,
-            milestones: milestones.map(m => ({
-              ...m,
-              percentage: newTotalCost > 0 ? Math.round((m.cost / newTotalCost) * 100) : 0
-            }))
-          }
+          quotation: targetQuotation
         };
       }
       return d;
     });
+
+    if (targetQuotation) {
+      syncDealWithBackend({
+        overallProgress: targetProgress,
+        quotation: targetQuotation
+      });
+    }
 
     saveDeals(updatedDeals);
     setDeals(updatedDeals);
@@ -548,6 +624,9 @@ export default function AdminDealDetailWorkspace() {
   const handleDeleteMilestone = (milestoneId: string) => {
     if (!confirm('Are you sure you want to delete this project phase? This action cannot be undone.')) return;
 
+    let targetQuotation: any = null;
+    let targetProgress = 0;
+
     const updatedDeals = deals.map(d => {
       if (d.id === dealId && d.quotation) {
         const milestones = d.quotation.milestones.filter(m => m.id !== milestoneId);
@@ -556,22 +635,32 @@ export default function AdminDealDetailWorkspace() {
           ? Math.round((milestones.reduce((acc, m) => acc + (m.progress || 0), 0)) / milestones.length)
           : 0;
 
+        targetProgress = calcProgress;
+        targetQuotation = {
+          ...d.quotation,
+          totalCost: newTotalCost,
+          milestones: milestones.map((m, idx) => ({
+            ...m,
+            percentage: newTotalCost > 0 ? Math.round((m.cost / newTotalCost) * 100) : 0
+          }))
+        };
+
         return {
           ...d,
           overallProgress: calcProgress,
           unreadPortal: true,
-          quotation: {
-            ...d.quotation,
-            totalCost: newTotalCost,
-            milestones: milestones.map((m, idx) => ({
-              ...m,
-              percentage: newTotalCost > 0 ? Math.round((m.cost / newTotalCost) * 100) : 0
-            }))
-          }
+          quotation: targetQuotation
         };
       }
       return d;
     });
+
+    if (targetQuotation) {
+      syncDealWithBackend({
+        overallProgress: targetProgress,
+        quotation: targetQuotation
+      });
+    }
 
     saveDeals(updatedDeals);
     setDeals(updatedDeals);
@@ -611,6 +700,9 @@ export default function AdminDealDetailWorkspace() {
       deliverables: []
     };
 
+    let targetQuotation: any = null;
+    let targetProgress = 0;
+
     const updatedDeals = deals.map(d => {
       if (d.id === dealId) {
         const milestones = d.quotation 
@@ -620,25 +712,35 @@ export default function AdminDealDetailWorkspace() {
         const newTotalCost = milestones.reduce((sum, m) => sum + m.cost, 0);
         const calcProgress = Math.round((milestones.reduce((acc, m) => acc + (m.progress || 0), 0)) / milestones.length);
 
+        targetProgress = calcProgress;
+        targetQuotation = {
+          totalCost: newTotalCost,
+          developmentTime: d.quotation?.developmentTime || '30 Days',
+          supportPeriod: d.quotation?.supportPeriod || '6 Months Support',
+          maintenanceOffer: d.quotation?.maintenanceOffer || '5,000 BDT/month',
+          terms: d.quotation?.terms || ['Payment milestones must be completed to unlock next stages of source files.'],
+          milestones: milestones.map(m => ({
+            ...m,
+            percentage: newTotalCost > 0 ? Math.round((m.cost / newTotalCost) * 100) : 0
+          }))
+        };
+
         return {
           ...d,
           overallProgress: calcProgress,
           unreadPortal: true,
-          quotation: {
-            totalCost: newTotalCost,
-            developmentTime: d.quotation?.developmentTime || '30 Days',
-            supportPeriod: d.quotation?.supportPeriod || '6 Months Support',
-            maintenanceOffer: d.quotation?.maintenanceOffer || '5,000 BDT/month',
-            terms: d.quotation?.terms || ['Payment milestones must be completed to unlock next stages of source files.'],
-            milestones: milestones.map(m => ({
-              ...m,
-              percentage: newTotalCost > 0 ? Math.round((m.cost / newTotalCost) * 100) : 0
-            }))
-          }
+          quotation: targetQuotation
         };
       }
       return d;
     });
+
+    if (targetQuotation) {
+      syncDealWithBackend({
+        overallProgress: targetProgress,
+        quotation: targetQuotation
+      });
+    }
 
     saveDeals(updatedDeals);
     setDeals(updatedDeals);

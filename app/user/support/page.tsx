@@ -47,15 +47,10 @@ export default function UserSupportPage() {
     const socket = io('http://localhost:5000');
     socket.emit('join_ticket', selectedTicketId);
 
-    socket.on('new_ticket_message', (msg: any) => {
+    socket.on('new_ticket_message', (updatedTicket: any) => {
       setTickets(prev => prev.map(t => {
-        if (t.id === selectedTicketId) {
-          const alreadyExists = t.messages.some((m: any) => m.id === msg.id || (m.content === msg.content && m.timestamp === msg.timestamp));
-          if (alreadyExists) return t;
-          return {
-            ...t,
-            messages: [...t.messages, msg]
-          };
+        if (t.id === updatedTicket.id) {
+          return updatedTicket;
         }
         return t;
       }));

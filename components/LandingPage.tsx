@@ -2,11 +2,40 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/app/types';
 import { Monitor, Code, Smartphone, Terminal, Cpu, Shield, HeartHandshake, Globe, DownloadCloud, Award, Users, HelpCircle, Mail, Phone, MessageSquare, ArrowRight, Star, CheckCircle2, Search, Sparkles, ShieldCheck, Zap } from 'lucide-react';
 import AiEstimator from './AiEstimator';
 import { servicesData } from '@/app/data/services';
 import { ServiceIcon } from '@/app/utils/icons';
+
+function ProductCardVideo({ src, isHovered }: { src: string; isHovered: boolean }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isHovered) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [isHovered]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 z-10 ${
+        isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+      muted
+      loop
+      playsInline
+    />
+  );
+}
 
 interface LandingPageProps {
   products: Product[];
@@ -25,9 +54,19 @@ export default function LandingPage({
   onOpenLogin,
   onImportToCustomForm
 }: LandingPageProps) {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<'all' | 'SaaS' | 'Full Website' | 'Mobile App' | 'UI/UX'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleSearchSubmit = () => {
+    if (searchTerm.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      router.push('/products');
+    }
+  };
 
   // Force video to always play — even after tab switch or browser throttling
   const forcePlay = useCallback(() => {
@@ -89,13 +128,36 @@ export default function LandingPage({
     { name: 'Maria K.', role: 'Product Lead, FinSolve', text: 'Their custom development flow is seamless. The electronic signing and milestone approval payments made the whole project feel highly secure.', rating: 5 }
   ];
 
-  const stats = [
-    { value: '180+', label: 'Projects Completed', icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" /> },
-    { value: '2,500+', label: 'Happy Clients', icon: <Users className="w-5 h-5 text-violet-500" /> },
-    { value: '15+', label: 'Countries Served', icon: <Globe className="w-5 h-5 text-blue-500" /> },
-    { value: '12K+', label: 'Products Downloaded', icon: <DownloadCloud className="w-5 h-5 text-rose-500" /> },
-    { value: '5+', label: 'Years Experience', icon: <Award className="w-5 h-5 text-amber-500" /> }
-  ];
+  const [stats, setStats] = useState<{ value: string; label: string; iconKey: string }[]>([
+    { value: '180+', label: 'Projects Completed', iconKey: 'check' },
+    { value: '2,500+', label: 'Happy Clients', iconKey: 'users' },
+    { value: '15+', label: 'Countries Served', iconKey: 'globe' },
+    { value: '12K+', label: 'Products Downloaded', iconKey: 'download' },
+    { value: '5+', label: 'Years Experience', iconKey: 'award' }
+  ]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('apex_agency_stats');
+    if (saved) {
+      try {
+        setStats(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  function getStatIcon(key: string) {
+    const cls = "w-5 h-5";
+    switch (key) {
+      case 'check': return <CheckCircle2 className={`${cls} text-emerald-500`} />;
+      case 'users': return <Users className={`${cls} text-violet-500`} />;
+      case 'globe': return <Globe className={`${cls} text-blue-500`} />;
+      case 'download': return <DownloadCloud className={`${cls} text-rose-500`} />;
+      case 'award': return <Award className={`${cls} text-amber-500`} />;
+      default: return <CheckCircle2 className={`${cls} text-emerald-500`} />;
+    }
+  }
 
   const faqs = [
     { q: 'How does the Ready-made Digital Products purchase work?', a: 'You browse products, click buy, select your payment method (bKash/Card), complete the simulated checkout, and immediately receive the file downloads and invoice receipt.' },
@@ -156,9 +218,17 @@ export default function LandingPage({
               placeholder="Search templates, SaaS boilerplates, custom estimates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearchSubmit();
+                }
+              }}
               className="w-full bg-white/95 dark:bg-zinc-900/90 text-zinc-900 dark:text-white placeholder:text-zinc-400 rounded-lg pl-10 pr-16 py-4 text-xs font-semibold focus:outline-none border border-white/10 dark:border-zinc-800 focus:border-zinc-300 focus:ring-1 focus:ring-zinc-350 dark:focus:border-zinc-700 dark:focus:ring-zinc-800 transition-all backdrop-blur-md"
             />
-            <button className="absolute right-2 top-2 bottom-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black px-4 rounded-md flex items-center justify-center cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-wider">
+            <button 
+              onClick={handleSearchSubmit}
+              className="absolute right-2 top-2 bottom-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black px-4 rounded-md flex items-center justify-center cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-wider"
+            >
               Search
             </button>
           </div>
@@ -273,15 +343,25 @@ export default function LandingPage({
             <div
               key={prod.id}
               onClick={() => onSelectProduct(prod)}
-              className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-800 flex flex-col justify-between"
+              onMouseEnter={() => setHoveredProductId(prod.id)}
+              onMouseLeave={() => setHoveredProductId(null)}
+              className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-850 flex flex-col justify-between"
             >
               <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+                {prod.videoUrl && (
+                  <ProductCardVideo
+                    src={prod.videoUrl}
+                    isHovered={hoveredProductId === prod.id}
+                  />
+                )}
                 <img
                   src={prod.images[0]}
                   alt={prod.name}
-                  className="w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  className={`w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ${
+                    hoveredProductId === prod.id ? 'opacity-0 scale-105' : ''
+                  }`}
                 />
-                <span className="absolute top-3 left-3 bg-zinc-900/90 dark:bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white tracking-widest uppercase">
+                <span className="absolute top-3 left-3 bg-zinc-900/90 dark:bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white tracking-widest uppercase z-20 font-bold">
                   {prod.category}
                 </span>
               </div>
@@ -389,7 +469,7 @@ export default function LandingPage({
             {stats.map((stat, i) => (
               <div key={i} className={`bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl p-5 flex flex-col justify-between space-y-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-800 ${i === 4 ? 'col-span-2 flex-row items-center space-y-0 py-4' : ''}`}>
                 <div className="bg-zinc-50 dark:bg-zinc-900/60 p-2 w-fit rounded-lg border border-zinc-200 dark:border-zinc-850 shadow-xs">
-                  {stat.icon}
+                  {getStatIcon(stat.iconKey)}
                 </div>
                 <div>
                   <span className="text-2xl font-black text-zinc-950 dark:text-white block tracking-tight">{stat.value}</span>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Product } from '../../types';
-import { getProducts, getPurchasedProducts } from '../../utils/storage';
+import { getProducts, getPurchasedProducts, syncWithBackend } from '../../utils/storage';
 import { Download, ExternalLink, ArrowRight, Search, Shield, FileCode, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -11,10 +11,14 @@ export default function PurchasedTemplatesPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const allProducts = getProducts();
-    const purchasedIds = getPurchasedProducts();
-    const owned = allProducts.filter(p => purchasedIds.includes(p.id));
-    setPurchasedProducts(owned);
+    const load = async () => {
+      await syncWithBackend();
+      const allProducts = getProducts();
+      const purchasedIds = getPurchasedProducts();
+      const owned = allProducts.filter(p => purchasedIds.includes(p.id));
+      setPurchasedProducts(owned);
+    };
+    load();
   }, []);
 
   const filteredProducts = purchasedProducts.filter(p => 

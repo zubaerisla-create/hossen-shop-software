@@ -168,11 +168,9 @@ export function replyToTicket(ticketId: string, reply: { sender: 'customer' | 'a
 
 export async function syncWithBackend() {
   if (typeof window === 'undefined') return;
-  const token = localStorage.getItem('apex_user_token');
-  if (!token) return;
 
   try {
-    // 1. Fetch Products
+    // 1. Fetch Products (Public endpoint)
     const productsRes = await fetch('http://localhost:5000/api/products');
     if (productsRes.ok) {
       const data = await productsRes.json();
@@ -180,7 +178,14 @@ export async function syncWithBackend() {
         localStorage.setItem(PRODUCTS_KEY, JSON.stringify(data.data.products));
       }
     }
+  } catch (err) {
+    console.error('Failed to sync products with backend:', err);
+  }
 
+  const token = localStorage.getItem('apex_user_token');
+  if (!token) return;
+
+  try {
     // 2. Fetch Deals
     const dealsRes = await fetch('http://localhost:5000/api/deals', {
       headers: { 'Authorization': `Bearer ${token}` }

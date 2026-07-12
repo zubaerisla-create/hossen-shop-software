@@ -94,10 +94,16 @@ export default function AuthModal({
       localStorage.setItem('apex_user_avatar', user.avatar || '');
 
       triggerAuthChangeEvent();
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectUrl = searchParams.get('redirect');
+
       if (isModal) {
         onClose();
-        router.push(role === 'admin' ? '/admin' : '/user/deals');
-      } else {
+      }
+      
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else if (!isModal) {
         router.push(role === 'admin' ? '/admin' : '/user/deals');
       }
     } catch (err: any) {
@@ -175,7 +181,14 @@ export default function AuthModal({
         if (isModal) {
           onClose();
         }
-        router.push(role === 'admin' ? '/admin' : '/user/deals');
+        
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectUrl = searchParams.get('redirect');
+        if (redirectUrl) {
+          router.push(redirectUrl);
+        } else if (!isModal) {
+          router.push(role === 'admin' ? '/admin' : '/user/deals');
+        }
       }, 1000);
 
     } catch (err: any) {

@@ -64,22 +64,24 @@ export default function UserDealDetailWorkspace() {
       }
 
       // If deal doesn't exist in local storage, query the backend
-      let dealExists = loadedDeals.some(d => d.id === dealId);
-      if (!dealExists) {
-        const token = localStorage.getItem('apex_user_token');
-        if (token) {
-          try {
-            const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const resData = await response.json();
-            if (response.ok && resData.data?.deal) {
-              loadedDeals.push(resData.data.deal);
-              saveDeals(loadedDeals);
+      // Always fetch latest deal details from database on page load
+      const token = localStorage.getItem('apex_user_token');
+      if (token) {
+        try {
+          const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const resData = await response.json();
+          if (response.ok && resData.data?.deal) {
+            const backendDeal = resData.data.deal;
+            loadedDeals = loadedDeals.map(d => d.id === dealId ? backendDeal : d);
+            if (!loadedDeals.some(d => d.id === dealId)) {
+              loadedDeals.push(backendDeal);
             }
-          } catch (err) {
-            console.error('Failed to load deal from database:', err);
+            saveDeals(loadedDeals);
           }
+        } catch (err) {
+          console.error('Failed to load deal from database:', err);
         }
       }
 
@@ -131,6 +133,17 @@ export default function UserDealDetailWorkspace() {
       });
     });
 
+    socket.on('deal_updated', (updatedDeal: CustomDeal) => {
+      setDeals(prev => {
+        const updated = prev.map(d => d.id === updatedDeal.id ? updatedDeal : d);
+        if (!updated.some(d => d.id === updatedDeal.id)) {
+          updated.push(updatedDeal);
+        }
+        saveDeals(updated);
+        return updated;
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -165,7 +178,23 @@ export default function UserDealDetailWorkspace() {
     );
   }
 
-  const handleSignContract = () => {
+  const handleSignContract = async () => {
+    const token = localStorage.getItem('apex_user_token');
+    if (token) {
+      try {
+        await fetch(`http://localhost:5000/api/deals/${dealId}/sign`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ clientSignature: 'Client Signed' })
+        });
+      } catch (err) {
+        console.error('Failed to sign contract on backend:', err);
+      }
+    }
+
     const updatedDeals = deals.map(d => {
       if (d.id === dealId) {
         return {
@@ -295,6 +324,21 @@ export default function UserDealDetailWorkspace() {
         }
         return d;
       });
+
+      const token = localStorage.getItem('apex_user_token');
+      if (token) {
+        const updatedDeal = updatedDeals.find(d => d.id === dealId);
+        if (updatedDeal && updatedDeal.quotation) {
+          fetch(`http://localhost:5000/api/deals/${dealId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ quotation: updatedDeal.quotation })
+          }).catch(err => console.error('Failed to save milestone payment on backend:', err));
+        }
+      }
 
       saveDeals(updatedDeals);
       setDeals(updatedDeals);
