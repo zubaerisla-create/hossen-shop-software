@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, CheckCircle2, Clock, DollarSign, Layers,
@@ -7,9 +8,22 @@ import {
 } from 'lucide-react';
 import { ServiceItem, servicesData } from '../../data/services';
 import { ServiceIcon } from '@/app/utils/icons';
+import AuthModal from '@/components/AuthModal';
 
 export default function ServicePageClient({ service }: { service: ServiceItem }) {
+  const router = useRouter();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const otherServices = servicesData.filter((s) => s.slug !== service.slug).slice(0, 3);
+
+  const handleCustomQuoteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('apex_user_token');
+    if (token) {
+      router.push('/user/deals');
+    } else {
+      setShowAuthModal(true);
+    }
+  };
 
   return (
     <>
@@ -224,9 +238,9 @@ export default function ServicePageClient({ service }: { service: ServiceItem })
                 <a href="/estimator" className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-xl font-bold text-sm transition-all hover:shadow-lg cursor-pointer">
                   <Star className="w-4 h-4 text-amber-500" /> Try AI Estimator
                 </a>
-                <a href="/" className="flex items-center gap-2 px-6 py-3 bg-transparent border border-white/20 hover:border-white/40 text-white rounded-xl font-bold text-sm transition-all cursor-pointer">
+                <button onClick={handleCustomQuoteClick} className="flex items-center gap-2 px-6 py-3 bg-transparent border border-white/20 hover:border-white/40 text-white rounded-xl font-bold text-sm transition-all cursor-pointer">
                   Request Custom Quote <ArrowRight className="w-4 h-4" />
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -257,6 +271,14 @@ export default function ServicePageClient({ service }: { service: ServiceItem })
         </section>
 
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode="signin"
+        isModal={true}
+        redirectUrl="/user/deals"
+      />
     </>
   );
 }

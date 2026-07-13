@@ -118,6 +118,7 @@ export interface ChatMessage {
   timestamp: string;
   file?: FileAttachment;
   meetingLink?: string;
+  createdAt?: string;
 }
 
 export interface Invoice {

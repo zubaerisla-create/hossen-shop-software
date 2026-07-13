@@ -11,13 +11,15 @@ interface AuthModalProps {
   onClose: () => void;
   initialMode: 'signin' | 'signup';
   isModal?: boolean;
+  redirectUrl?: string;
 }
 
 export default function AuthModal({
   isOpen,
   onClose,
   initialMode,
-  isModal = true
+  isModal = true,
+  redirectUrl: redirectUrlProp
 }: AuthModalProps) {
   const router = useRouter();
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
@@ -97,7 +99,7 @@ export default function AuthModal({
       triggerAuthChangeEvent();
       showSuccessToast('Signed in successfully with Google!');
       const searchParams = new URLSearchParams(window.location.search);
-      const redirectUrl = searchParams.get('redirect');
+      const redirectUrl = searchParams.get('redirect') || redirectUrlProp;
 
       if (isModal) {
         onClose();
@@ -189,7 +191,7 @@ export default function AuthModal({
         }
         
         const searchParams = new URLSearchParams(window.location.search);
-        const redirectUrl = searchParams.get('redirect');
+        const redirectUrl = searchParams.get('redirect') || redirectUrlProp;
         if (redirectUrl) {
           router.push(redirectUrl);
         } else if (!isModal) {

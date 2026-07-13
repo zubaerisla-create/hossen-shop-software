@@ -48,14 +48,17 @@ export default function ProductDetailPage() {
   };
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'faq'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'faq'>('reviews');
 
   // Purchased & Feedback States
   const [isPurchased, setIsPurchased] = useState(false);
   const [feedbacks, setFeedbacks] = useState<{ user: string; comment: string; date: string }[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [newRating, setNewRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
   const [commentError, setCommentError] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authRedirectUrl, setAuthRedirectUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -147,6 +150,7 @@ export default function ProductDetailPage() {
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
+      setAuthRedirectUrl(undefined);
       setShowAuthModal(true);
       return;
     }
@@ -164,7 +168,7 @@ export default function ProductDetailPage() {
         },
         body: JSON.stringify({
           comment: newComment.trim(),
-          rating: 5
+          rating: newRating
         })
       });
 
@@ -175,6 +179,8 @@ export default function ProductDetailPage() {
           setFeedbacks(dbReviews);
           localStorage.setItem(`apex_feedbacks_${product.id}`, JSON.stringify(dbReviews));
           setNewComment('');
+          setNewRating(5);
+          setHoverRating(0);
           showSuccessToast('Review submitted successfully!');
           return;
         }
@@ -193,6 +199,7 @@ export default function ProductDetailPage() {
     const newFeedback = {
       user: userName,
       avatar: userAvatar,
+      rating: newRating,
       comment: newComment.trim(),
       date: new Date().toISOString().split('T')[0]
     };
@@ -201,6 +208,8 @@ export default function ProductDetailPage() {
     setFeedbacks(updated);
     localStorage.setItem(`apex_feedbacks_${product.id}`, JSON.stringify(updated));
     setNewComment('');
+    setNewRating(5);
+    setHoverRating(0);
     showSuccessToast('Review submitted successfully!');
   };
 
@@ -315,7 +324,8 @@ export default function ProductDetailPage() {
     localStorage.setItem('apex_imported_estimate', JSON.stringify(estimateData));
 
     if (!token) {
-      router.push(`/login?redirect=${encodeURIComponent('/user/deals')}`);
+      setAuthRedirectUrl('/user/deals');
+      setShowAuthModal(true);
       return;
     }
     
@@ -405,8 +415,8 @@ export default function ProductDetailPage() {
             {/* High-Contrast Segmented Tabs */}
             <div className="flex gap-1.5 bg-zinc-100 dark:bg-zinc-900/60 p-1 rounded-lg max-w-sm mb-6 border border-zinc-200/50 dark:border-zinc-800/80 shadow-sm">
               {[
-                { id: 'overview', label: 'Features' },
                 { id: 'reviews', label: 'Feedback' },
+                { id: 'overview', label: 'Features' },
                 { id: 'faq', label: 'FAQ' }
               ].map(t => (
                 <button
@@ -460,41 +470,90 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Leave feedback form */}
-                <form onSubmit={handleAddComment} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded bg-zinc-50 dark:bg-zinc-900/10 space-y-3">
-                  <span className="font-bold text-zinc-950 dark:text-white block text-[10px] uppercase tracking-wider">Leave Feedback</span>
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => {
-                      setNewComment(e.target.value);
-                      setCommentError('');
-                    }}
-                    onFocus={() => {
-                      const token = localStorage.getItem('apex_user_token');
-                      if (!token) {
-                        setShowAuthModal(true);
-                      }
-                    }}
-                    placeholder="Write your review, feedback or comments about this template..."
-                    className="w-full bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 border border-zinc-200 dark:border-zinc-800 focus:border-zinc-400 dark:focus:border-zinc-700 rounded p-2 text-xs font-semibold focus:outline-none min-h-[70px] resize-y"
-                  />
+                <form onSubmit={handleAddComment} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/20 space-y-3.5">
+                  <span className="font-bold text-zinc-950 dark:text-white block text-[10px] uppercase tracking-wider">Leave a Review</span>
+
+                  {/* Interactive Star Rating Picker */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wide">Your Rating</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => {
+                            const token = localStorage.getItem('apex_user_token');
+                            if (!token) {
+                              setAuthRedirectUrl(undefined);
+                              setShowAuthModal(true);
+                              return;
+                            }
+                            setNewRating(star);
+                          }}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          className="cursor-pointer transition-transform hover:scale-110 active:scale-95 focus:outline-none"
+                          aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                        >
+                          <svg
+                            className={`w-6 h-6 transition-colors ${
+                              star <= (hoverRating || newRating)
+                                ? 'text-amber-400 fill-amber-400'
+                                : 'text-zinc-300 dark:text-zinc-700 fill-zinc-300 dark:fill-zinc-700'
+                            }`}
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                          </svg>
+                        </button>
+                      ))}
+                      <span className="ml-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        {hoverRating || newRating}.0 / 5.0
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Comment Textarea */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wide">Your Review</span>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => {
+                        setNewComment(e.target.value);
+                        setCommentError('');
+                      }}
+                      onFocus={() => {
+                        const token = localStorage.getItem('apex_user_token');
+                        if (!token) {
+                          setAuthRedirectUrl(undefined);
+                          setShowAuthModal(true);
+                        }
+                      }}
+                      placeholder="Write your honest review, feedback or experience with this template..."
+                      className="w-full bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 border border-zinc-200 dark:border-zinc-800 focus:border-zinc-400 dark:focus:border-zinc-700 rounded-lg p-3 text-xs font-semibold focus:outline-none min-h-[80px] resize-y transition-colors"
+                    />
+                  </div>
+
                   <div className="flex justify-between items-center gap-4">
                     <div className="text-red-500 font-bold text-[10px] uppercase tracking-wide">
                       {commentError}
                     </div>
                     <button
                       type="submit"
-                      className="px-4 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
+                      className="flex items-center gap-1.5 px-5 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded-lg text-[10px] uppercase tracking-wider cursor-pointer transition-all hover:scale-[1.02] active:scale-100 shadow-sm"
                     >
-                      Post Feedback
+                      <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                      Post Review
                     </button>
                   </div>
                 </form>
 
                 <div className="space-y-3">
                   {feedbacks.map((rev: any, i) => (
-                    <div key={i} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/10 flex gap-3 items-start transition-all hover:border-zinc-300 dark:hover:border-zinc-800">
+                    <div key={i} className="border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/10 flex gap-3 items-start transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
                       {/* Avatar */}
-                      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center border border-zinc-350 dark:border-zinc-700 shadow-xs font-bold text-xs uppercase text-zinc-650 dark:text-zinc-300 select-none">
+                      <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center border border-zinc-300 dark:border-zinc-700 shadow-xs font-bold text-xs uppercase text-zinc-600 dark:text-zinc-300 select-none">
                         {rev.avatar ? (
                           <img src={rev.avatar} alt={rev.user} className="w-full h-full object-cover" />
                         ) : (
@@ -503,14 +562,36 @@ export default function ProductDetailPage() {
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 space-y-1">
-                        <div className="flex justify-between items-center text-[10px]">
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex flex-wrap justify-between items-center gap-1 text-[10px]">
                           <span className="font-bold text-zinc-950 dark:text-white">{rev.user}</span>
                           <span className="text-zinc-500 font-mono">
                             {rev.date ? (rev.date.includes('T') ? rev.date.split('T')[0] : rev.date) : ''}
                           </span>
                         </div>
-                        <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-[11px] pt-0.5">{rev.comment}</p>
+
+                        {/* Star display */}
+                        {rev.rating && (
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <svg
+                                key={star}
+                                className={`w-3 h-3 ${
+                                  star <= rev.rating
+                                    ? 'text-amber-400 fill-amber-400'
+                                    : 'text-zinc-300 dark:text-zinc-700 fill-zinc-300 dark:fill-zinc-700'
+                                }`}
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                            ))}
+                            <span className="ml-1 text-[9px] font-bold text-zinc-500">{Number(rev.rating).toFixed(1)}</span>
+                          </div>
+                        )}
+
+                        <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-[11px]">{rev.comment}</p>
                       </div>
                     </div>
                   ))}
@@ -988,6 +1069,7 @@ export default function ProductDetailPage() {
           onClose={() => setShowAuthModal(false)}
           initialMode="signin"
           isModal={true}
+          redirectUrl={authRedirectUrl}
         />
       )}
 

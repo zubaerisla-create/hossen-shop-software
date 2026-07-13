@@ -92,3 +92,75 @@ body {
     display: flex;
   }
 }
+
+/* Digital Products card glowing rotating accent */
+@keyframes rotateBorder {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.digital-product-card {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: none !important;
+  background: transparent !important;
+  padding: 1.5px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.digital-product-card::before {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -150%;
+  width: 400%;
+  height: 400%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 30%,
+    #6366f1 50%,
+    transparent 70%
+  );
+  animation: rotateBorder 6s linear infinite;
+  z-index: -2;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+.dark .digital-product-card::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 30%,
+    #818cf8 50%,
+    transparent 70%
+  );
+}
+
+.digital-product-card::after {
+  content: '';
+  position: absolute;
+  inset: 1.5px;
+  background: #ffffff;
+  border-radius: 11px;
+  z-index: -1;
+  transition: background 0.3s;
+}
+
+.dark .digital-product-card::after {
+  background: #121214;
+}
+
+.digital-product-card:hover::before {
+  animation-duration: 3s;
+  opacity: 0.95;
+}
+
+.digital-product-card:hover {
+  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.2);
+}
+
+.dark .digital-product-card:hover {
+  box-shadow: 0 10px 30px -10px rgba(129, 140, 248, 0.35);
+}

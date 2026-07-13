@@ -157,51 +157,53 @@ function ProductsContent() {
                   onClick={() => router.push(`/products/${prod.id}`)}
                   onMouseEnter={() => setHoveredProductId(prod.id)}
                   onMouseLeave={() => setHoveredProductId(null)}
-                  className="bg-zinc-50 dark:bg-[#121214]/60 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden group cursor-pointer transition-colors flex flex-col justify-between"
+                  className="digital-product-card rounded cursor-pointer transition-colors flex flex-col justify-between"
                 >
-                  {/* Thumbnail */}
-                  <div className="relative aspect-video overflow-hidden bg-zinc-200 dark:bg-zinc-955">
-                    {prod.videoUrl && (
-                      <ProductCardVideo
-                        src={prod.videoUrl}
-                        isHovered={hoveredProductId === prod.id}
+                  <div className="relative flex flex-col flex-1 overflow-hidden rounded-[5px] bg-zinc-50 dark:bg-[#121214]/60 group">
+                    {/* Thumbnail */}
+                    <div className="relative aspect-video overflow-hidden bg-zinc-200 dark:bg-zinc-955">
+                      {prod.videoUrl && (
+                        <ProductCardVideo
+                          src={prod.videoUrl}
+                          isHovered={hoveredProductId === prod.id}
+                        />
+                      )}
+                      <img
+                        src={prod.images[0]}
+                        alt={prod.name}
+                        className={`w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300 ${
+                          hoveredProductId === prod.id ? 'opacity-0' : ''
+                        }`}
                       />
-                    )}
-                    <img
-                      src={prod.images[0]}
-                      alt={prod.name}
-                      className={`w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300 ${
-                        hoveredProductId === prod.id ? 'opacity-0' : ''
-                      }`}
-                    />
-                    <span className="absolute top-2.5 left-2.5 bg-white/90 dark:bg-black/70 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-700 dark:text-zinc-300 z-20 font-bold">
-                      {prod.category}
-                    </span>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-1.5">
-                      <h3 className="font-bold text-zinc-900 dark:text-white text-xs group-hover:text-zinc-500 dark:group-hover:text-zinc-300 transition-colors leading-snug line-clamp-2">
-                        {prod.name}
-                      </h3>
-                      <p className="text-zinc-500 dark:text-zinc-500 text-[11px] leading-relaxed line-clamp-2">{prod.description}</p>
+                      <span className="absolute top-2.5 left-2.5 bg-white/90 dark:bg-black/70 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-700 dark:text-zinc-300 z-20 font-bold">
+                        {prod.category}
+                      </span>
                     </div>
 
-                    <div className="space-y-3 pt-1">
-                      <div className="flex flex-wrap gap-1">
-                        {prod.technologies.slice(0, 3).map((tech, idx) => (
-                          <span key={idx} className="bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono">
-                            {tech}
-                          </span>
-                        ))}
+                    {/* Body Content */}
+                    <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-1.5">
+                        <h3 className="font-bold text-zinc-900 dark:text-white text-xs group-hover:text-zinc-500 dark:group-hover:text-zinc-300 transition-colors leading-snug line-clamp-2">
+                          {prod.name}
+                        </h3>
+                        <p className="text-zinc-500 dark:text-zinc-500 text-[11px] leading-relaxed line-clamp-2">{prod.description}</p>
                       </div>
 
-                      <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-900/80 pt-2.5">
-                        <span className="text-xs font-bold text-zinc-950 dark:text-white">{prod.price.toLocaleString()} BDT</span>
-                        <span className="text-zinc-950 dark:text-white text-[10px] font-bold flex items-center gap-1">
-                          Details <ArrowRight className="w-3 h-3" />
-                        </span>
+                      <div className="space-y-3 pt-1">
+                        <div className="flex flex-wrap gap-1">
+                          {prod.technologies.slice(0, 3).map((tech, idx) => (
+                            <span key={idx} className="bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-900/80 pt-2.5">
+                          <span className="text-xs font-bold text-zinc-950 dark:text-white">{prod.price.toLocaleString()} BDT</span>
+                          <span className="text-zinc-950 dark:text-white text-[10px] font-bold flex items-center gap-1">
+                            Details <ArrowRight className="w-3 h-3" />
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>

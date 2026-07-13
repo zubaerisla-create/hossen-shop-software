@@ -78,7 +78,7 @@ export default function PurchasedTemplatesPage() {
       <div className="p-6 md:p-8 space-y-6 flex-1">
         
         {filteredProducts.length > 0 ? (
-          <div className="border border-zinc-205 dark:border-zinc-900 rounded-lg overflow-hidden bg-white dark:bg-zinc-950 shadow-sm">
+          <div className="rounded-lg overflow-hidden bg-white dark:bg-zinc-950 shadow-sm">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 text-zinc-500 font-bold uppercase text-[9px] tracking-wider">

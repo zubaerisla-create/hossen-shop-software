@@ -9,6 +9,8 @@ import AiEstimator from './AiEstimator';
 import { servicesData } from '@/app/data/services';
 import { ServiceIcon } from '@/app/utils/icons';
 
+import { API_BASE_URL } from '@/app/utils/api';
+
 function ProductCardVideo({ src, isHovered }: { src: string; isHovered: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -174,11 +176,30 @@ export default function LandingPage({
     { title: 'AuraShop - Minimalist Fashion Store', type: 'Full Website', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80', desc: 'High-conversion, clean e-commerce system with custom animations and bKash.', productId: 'prod-2' }
   ];
 
-  const reviews = [
-    { name: 'Dr. Mahbubul Alam', role: 'Director, CareHospital', text: 'Hossen Shop designed our entire consultation portal. The milestone system kept us aligned, and the Gantt timeline was 100% accurate. Highly recommended!', rating: 5 },
-    { name: 'Sajid Mahmud', role: 'Founder, DevLaunch', text: 'Purchased their SaaS boilerplate. The code structure is incredibly clean, saving us at least 3 weeks of work. Lifetime support is excellent!', rating: 5 },
-    { name: 'Maria K.', role: 'Product Lead, FinSolve', text: 'Their custom development flow is seamless. The electronic signing and milestone approval payments made the whole project feel highly secure.', rating: 5 }
-  ];
+  const [reviewsList, setReviewsList] = useState<any[]>([
+    { name: 'Dr. Mahbubul Alam', role: 'Director, CareHospital', comment: 'Hossen Shop designed our entire consultation portal. The milestone system kept us aligned, and the Gantt timeline was 100% accurate. Highly recommended!', rating: 5, productName: 'AI SmartWriter - Automated SEO Content Creator', productId: '92d3c302-e80f-4970-95b8-6402af24c1f1', date: '2026-06-20' },
+    { name: 'Sajid Mahmud', role: 'Founder, DevLaunch', comment: 'Purchased their SaaS boilerplate. The code structure is incredibly clean, saving us at least 3 weeks of work. Lifetime support is excellent!', rating: 5, productName: 'DevFlow - Next.js 15 SaaS Boilerplate & Starter Kit', productId: 'e74014c7-44e9-48a3-849d-782b62adeec9', date: '2026-06-20' },
+    { name: 'Maria K.', role: 'Product Lead, FinSolve', comment: 'Their custom development flow is seamless. The electronic signing and milestone approval payments made the whole project feel highly secure.', rating: 5, productName: 'EcoShop - High-Conversion Next.js E-Commerce Storefront', productId: '36115d79-22fb-47f5-a034-bf7b45c62519', date: '2026-06-20' }
+  ]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/products/reviews/all`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success' && data.data && data.data.reviews) {
+            if (data.data.reviews.length > 0) {
+              setReviewsList(data.data.reviews);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch dynamic testimonials:', err);
+      }
+    };
+    fetchReviews();
+  }, []);
 
   const [stats, setStats] = useState<{ value: string; label: string; iconKey: string }[]>([
     { value: '180+', label: 'Projects Completed', iconKey: 'check' },
@@ -397,49 +418,51 @@ export default function LandingPage({
               onClick={() => onSelectProduct(prod)}
               onMouseEnter={() => setHoveredProductId(prod.id)}
               onMouseLeave={() => setHoveredProductId(null)}
-              className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-850 flex flex-col justify-between"
+              className="digital-product-card rounded-xl cursor-pointer transition-all duration-500 hover:-translate-y-2 flex flex-col justify-between"
             >
-              <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
-                {prod.videoUrl && (
-                  <ProductCardVideo
-                    src={prod.videoUrl}
-                    isHovered={hoveredProductId === prod.id}
+              <div className="relative flex flex-col flex-1 overflow-hidden rounded-[10px] bg-white dark:bg-zinc-955 group">
+                <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+                  {prod.videoUrl && (
+                    <ProductCardVideo
+                      src={prod.videoUrl}
+                      isHovered={hoveredProductId === prod.id}
+                    />
+                  )}
+                  <img
+                    src={prod.images[0]}
+                    alt={prod.name}
+                    className={`w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ${
+                      hoveredProductId === prod.id ? 'opacity-0 scale-105' : ''
+                    }`}
                   />
-                )}
-                <img
-                  src={prod.images[0]}
-                  alt={prod.name}
-                  className={`w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ${
-                    hoveredProductId === prod.id ? 'opacity-0 scale-105' : ''
-                  }`}
-                />
-                <span className="absolute top-3 left-3 bg-zinc-900/90 dark:bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white tracking-widest uppercase z-20 font-bold">
-                  {prod.category}
-                </span>
-              </div>
-
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <h3 className="font-bold text-zinc-900 dark:text-white text-xs group-hover:text-zinc-650 dark:group-hover:text-zinc-350 transition-colors leading-snug line-clamp-2 uppercase tracking-wide">
-                    {prod.name}
-                  </h3>
-                  <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-2">{prod.description}</p>
+                  <span className="absolute top-3 left-3 bg-zinc-900/90 dark:bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white tracking-widest uppercase z-20 font-bold">
+                    {prod.category}
+                  </span>
                 </div>
 
-                <div className="space-y-4 pt-2">
-                  <div className="flex flex-wrap gap-1">
-                    {prod.technologies.slice(0, 4).map((tech, idx) => (
-                      <span key={idx} className="bg-zinc-50 dark:bg-zinc-900 text-zinc-650 dark:text-zinc-450 border border-zinc-200 dark:border-zinc-850 px-2 py-0.5 rounded text-[8px] font-mono">
-                        {tech}
-                      </span>
-                    ))}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-zinc-900 dark:text-white text-xs group-hover:text-zinc-650 dark:group-hover:text-zinc-350 transition-colors leading-snug line-clamp-2 uppercase tracking-wide">
+                      {prod.name}
+                    </h3>
+                    <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-2">{prod.description}</p>
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-zinc-100 dark:border-zinc-900 pt-3">
-                    <span className="text-[11px] font-bold text-zinc-950 dark:text-white">{prod.price.toLocaleString()} BDT</span>
-                    <span className="text-zinc-950 dark:text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                      Explore Code <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-wrap gap-1">
+                      {prod.technologies.slice(0, 4).map((tech, idx) => (
+                        <span key={idx} className="bg-zinc-50 dark:bg-zinc-900 text-zinc-650 dark:text-zinc-450 border border-zinc-200 dark:border-zinc-850 px-2 py-0.5 rounded text-[8px] font-mono">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex justify-between items-center border-t border-zinc-100 dark:border-zinc-900 pt-3">
+                      <span className="text-[11px] font-bold text-zinc-950 dark:text-white">{prod.price.toLocaleString()} BDT</span>
+                      <span className="text-zinc-950 dark:text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                        Explore Code <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -550,23 +573,79 @@ export default function LandingPage({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {reviews.map((rev, i) => (
-            <div key={i} className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 p-6 rounded-xl flex flex-col justify-between space-y-6 hover:shadow-xl transition-all duration-300">
-              <div className="space-y-3">
-                <div className="flex text-amber-500 gap-0.5">
-                  {[...Array(5)].map((_, idx) => (
-                    <Star key={idx} className="w-3.5 h-3.5 fill-current" />
-                  ))}
+          {reviewsList.slice(0, 3).map((rev, i) => (
+            <Link
+              href={`/products/${rev.productId}`}
+              key={i}
+              className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 p-6 rounded-xl flex flex-col justify-between space-y-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+            >
+              <div className="space-y-4">
+                {/* Product Reviewed Badge & Date */}
+                <div className="flex justify-between items-start gap-4">
+                  <div className="bg-zinc-100 dark:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1 rounded-md text-[9px] font-bold text-zinc-750 dark:text-zinc-300 tracking-wide uppercase line-clamp-1 flex-1 group-hover:border-zinc-300 dark:group-hover:border-zinc-700 transition-colors">
+                    <span className="text-zinc-450 dark:text-zinc-500 font-medium normal-case mr-1">Reviewed:</span>
+                    {rev.productName}
+                  </div>
+                  {rev.date && (
+                    <span className="text-[9px] text-zinc-450 dark:text-zinc-500 font-mono shrink-0 pt-1">
+                      {new Date(rev.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </span>
+                  )}
                 </div>
-                <p className="text-zinc-650 dark:text-zinc-300 italic text-[11px] leading-relaxed">"{rev.text}"</p>
+
+                {/* Stars & Comment */}
+                <div className="space-y-2">
+                  <div className="flex text-amber-400 gap-0.5">
+                    {[...Array(5)].map((_, idx) => (
+                      <Star
+                        key={idx}
+                        className={`w-3.5 h-3.5 ${
+                          idx < (rev.rating || 5)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-zinc-200 dark:text-zinc-800'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-zinc-650 dark:text-zinc-300 italic text-[11px] leading-relaxed line-clamp-3 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
+                    "{rev.comment || rev.text}"
+                  </p>
+                </div>
               </div>
-              <div className="border-t border-zinc-200/80 dark:border-zinc-850 pt-4 flex justify-between items-center text-[10px]">
-                <span className="text-zinc-900 dark:text-white font-bold">{rev.name}</span>
-                <span className="text-zinc-500 font-medium">{rev.role}</span>
+
+              {/* Customer Profile Info */}
+              <div className="border-t border-zinc-200/80 dark:border-zinc-850 pt-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center border border-zinc-300 dark:border-zinc-700 shadow-sm font-bold text-xs uppercase text-zinc-600 dark:text-zinc-350 select-none">
+                  {rev.avatar ? (
+                    <img src={rev.avatar} alt={rev.user || rev.name} className="w-full h-full object-cover" />
+                  ) : (
+                    (rev.user || rev.name || 'C').charAt(0)
+                  )}
+                </div>
+                <div className="flex flex-col text-[10px]">
+                  <span className="text-zinc-900 dark:text-white font-bold group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
+                    {rev.user || rev.name}
+                  </span>
+                  <span className="text-zinc-500 font-medium">
+                    {rev.role || 'Verified Customer'}
+                  </span>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
+
+        {reviewsList.length > 3 && (
+          <div className="flex justify-center pt-4">
+            <Link
+              href="/reviews"
+              className="px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded-lg font-bold text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-100 shadow-sm cursor-pointer"
+            >
+              <span>View All Feedback</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* FAQ & Contact Details */}

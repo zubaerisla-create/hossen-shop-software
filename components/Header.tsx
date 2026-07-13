@@ -16,6 +16,7 @@ export default function Header() {
   const [email, setEmail] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
+  const [authRedirectUrl, setAuthRedirectUrl] = useState<string | undefined>(undefined);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -126,6 +127,7 @@ export default function Header() {
         if (role !== 'visitor') {
           router.push('/user/deals');
         } else {
+          setAuthRedirectUrl('/user/deals');
           setAuthModalMode('signin');
           setShowAuthModal(true);
         }
@@ -211,48 +213,153 @@ export default function Header() {
           background: #6A2D3D;
         }
 
+        @keyframes rotateBorder {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes textGlowPurple {
+          0%, 100% {
+            text-shadow: 0 0 2px rgba(79, 70, 229, 0.2);
+            color: #4f46e5 !important;
+          }
+          50% {
+            text-shadow: 0 0 8px rgba(79, 70, 229, 0.6), 0 0 14px rgba(129, 140, 248, 0.4);
+            color: #6366f1 !important;
+          }
+        }
+        @keyframes textGlowPurpleDark {
+          0%, 100% {
+            text-shadow: 0 0 2px rgba(165, 180, 252, 0.2);
+            color: #a5b4fc !important;
+          }
+          50% {
+            text-shadow: 0 0 8px rgba(165, 180, 252, 0.6), 0 0 14px rgba(199, 210, 254, 0.4);
+            color: #c7d2fe !important;
+          }
+        }
+        @keyframes textGlowRose {
+          0%, 100% {
+            text-shadow: 0 0 2px rgba(190, 18, 60, 0.2);
+            color: #be123c !important;
+          }
+          50% {
+            text-shadow: 0 0 8px rgba(190, 18, 60, 0.6), 0 0 14px rgba(244, 63, 94, 0.4);
+            color: #e11d48 !important;
+          }
+        }
+        @keyframes textGlowRoseDark {
+          0%, 100% {
+            text-shadow: 0 0 2px rgba(252, 165, 165, 0.2);
+            color: #fca5a5 !important;
+          }
+          50% {
+            text-shadow: 0 0 8px rgba(252, 165, 165, 0.6), 0 0 14px rgba(254, 205, 211, 0.4);
+            color: #ffe4e6 !important;
+          }
+        }
+
         .nav-link-highlighted-purple {
-          color: #4f46e5 !important;
-          font-weight: 700 !important;
-          border: 1px solid rgba(79, 70, 229, 0.25) !important;
-          background: rgba(79, 70, 229, 0.04) !important;
-          box-shadow: 0 0 12px rgba(79, 70, 229, 0.08) !important;
+          position: relative;
+          z-index: 1;
+          overflow: hidden;
+          border: none !important;
+          background: transparent !important;
+          padding: 6px 14px !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          animation: textGlowPurple 3s ease-in-out infinite;
         }
         .dark .nav-link-highlighted-purple {
-          color: #a5b4fc !important;
-          border-color: rgba(165, 180, 252, 0.35) !important;
-          background: rgba(165, 180, 252, 0.08) !important;
-          box-shadow: 0 0 12px rgba(165, 180, 252, 0.1) !important;
+          animation: textGlowPurpleDark 3s ease-in-out infinite;
         }
-        .nav-link-highlighted-purple:hover {
-          background: rgba(79, 70, 229, 0.1) !important;
-          box-shadow: 0 0 16px rgba(79, 70, 229, 0.15) !important;
+        .nav-link-highlighted-purple::before {
+          content: '';
+          position: absolute;
+          top: -150%;
+          left: -150%;
+          width: 400%;
+          height: 400%;
+          background: conic-gradient(
+            from 0deg,
+            transparent 30%,
+            #4f46e5 50%,
+            transparent 70%
+          );
+          animation: rotateBorder 3s linear infinite;
+          z-index: -2;
         }
-        .dark .nav-link-highlighted-purple:hover {
-          background: rgba(165, 180, 252, 0.15) !important;
-          box-shadow: 0 0 16px rgba(165, 180, 252, 0.18) !important;
+        .dark .nav-link-highlighted-purple::before {
+          background: conic-gradient(
+            from 0deg,
+            transparent 30%,
+            #a5b4fc 50%,
+            transparent 70%
+          );
+        }
+        .nav-link-highlighted-purple::after {
+          content: '';
+          position: absolute;
+          inset: 1.5px;
+          background: rgba(255, 255, 255, 0.94);
+          border-radius: 999px;
+          z-index: -1;
+          transition: background 0.3s;
+        }
+        .dark .nav-link-highlighted-purple::after {
+          background: rgba(9, 9, 11, 0.94);
         }
 
         .nav-link-highlighted-rose {
-          color: #be123c !important;
-          font-weight: 700 !important;
-          border: 1px solid rgba(190, 18, 60, 0.25) !important;
-          background: rgba(190, 18, 60, 0.04) !important;
-          box-shadow: 0 0 12px rgba(190, 18, 60, 0.08) !important;
+          position: relative;
+          z-index: 1;
+          overflow: hidden;
+          border: none !important;
+          background: transparent !important;
+          padding: 6px 14px !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          animation: textGlowRose 3s ease-in-out infinite;
         }
         .dark .nav-link-highlighted-rose {
-          color: #fca5a5 !important;
-          border-color: rgba(252, 165, 165, 0.35) !important;
-          background: rgba(252, 165, 165, 0.08) !important;
-          box-shadow: 0 0 12px rgba(252, 165, 165, 0.1) !important;
+          animation: textGlowRoseDark 3s ease-in-out infinite;
         }
-        .nav-link-highlighted-rose:hover {
-          background: rgba(190, 18, 60, 0.1) !important;
-          box-shadow: 0 0 16px rgba(190, 18, 60, 0.15) !important;
+        .nav-link-highlighted-rose::before {
+          content: '';
+          position: absolute;
+          top: -150%;
+          left: -150%;
+          width: 400%;
+          height: 400%;
+          background: conic-gradient(
+            from 0deg,
+            transparent 30%,
+            #be123c 50%,
+            transparent 70%
+          );
+          animation: rotateBorder 3s linear infinite;
+          z-index: -2;
         }
-        .dark .nav-link-highlighted-rose:hover {
-          background: rgba(252, 165, 165, 0.15) !important;
-          box-shadow: 0 0 16px rgba(252, 165, 165, 0.18) !important;
+        .dark .nav-link-highlighted-rose::before {
+          background: conic-gradient(
+            from 0deg,
+            transparent 30%,
+            #fca5a5 50%,
+            transparent 70%
+          );
+        }
+        .nav-link-highlighted-rose::after {
+          content: '';
+          position: absolute;
+          inset: 1.5px;
+          background: rgba(255, 255, 255, 0.94);
+          border-radius: 999px;
+          z-index: -1;
+          transition: background 0.3s;
+        }
+        .dark .nav-link-highlighted-rose::after {
+          background: rgba(9, 9, 11, 0.94);
         }
 
         .mobile-nav-highlighted-purple {
@@ -349,6 +456,38 @@ export default function Header() {
         .header-nav.is-overlay .mobile-hamburger:hover {
           color: #ffffff !important;
           background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Overlay: highlighted nav items — use dark transparent inner bg so text stays visible over hero */
+        .header-nav.is-overlay .nav-link-highlighted-purple::after,
+        .header-nav.is-overlay .nav-link-highlighted-rose::after {
+          background: rgba(0, 0, 0, 0.55) !important;
+        }
+        .header-nav.is-overlay .nav-link-highlighted-purple {
+          animation: textGlowPurpleOverlay 3s ease-in-out infinite !important;
+        }
+        .header-nav.is-overlay .nav-link-highlighted-rose {
+          animation: textGlowRoseOverlay 3s ease-in-out infinite !important;
+        }
+        @keyframes textGlowPurpleOverlay {
+          0%, 100% {
+            text-shadow: 0 0 4px rgba(165, 180, 252, 0.5);
+            color: #c7d2fe !important;
+          }
+          50% {
+            text-shadow: 0 0 12px rgba(165, 180, 252, 0.9), 0 0 20px rgba(199, 210, 254, 0.6);
+            color: #e0e7ff !important;
+          }
+        }
+        @keyframes textGlowRoseOverlay {
+          0%, 100% {
+            text-shadow: 0 0 4px rgba(252, 165, 165, 0.5);
+            color: #fecaca !important;
+          }
+          50% {
+            text-shadow: 0 0 12px rgba(252, 165, 165, 0.9), 0 0 20px rgba(254, 202, 202, 0.6);
+            color: #ffe4e6 !important;
+          }
         }
 
         .join-btn {
@@ -619,7 +758,7 @@ export default function Header() {
                     </span>
                   ) : link.label === 'Custom Deals' ? (
                     <span className="inline-flex items-center gap-1.5">
-                      <Handshake className="w-3.5 h-3.5 text-[#be123c] dark:text-[#fca5a5]" />
+                      <Handshake className="w-3.5 h-3.5 text-inherit" />
                       {link.label}
                     </span>
                   ) : link.label}
@@ -646,13 +785,13 @@ export default function Header() {
             {role === 'visitor' ? (
               <div className="hidden sm:flex items-center gap-2">
                 <button
-                  onClick={() => { setAuthModalMode('signin'); setShowAuthModal(true); }}
+                  onClick={() => { setAuthRedirectUrl(undefined); setAuthModalMode('signin'); setShowAuthModal(true); }}
                   className="signin-btn text-[12px] font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white px-3 py-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => { setAuthModalMode('signup'); setShowAuthModal(true); }}
+                  onClick={() => { setAuthRedirectUrl(undefined); setAuthModalMode('signup'); setShowAuthModal(true); }}
                   className="join-btn text-white rounded-lg px-4 py-1.5 text-[12px] font-bold cursor-pointer"
                 >
                   JOIN
@@ -793,7 +932,7 @@ export default function Header() {
                     className={`mobile-nav-item ${'path' in link && link.path && pathname === link.path ? 'active' : ''} ${highlightClass}`}
                   >
                     {link.label === 'AI Estimator' && <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
-                    {link.label === 'Custom Deals' && <Handshake className="w-3.5 h-3.5 text-[#be123c] dark:text-[#fca5a5] flex-shrink-0" />}
+                    {link.label === 'Custom Deals' && <Handshake className="w-3.5 h-3.5 text-inherit flex-shrink-0" />}
                     {link.label}
                   </button>
                 );
@@ -805,13 +944,13 @@ export default function Header() {
               {role === 'visitor' ? (
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => { setIsMobileMenuOpen(false); setAuthModalMode('signin'); setShowAuthModal(true); }}
+                    onClick={() => { setIsMobileMenuOpen(false); setAuthRedirectUrl(undefined); setAuthModalMode('signin'); setShowAuthModal(true); }}
                     className="w-full py-2.5 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl text-[12px] font-semibold transition-colors cursor-pointer text-center"
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={() => { setIsMobileMenuOpen(false); setAuthModalMode('signup'); setShowAuthModal(true); }}
+                    onClick={() => { setIsMobileMenuOpen(false); setAuthRedirectUrl(undefined); setAuthModalMode('signup'); setShowAuthModal(true); }}
                     className="join-btn w-full py-2.5 text-white rounded-xl text-[12px] font-bold cursor-pointer text-center"
                   >
                     JOIN
@@ -867,6 +1006,7 @@ export default function Header() {
         onClose={() => setShowAuthModal(false)}
         initialMode={authModalMode}
         isModal={true}
+        redirectUrl={authRedirectUrl}
       />
     </>
   );
