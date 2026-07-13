@@ -7,9 +7,9 @@ import { API_BASE_URL } from '@/app/utils/api';
 
 export default function UserSettingsPage() {
   // Profile state
-  const [name, setName] = useState('John Doe (Demo)');
-  const [email, setEmail] = useState('john.doe@example.com');
-  const [phone, setPhone] = useState('+880 1711 000000');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState('');
   
   // Password state
@@ -421,12 +421,12 @@ export default function UserSettingsPage() {
 
               <div className="space-y-2.5 text-[11px] leading-normal text-zinc-600 dark:text-zinc-400">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Node Identifier:</span>
-                  <span className="font-mono text-zinc-900 dark:text-white font-bold">usr_demo_client_node</span>
+                  <span className="text-zinc-500">Email:</span>
+                  <span className="font-mono text-zinc-900 dark:text-white font-bold truncate max-w-[140px]">{email || '—'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Created:</span>
-                  <span className="font-bold text-zinc-900 dark:text-white">2026-07-01</span>
+                  <span className="text-zinc-500">Phone:</span>
+                  <span className="font-bold text-zinc-900 dark:text-white">{phone || '—'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Security Clearance:</span>
@@ -442,7 +442,7 @@ export default function UserSettingsPage() {
                 <span>Security Shield Active</span>
               </div>
               <p className="leading-relaxed text-[10.5px]">
-                Your session is authorized via demo mock keys. Password modifications are simulated locally for security assurance.
+                Your session is secured with a signed JWT token. All profile changes are persisted to the database and reflected immediately.
               </p>
             </div>
 

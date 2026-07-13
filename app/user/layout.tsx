@@ -4,15 +4,18 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Download, Laptop, Receipt, Ticket, Settings, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
-import { initializeStorage, syncWithBackend } from '../utils/storage';
+import { initializeStorage, syncWithBackend, clearUserSession } from '../utils/storage';
+import { API_BASE_URL } from '../utils/api';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [toastText, setToastText] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [userName, setUserName] = useState('John Doe (Demo)');
+  const [userName, setUserName] = useState('');
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -20,17 +23,56 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     initializeStorage();
-    syncWithBackend();
-    localStorage.setItem('apex_user_role', 'customer');
 
-    const storedName = localStorage.getItem('apex_user_name');
-    if (storedName) {
-      setUserName(storedName);
-    }
-    const storedAvatar = localStorage.getItem('apex_user_avatar');
-    if (storedAvatar) {
-      setUserAvatar(storedAvatar);
-    }
+    const verifyCustomer = async () => {
+      const token = localStorage.getItem('apex_user_token');
+      const role = localStorage.getItem('apex_user_role');
+
+      if (!token) {
+        localStorage.setItem('auth_redirect_intent', pathname);
+        setIsAuthenticated(false);
+        router.push('/?auth=required');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const resData = await response.json();
+        if (response.ok && resData.data?.user) {
+          localStorage.setItem('apex_user_role', 'customer');
+          const storedName = localStorage.getItem('apex_user_name');
+          setUserName(storedName || resData.data.user.name || 'Client');
+          const storedAvatar = localStorage.getItem('apex_user_avatar');
+          setUserAvatar(storedAvatar || resData.data.user.avatar || null);
+          setIsAuthenticated(true);
+          await syncWithBackend();
+        } else {
+          localStorage.removeItem('apex_user_token');
+          localStorage.removeItem('apex_user_role');
+          localStorage.removeItem('apex_user_name');
+          localStorage.removeItem('apex_user_avatar');
+          localStorage.removeItem('apex_user_email');
+          window.dispatchEvent(new Event('auth-change'));
+          localStorage.setItem('auth_redirect_intent', pathname);
+          setIsAuthenticated(false);
+          router.push('/?auth=required');
+        }
+      } catch (err) {
+        // Fallback to local storage if offline to preserve developer experience
+        const storedName = localStorage.getItem('apex_user_name');
+        if (storedName) setUserName(storedName);
+        const storedAvatar = localStorage.getItem('apex_user_avatar');
+        if (storedAvatar) setUserAvatar(storedAvatar);
+        setIsAuthenticated(true);
+        syncWithBackend().catch(() => {});
+      }
+    };
+
+    verifyCustomer();
 
     // Toast event subscriber
     const handleToast = (e: Event) => {
@@ -54,7 +96,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       window.removeEventListener('apex-user-toast', handleToast);
       window.removeEventListener('apex-user-profile-update', handleProfileUpdate);
     };
-  }, []);
+  }, [pathname, router]);
 
   const navItems = [
     { href: '/user', label: 'Overview Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -69,6 +111,21 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     if (item.href === '/user') return pathname === '/user';
     return pathname.startsWith(item.href);
   }) || navItems[0];
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#09090b]">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-zinc-950 dark:border-white border-t-transparent dark:border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs font-semibold text-zinc-500 animate-pulse">Verifying workspace access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-150 font-sans overflow-hidden transition-colors">
@@ -140,7 +197,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                     <button
                       onClick={() => {
                         setIsMobileNavOpen(false);
-                        localStorage.removeItem('apex_user_role');
+                        clearUserSession();
                         router.push('/');
                       }}
                       className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-left text-rose-600 font-semibold transition-colors cursor-pointer"
@@ -208,7 +265,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
               
               <button
                 onClick={() => {
-                  localStorage.removeItem('apex_user_role');
+                  clearUserSession();
                   router.push('/');
                 }}
                 className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/10 transition-colors cursor-pointer text-left"

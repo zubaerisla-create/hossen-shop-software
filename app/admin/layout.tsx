@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare } from 'lucide-react';
-import { initializeStorage, syncWithBackend } from '../utils/storage';
+import { initializeStorage, syncWithBackend, clearUserSession } from '../utils/storage';
 import { API_BASE_URL } from '@/app/utils/api';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -176,12 +176,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <button
                       onClick={() => {
                         setIsMobileNavOpen(false);
-                        localStorage.removeItem('apex_user_role');
-                        localStorage.removeItem('apex_user_token');
-                        localStorage.removeItem('apex_user_email');
-                        localStorage.removeItem('apex_user_name');
-                        localStorage.removeItem('apex_user_avatar');
-                        window.dispatchEvent(new Event('auth-change'));
+                        clearUserSession();
                         router.push('/');
                       }}
                       className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-left text-rose-600 font-semibold transition-colors cursor-pointer"
@@ -243,12 +238,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               
               <button
                 onClick={() => {
-                  localStorage.removeItem('apex_user_role');
-                  localStorage.removeItem('apex_user_token');
-                  localStorage.removeItem('apex_user_email');
-                  localStorage.removeItem('apex_user_name');
-                  localStorage.removeItem('apex_user_avatar');
-                  window.dispatchEvent(new Event('auth-change'));
+                  clearUserSession();
                   router.push('/');
                 }}
                 className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/10 transition-colors cursor-pointer text-left"

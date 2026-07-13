@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { initializeStorage } from '@/app/utils/storage';
+import { initializeStorage, clearUserSession } from '@/app/utils/storage';
 import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers, Handshake } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { servicesData } from '@/app/data/services';
@@ -64,22 +64,25 @@ export default function Header() {
       document.documentElement.classList.remove('dark');
     }
 
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('auth') === 'required') {
+        setAuthModalMode('signin');
+        setShowAuthModal(true);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+
     return () => window.removeEventListener('auth-change', handleAuthChange);
   }, [pathname]);
 
   const handleSignOut = () => {
-    localStorage.removeItem('apex_user_role');
-    localStorage.removeItem('apex_user_email');
-    localStorage.removeItem('apex_user_avatar');
-    localStorage.removeItem('apex_user_name');
-    localStorage.removeItem('apex_user_token');
+    clearUserSession();
     setRole('visitor');
     setAvatar(null);
     setEmail(null);
     setIsMobileMenuOpen(false);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('auth-change'));
-    }
     router.push('/');
   };
 
@@ -836,7 +839,7 @@ export default function Header() {
                           )}
                           <div className="overflow-hidden">
                             <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                              {email || 'user@example.com'}
+                              {email || '—'}
                             </p>
                             <p className="text-[9px] text-zinc-400 font-medium capitalize mt-0.5">
                               {role === 'admin' ? '⚡ Agency Admin' : '👤 Client Workspace'}
@@ -971,7 +974,7 @@ export default function Header() {
                     )}
                     <div>
                       <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                        {email || 'user@example.com'}
+                        {email || '—'}
                       </p>
                       <p className="text-[9px] text-zinc-400">{role === 'admin' ? 'Agency Admin' : 'Client'}</p>
                     </div>

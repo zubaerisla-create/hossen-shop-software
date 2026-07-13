@@ -100,7 +100,11 @@ export default function AuthModal({
       triggerAuthChangeEvent();
       showSuccessToast('Signed in successfully with Google!');
       const searchParams = new URLSearchParams(window.location.search);
-      const redirectUrl = searchParams.get('redirect') || redirectUrlProp;
+      let redirectUrl = searchParams.get('redirect') || redirectUrlProp;
+      if (!redirectUrl) {
+        redirectUrl = localStorage.getItem('auth_redirect_intent') || undefined;
+        localStorage.removeItem('auth_redirect_intent');
+      }
 
       if (isModal) {
         onClose();
@@ -108,7 +112,7 @@ export default function AuthModal({
       
       if (redirectUrl) {
         router.push(redirectUrl);
-      } else if (!isModal) {
+      } else {
         router.push(role === 'admin' ? '/admin' : '/user/deals');
       }
     } catch (err: any) {
@@ -192,10 +196,14 @@ export default function AuthModal({
         }
         
         const searchParams = new URLSearchParams(window.location.search);
-        const redirectUrl = searchParams.get('redirect') || redirectUrlProp;
+        let redirectUrl = searchParams.get('redirect') || redirectUrlProp;
+        if (!redirectUrl) {
+          redirectUrl = localStorage.getItem('auth_redirect_intent') || undefined;
+          localStorage.removeItem('auth_redirect_intent');
+        }
         if (redirectUrl) {
           router.push(redirectUrl);
-        } else if (!isModal) {
+        } else {
           router.push(role === 'admin' ? '/admin' : '/user/deals');
         }
       }, 1000);

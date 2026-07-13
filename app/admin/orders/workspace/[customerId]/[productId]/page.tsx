@@ -26,8 +26,8 @@ export default function AdminOrderWorkspacePage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [loading, setLoading] = useState(true);
-  const [customerName, setCustomerName] = useState('John Doe');
-  const [customerEmail, setCustomerEmail] = useState('john.doe@example.com');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
 
   const socketRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);

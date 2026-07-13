@@ -1,7 +1,7 @@
 'use client';
 
-import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket, Milestone } from '../types';
-import { mockProducts, mockCustomDeals, mockChatMessages, mockInvoices, mockSupportTickets } from '../mockData';
+import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket } from '../types';
+import { mockProducts } from '../mockData';
 import { API_BASE_URL } from '@/app/utils/api';
 
 // Standard keys
@@ -12,8 +12,24 @@ const INVOICES_KEY = 'apex_invoices';
 const TICKETS_KEY = 'apex_tickets';
 const PURCHASED_KEY = 'apex_purchased';
 
+// Bump this version when you want to force-clear stale cached data from old browser sessions
+const STORAGE_VERSION = 'v2';
+const STORAGE_VERSION_KEY = 'apex_storage_version';
+
 export function initializeStorage() {
   if (typeof window === 'undefined') return;
+
+  // Migration: if the stored version doesn't match, wipe all user-specific cached data
+  // so stale mock data from old sessions never leaks into a fresh login
+  const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+  if (storedVersion !== STORAGE_VERSION) {
+    localStorage.removeItem(DEALS_KEY);
+    localStorage.removeItem(CHAT_KEY);
+    localStorage.removeItem(INVOICES_KEY);
+    localStorage.removeItem(TICKETS_KEY);
+    localStorage.removeItem(PURCHASED_KEY);
+    localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
+  }
 
   const storedProductsStr = localStorage.getItem(PRODUCTS_KEY);
   if (!storedProductsStr) {
@@ -35,20 +51,19 @@ export function initializeStorage() {
     }
   }
   if (!localStorage.getItem(DEALS_KEY)) {
-    localStorage.setItem(DEALS_KEY, JSON.stringify(mockCustomDeals));
+    localStorage.setItem(DEALS_KEY, JSON.stringify([]));
   }
   if (!localStorage.getItem(CHAT_KEY)) {
-    localStorage.setItem(CHAT_KEY, JSON.stringify(mockChatMessages));
+    localStorage.setItem(CHAT_KEY, JSON.stringify({}));
   }
   if (!localStorage.getItem(INVOICES_KEY)) {
-    localStorage.setItem(INVOICES_KEY, JSON.stringify(mockInvoices));
+    localStorage.setItem(INVOICES_KEY, JSON.stringify([]));
   }
   if (!localStorage.getItem(TICKETS_KEY)) {
-    localStorage.setItem(TICKETS_KEY, JSON.stringify(mockSupportTickets));
+    localStorage.setItem(TICKETS_KEY, JSON.stringify([]));
   }
   if (!localStorage.getItem(PURCHASED_KEY)) {
-    // Start with 1 pre-purchased product for John Doe client demo
-    localStorage.setItem(PURCHASED_KEY, JSON.stringify([mockProducts[0].id]));
+    localStorage.setItem(PURCHASED_KEY, JSON.stringify([]));
   }
 }
 
@@ -66,9 +81,9 @@ export function saveProducts(products: Product[]) {
 
 // Purchased products ids
 export function getPurchasedProducts(): string[] {
-  if (typeof window === 'undefined') return [mockProducts[0].id];
+  if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(PURCHASED_KEY);
-  return data ? JSON.parse(data) : [mockProducts[0].id];
+  return data ? JSON.parse(data) : [];
 }
 
 export function purchaseProduct(id: string) {
@@ -82,9 +97,9 @@ export function purchaseProduct(id: string) {
 
 // Custom Deals
 export function getDeals(): CustomDeal[] {
-  if (typeof window === 'undefined') return mockCustomDeals;
+  if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(DEALS_KEY);
-  return data ? JSON.parse(data) : mockCustomDeals;
+  return data ? JSON.parse(data) : [];
 }
 
 export function saveDeals(deals: CustomDeal[]) {
@@ -98,9 +113,9 @@ export function getDealById(id: string): CustomDeal | undefined {
 
 // Chat Messages
 export function getChats(): Record<string, ChatMessage[]> {
-  if (typeof window === 'undefined') return mockChatMessages;
+  if (typeof window === 'undefined') return {};
   const data = localStorage.getItem(CHAT_KEY);
-  return data ? JSON.parse(data) : mockChatMessages;
+  return data ? JSON.parse(data) : {};
 }
 
 export function saveChats(chats: Record<string, ChatMessage[]>) {
@@ -120,9 +135,9 @@ export function addChatMessage(dealId: string, message: ChatMessage) {
 
 // Invoices
 export function getInvoices(): Invoice[] {
-  if (typeof window === 'undefined') return mockInvoices;
+  if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(INVOICES_KEY);
-  return data ? JSON.parse(data) : mockInvoices;
+  return data ? JSON.parse(data) : [];
 }
 
 export function saveInvoices(invoices: Invoice[]) {
@@ -137,9 +152,9 @@ export function addInvoice(invoice: Invoice) {
 
 // Tickets
 export function getTickets(): SupportTicket[] {
-  if (typeof window === 'undefined') return mockSupportTickets;
+  if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(TICKETS_KEY);
-  return data ? JSON.parse(data) : mockSupportTickets;
+  return data ? JSON.parse(data) : [];
 }
 
 export function saveTickets(tickets: SupportTicket[]) {
@@ -241,4 +256,22 @@ export async function syncWithBackend() {
   } catch (err) {
     console.error('Failed to sync state with backend:', err);
   }
+}
+
+export function clearUserSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('apex_user_role');
+  localStorage.removeItem('apex_user_email');
+  localStorage.removeItem('apex_user_avatar');
+  localStorage.removeItem('apex_user_name');
+  localStorage.removeItem('apex_user_token');
+  localStorage.removeItem('auth_redirect_intent');
+  
+  localStorage.removeItem(DEALS_KEY);
+  localStorage.removeItem(CHAT_KEY);
+  localStorage.removeItem(INVOICES_KEY);
+  localStorage.removeItem(TICKETS_KEY);
+  localStorage.removeItem(PURCHASED_KEY);
+  
+  window.dispatchEvent(new Event('auth-change'));
 }

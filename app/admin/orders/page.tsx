@@ -66,8 +66,8 @@ export default function AdminOrdersPage() {
                 amount: Math.round(inv.amount + inv.tax - inv.discount),
                 purchaseDate: new Date(inv.createdAt).toISOString().split('T')[0],
                 supportExpiry: new Date(new Date(inv.createdAt).setMonth(new Date(inv.createdAt).getMonth() + 6)).toISOString().split('T')[0],
-                clientName: inv.customer?.name || 'John Doe',
-                clientEmail: inv.customer?.email || 'john.doe@example.com',
+                clientName: inv.customer?.name || 'Unknown Client',
+                clientEmail: inv.customer?.email || '—',
                 customerId: inv.customerId,
                 paymentStatus: inv.status
               };
@@ -76,30 +76,6 @@ export default function AdminOrdersPage() {
         } catch (err) {
           console.error('Failed to fetch orders from database:', err);
         }
-      }
-
-      // Fallback to local storage if no database invoices returned
-      if (fetchedOrders.length === 0) {
-        fetchedOrders = allProducts
-          .filter(p => purchasedIds.includes(p.id))
-          .map(p => {
-            const hash = p.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-            return {
-              id: `inv-mock-${p.id}`,
-              orderId: `ORD-${(hash % 9000) + 1000}`,
-              productId: p.id,
-              productName: p.name,
-              category: p.category,
-              demoUrl: p.demoUrl,
-              amount: Math.round(p.price * 1.05),
-              purchaseDate: '2026-07-01',
-              supportExpiry: '2027-01-01',
-              clientName: 'John Doe',
-              clientEmail: 'john.doe@example.com',
-              customerId: 'cust-mock-id',
-              paymentStatus: 'Paid'
-            };
-          });
       }
 
       setOrders(fetchedOrders);
