@@ -170,11 +170,30 @@ export default function LandingPage({
     return matchesFilter && matchesSearch;
   });
 
-  const portfolio = [
+  const [portfolio, setPortfolio] = useState<any[]>([
     { title: 'RentKart - Vehicle Rental App', type: 'Mobile App', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=600&q=80', desc: 'A real-time ride booking and vehicle rental platform handling 50k+ bookings.', productId: 'prod-3' },
     { title: 'DocSphere - Medical Consultation Portal', type: 'Web App', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80', desc: 'Telemedicine web platform with calendar scheduling and WebRTC live calls.', productId: 'prod-7' },
     { title: 'AuraShop - Minimalist Fashion Store', type: 'Full Website', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80', desc: 'High-conversion, clean e-commerce system with custom animations and bKash.', productId: 'prod-2' }
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchCaseStudies = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/casestudies`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success' && data.data && data.data.caseStudies) {
+            if (data.data.caseStudies.length > 0) {
+              setPortfolio(data.data.caseStudies);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch case studies:', err);
+      }
+    };
+    fetchCaseStudies();
+  }, []);
 
   const [reviewsList, setReviewsList] = useState<any[]>([
     { name: 'Dr. Mahbubul Alam', role: 'Director, CareHospital', comment: 'Hossen Shop designed our entire consultation portal. The milestone system kept us aligned, and the Gantt timeline was 100% accurate. Highly recommended!', rating: 5, productName: 'AI SmartWriter - Automated SEO Content Creator', productId: '92d3c302-e80f-4970-95b8-6402af24c1f1', date: '2026-06-20' },
@@ -492,18 +511,33 @@ export default function LandingPage({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {portfolio.map((port, i) => (
-            <Link key={i} href={`/products/${port.productId}`} className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-850 block cursor-pointer">
-              <div className="overflow-hidden aspect-video bg-zinc-100">
-                <img src={port.image} alt={port.title} className="w-full h-full object-cover opacity-95 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700" />
+          {portfolio.map((port, i) => {
+            const cardContent = (
+              <>
+                <div className="overflow-hidden aspect-video bg-zinc-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={port.image} alt={port.title} className="w-full h-full object-cover opacity-95 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700" />
+                </div>
+                <div className="p-5 space-y-2.5">
+                  <span className="bg-zinc-100 dark:bg-zinc-900 text-zinc-650 dark:text-zinc-450 font-mono text-[8px] uppercase tracking-widest px-2 py-0.5 rounded font-extrabold border border-zinc-200 dark:border-zinc-850">{port.type}</span>
+                  <h3 className="font-bold text-zinc-900 dark:text-white text-xs mt-1.5">{port.title}</h3>
+                  <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed">{port.desc}</p>
+                </div>
+              </>
+            );
+
+            const cardClasses = "bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-850 block cursor-pointer";
+
+            return port.productId ? (
+              <Link key={i} href={`/products/${port.productId}`} className={cardClasses}>
+                {cardContent}
+              </Link>
+            ) : (
+              <div key={i} className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group transition-all duration-500 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-850 block">
+                {cardContent}
               </div>
-              <div className="p-5 space-y-2.5">
-                <span className="bg-zinc-100 dark:bg-zinc-900 text-zinc-650 dark:text-zinc-450 font-mono text-[8px] uppercase tracking-widest px-2 py-0.5 rounded font-extrabold border border-zinc-200 dark:border-zinc-850">{port.type}</span>
-                <h3 className="font-bold text-zinc-900 dark:text-white text-xs mt-1.5">{port.title}</h3>
-                <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed">{port.desc}</p>
-              </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 

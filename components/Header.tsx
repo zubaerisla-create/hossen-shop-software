@@ -121,7 +121,8 @@ export default function Header() {
       path: '/products',
       highlight: 'purple'
     },
-    { label: 'Portfolio', action: () => handleNavClick('portfolio') },
+    { label: 'Blogs', action: () => { setIsMobileMenuOpen(false); router.push('/blogs'); }, path: '/blogs' },
+    { label: 'Feedback', action: () => { setIsMobileMenuOpen(false); router.push('/reviews'); }, path: '/reviews' },
     { label: 'AI Estimator', action: () => { setIsMobileMenuOpen(false); router.push('/estimator'); }, path: '/estimator' },
     { 
       label: 'Custom Deals', 

@@ -155,3 +155,26 @@ export interface SupportTicket {
     timestamp: string;
   }[];
 }
+
+export interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  image: string;
+  tags: string[];
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CaseStudy {
+  id: string;
+  title: string;
+  type: string;
+  image: string;
+  desc: string;
+  productId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
