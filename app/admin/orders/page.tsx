@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product } from '../../types';
-import { getProducts, getPurchasedProducts } from '../../utils/storage';
-import { Search, Package, ExternalLink, Calendar, Shield, MessageSquare } from 'lucide-react';
+import { getProducts } from '../../utils/storage';
+import { Search, Package, ExternalLink, Calendar, MessageSquare } from 'lucide-react';
 import { API_BASE_URL } from '@/app/utils/api';
 
 interface OrderItem {
@@ -32,7 +31,6 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     const loadOrders = async () => {
       const allProducts = getProducts();
-      const purchasedIds = getPurchasedProducts();
       const token = localStorage.getItem('apex_user_token');
 
       let fetchedOrders: OrderItem[] = [];

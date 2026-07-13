@@ -79,8 +79,8 @@ export default function AdminDealsPage() {
                     <tr key={d.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 transition-colors">
                       <td className="p-4 font-mono font-bold text-zinc-400">{d.id}</td>
                       <td className="p-4">
-                        <span className="font-semibold text-zinc-950 dark:text-white block">{d.customer?.name || 'John Doe'}</span>
-                        <span className="text-[10px] text-zinc-500 block">{d.customer?.email || 'john@example.com'}</span>
+                        <span className="font-semibold text-zinc-950 dark:text-white block">{d.customer?.name || 'Unknown Client'}</span>
+                        <span className="text-[10px] text-zinc-500 block">{d.customer?.email || '—'}</span>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">

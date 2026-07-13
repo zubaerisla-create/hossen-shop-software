@@ -178,7 +178,7 @@ export default function CustomerPortal({
             </div>
             <div>
               <span className="font-extrabold text-sm text-zinc-950 dark:text-white block">Client Workspace</span>
-              <span className="text-[10px] text-zinc-500 font-medium">John Doe (Demo)</span>
+              <span className="text-[10px] text-zinc-500 font-medium">{typeof window !== 'undefined' ? (localStorage.getItem('apex_user_name') || 'Client Portal') : 'Client Portal'}</span>
             </div>
           </div>
 
@@ -672,7 +672,7 @@ export default function CustomerPortal({
                           : 'bg-zinc-950 dark:bg-white border-zinc-900 dark:border-zinc-100 text-white dark:text-black rounded-tr-none'
                         }`}>
                         <div className="flex justify-between items-center text-[9px] text-zinc-500 border-b border-zinc-200 dark:border-zinc-800/40 pb-1">
-                          <span className="font-bold uppercase tracking-wider">{isAdmin ? 'Hossen Shop Admin' : 'John Doe (Client)'}</span>
+                          <span className="font-bold uppercase tracking-wider">{isAdmin ? 'Hossen Shop Admin' : (typeof window !== 'undefined' ? (localStorage.getItem('apex_user_name') || 'You') : 'You')}</span>
                           <span>{msg.timestamp}</span>
                         </div>
 

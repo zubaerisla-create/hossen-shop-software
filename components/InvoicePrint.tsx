@@ -14,6 +14,9 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
     window.print();
   };
 
+  const clientName = invoice.customerName || (typeof window !== 'undefined' ? localStorage.getItem('apex_user_name') : null) || 'Client';
+  const clientEmail = invoice.customerEmail || (typeof window !== 'undefined' ? localStorage.getItem('apex_user_email') : null) || '';
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm print:bg-white print:p-0">
       <div className="bg-white text-zinc-900 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl p-8 relative print:shadow-none print:rounded-none print:w-full print:max-w-none print:p-0">
@@ -64,10 +67,10 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
           <div>
             <span className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Billed To</span>
             <div className="text-xs leading-normal">
-              <p className="font-bold text-zinc-800">John Doe (Demo Client)</p>
+              <p className="font-bold text-zinc-800">{clientName}</p>
               <p className="text-zinc-500">
-                dhaka.john@example.com<br />
-                Dhaka, Bangladesh
+                {clientEmail && <>{clientEmail}<br /></>}
+                Bangladesh
               </p>
             </div>
           </div>

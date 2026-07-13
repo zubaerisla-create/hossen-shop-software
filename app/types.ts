@@ -134,6 +134,9 @@ export interface Invoice {
   type: 'ready_product' | 'custom_milestone' | 'maintenance';
   status: 'Paid' | 'Unpaid';
   date: string;
+  customerName?: string;
+  customerEmail?: string;
+  createdAt?: string;
 }
 
 export interface SupportTicket {

@@ -705,7 +705,7 @@ export default function AdminPanel({
                               : 'bg-zinc-950 dark:bg-white border-zinc-900 dark:border-zinc-100 text-white dark:text-black rounded-tr-none'
                           }`}>
                             <div className="flex justify-between items-center text-[8px] text-zinc-500 border-b border-zinc-200 dark:border-zinc-800 pb-1 mb-1">
-                              <span className="font-bold uppercase">{isClient ? 'John Doe (Client)' : 'You (Admin)'}</span>
+                              <span className="font-bold uppercase">{isClient ? (selectedDeal?.customer?.name || 'Client') : 'You (Admin)'}</span>
                               <span>{msg.timestamp}</span>
                             </div>
                             <p className="whitespace-pre-wrap">{msg.content}</p>
