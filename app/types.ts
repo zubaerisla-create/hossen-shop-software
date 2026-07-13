@@ -37,6 +37,8 @@ export interface Product {
   salesCount: number;
   rating: number;
   githubUrl?: string;
+  frontendGithubUrl?: string;
+  backendGithubUrl?: string;
   zipUrl?: string;
 }
 

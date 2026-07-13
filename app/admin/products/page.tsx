@@ -56,6 +56,8 @@ export default function AdminProductsPage() {
   const [formDocUrl, setFormDocUrl] = useState('');
   const [formVideoUrl, setFormVideoUrl] = useState('');
   const [formGithubUrl, setFormGithubUrl] = useState('');
+  const [formFrontendGithubUrl, setFormFrontendGithubUrl] = useState('');
+  const [formBackendGithubUrl, setFormBackendGithubUrl] = useState('');
   const [formZipUrl, setFormZipUrl] = useState('');
   const [formImages, setFormImages] = useState('');
   const [formVersion, setFormVersion] = useState('1.0.0');
@@ -64,6 +66,64 @@ export default function AdminProductsPage() {
   const [formRating, setFormRating] = useState(5);
   const [formFaqs, setFormFaqs] = useState<FAQItem[]>([]);
   const [formChangelog, setFormChangelog] = useState<ChangelogItem[]>([]);
+
+  const [uploadingZip, setUploadingZip] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'zip' | 'image') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      showErrorToast('Authentication token not found. Please log in.');
+      return;
+    }
+
+    if (target === 'zip') {
+      setUploadingZip(true);
+    } else {
+      setUploadingImage(true);
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || 'Upload failed');
+      }
+
+      const fileUrl = resData.url;
+      if (target === 'zip') {
+        setFormZipUrl(fileUrl);
+        showSuccessToast('ZIP package uploaded successfully!');
+      } else {
+        setFormImages(prev => prev ? `${prev}\n${fileUrl}` : fileUrl);
+        showSuccessToast('Image uploaded successfully!');
+      }
+    } catch (err: any) {
+      console.error(err);
+      showErrorAlert('Upload Failed', err.message || 'Failed to upload file.');
+    } finally {
+      if (target === 'zip') {
+        setUploadingZip(false);
+      } else {
+        setUploadingImage(false);
+      }
+      // Reset input element value to allow uploading same file again
+      e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     setProducts(getProducts());
@@ -92,6 +152,8 @@ export default function AdminProductsPage() {
     setFormDocUrl('');
     setFormVideoUrl('');
     setFormGithubUrl('');
+    setFormFrontendGithubUrl('');
+    setFormBackendGithubUrl('');
     setFormZipUrl('');
     setFormImages('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
     setFormVersion('1.0.0');
@@ -121,6 +183,8 @@ export default function AdminProductsPage() {
     setFormDocUrl(prod.documentationUrl || '');
     setFormVideoUrl(prod.videoUrl || '');
     setFormGithubUrl(prod.githubUrl || '');
+    setFormFrontendGithubUrl(prod.frontendGithubUrl || '');
+    setFormBackendGithubUrl(prod.backendGithubUrl || '');
     setFormZipUrl(prod.zipUrl || '');
     setFormImages(prod.images.join('\n'));
     setFormVersion(prod.version || '1.0.0');
@@ -212,6 +276,8 @@ export default function AdminProductsPage() {
       videoUrl: formVideoUrl.trim() || null,
       documentationUrl: formDocUrl.trim() || null,
       githubUrl: formGithubUrl.trim() || null,
+      frontendGithubUrl: formFrontendGithubUrl.trim() || null,
+      backendGithubUrl: formBackendGithubUrl.trim() || null,
       zipUrl: formZipUrl.trim() || null,
       version: formVersion.trim() || '1.0.0',
       license: formLicense.trim() || 'Commercial License'
@@ -687,7 +753,20 @@ export default function AdminProductsPage() {
                           </div>
 
                           <div>
-                            <label className="block text-zinc-650 dark:text-zinc-400 font-bold mb-1 uppercase tracking-wider text-[9px]">Source Code ZIP Download URL</label>
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="block text-zinc-650 dark:text-zinc-400 font-bold uppercase tracking-wider text-[9px]">Source Code ZIP Download URL</label>
+                              <label className="text-[9px] text-zinc-950 dark:text-white font-bold hover:underline cursor-pointer flex items-center gap-1">
+                                <Download className="w-3 h-3" />
+                                <span>{uploadingZip ? 'Uploading...' : 'Upload ZIP'}</span>
+                                <input
+                                  type="file"
+                                  accept=".zip"
+                                  disabled={uploadingZip}
+                                  onChange={(e) => handleFileUpload(e, 'zip')}
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
                             <div className="relative">
                               <Download className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-500" />
                               <input 
@@ -701,10 +780,52 @@ export default function AdminProductsPage() {
                           </div>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-zinc-650 dark:text-zinc-400 font-bold mb-1 uppercase tracking-wider text-[9px]">Frontend GitHub Repository URL (Optional)</label>
+                            <div className="relative">
+                              <FileCode className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-500" />
+                              <input 
+                                type="url" 
+                                placeholder="https://github.com/agency/frontend-repo" 
+                                value={formFrontendGithubUrl} 
+                                onChange={(e) => setFormFrontendGithubUrl(e.target.value)} 
+                                className="w-full pl-8 pr-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 text-zinc-950 dark:text-white rounded text-xs focus:outline-none focus:border-zinc-450 dark:focus:border-zinc-700" 
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-zinc-650 dark:text-zinc-400 font-bold mb-1 uppercase tracking-wider text-[9px]">Backend GitHub Repository URL (Optional)</label>
+                            <div className="relative">
+                              <FileCode className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-500" />
+                              <input 
+                                type="url" 
+                                placeholder="https://github.com/agency/backend-repo" 
+                                value={formBackendGithubUrl} 
+                                onChange={(e) => setFormBackendGithubUrl(e.target.value)} 
+                                className="w-full pl-8 pr-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 text-zinc-950 dark:text-white rounded text-xs focus:outline-none focus:border-zinc-450 dark:focus:border-zinc-700" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
                         <div>
                           <div className="flex justify-between items-center mb-1">
                             <label className="block text-zinc-650 dark:text-zinc-400 font-bold uppercase tracking-wider text-[9px]">Product Image URLs (One URL per line)</label>
-                            <span className="text-[9px] text-zinc-500">First line is primary thumbnail</span>
+                            <div className="flex gap-3">
+                              <label className="text-[9px] text-zinc-950 dark:text-white font-bold hover:underline cursor-pointer flex items-center gap-1">
+                                <span>{uploadingImage ? 'Uploading...' : 'Upload & Append Image'}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={uploadingImage}
+                                  onChange={(e) => handleFileUpload(e, 'image')}
+                                  className="hidden"
+                                />
+                              </label>
+                              <span className="text-[9px] text-zinc-500">First line is primary thumbnail</span>
+                            </div>
                           </div>
                           <textarea 
                             rows={5} 
@@ -1002,6 +1123,39 @@ export default function AdminProductsPage() {
                     ) : <span className="text-zinc-400">None</span>}
                   </div>
                 </div>
+
+                {/* GitHub Repositories */}
+                {(viewingProduct.githubUrl || viewingProduct.frontendGithubUrl || viewingProduct.backendGithubUrl) && (
+                  <div className="space-y-1.5">
+                    <span className="block font-bold text-zinc-400 uppercase tracking-wide text-[9px]">GitHub Repositories</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[10px]">
+                      {viewingProduct.githubUrl && (
+                        <div className="bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-850 p-2 rounded flex items-center justify-between">
+                          <span className="text-zinc-400">Codebase:</span>
+                          <a href={viewingProduct.githubUrl} target="_blank" rel="noreferrer" className="text-zinc-950 dark:text-white hover:underline flex items-center gap-1 font-bold">
+                            Open Repo <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                      {viewingProduct.frontendGithubUrl && (
+                        <div className="bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-850 p-2 rounded flex items-center justify-between">
+                          <span className="text-zinc-400">Frontend:</span>
+                          <a href={viewingProduct.frontendGithubUrl} target="_blank" rel="noreferrer" className="text-zinc-950 dark:text-white hover:underline flex items-center gap-1 font-bold">
+                            Open Repo <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                      {viewingProduct.backendGithubUrl && (
+                        <div className="bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-850 p-2 rounded flex items-center justify-between">
+                          <span className="text-zinc-400">Backend:</span>
+                          <a href={viewingProduct.backendGithubUrl} target="_blank" rel="noreferrer" className="text-zinc-950 dark:text-white hover:underline flex items-center gap-1 font-bold">
+                            Open Repo <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Tech tags */}
                 <div className="space-y-1.5">

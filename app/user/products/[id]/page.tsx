@@ -456,29 +456,65 @@ export default function PurchasedProductDetailPage() {
                   </div>
 
                   {/* GitHub Repository access */}
-                  <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-850 p-5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-zinc-950 dark:text-white text-xs">GitHub Repository Access</h4>
-                      <p className="text-zinc-500 text-[10px]">Access to the GitHub codebase repository for version control, issue tracking, and branch cloning.</p>
+                  {(product.githubUrl || (!product.frontendGithubUrl && !product.backendGithubUrl)) && (
+                    <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-850 p-5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-zinc-950 dark:text-white text-xs">GitHub Repository Access</h4>
+                        <p className="text-zinc-500 text-[10px]">Access to the GitHub codebase repository for version control, issue tracking, and branch cloning.</p>
+                      </div>
+                      {product.githubUrl ? (
+                        <a
+                          href={product.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded flex items-center gap-2 cursor-pointer transition-colors shrink-0"
+                        >
+                          Open GitHub Repository <ExternalLink className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => triggerToast(`Repository access requested for ${product.name}. A representative will invite you within 24 hours.`)}
+                          className="px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold rounded cursor-pointer transition-colors shrink-0"
+                        >
+                          Request GitHub Access
+                        </button>
+                      )}
                     </div>
-                    {product.githubUrl ? (
+                  )}
+
+                  {product.frontendGithubUrl && (
+                    <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-850 p-5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-zinc-950 dark:text-white text-xs">Frontend Repository Access</h4>
+                        <p className="text-zinc-500 text-[10px]">Access to the frontend client codebase repository for version control and cloning.</p>
+                      </div>
                       <a
-                        href={product.githubUrl}
+                        href={product.frontendGithubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded flex items-center gap-2 cursor-pointer transition-colors shrink-0"
                       >
-                        Open GitHub Repository <ExternalLink className="w-4 h-4" />
+                        Open Frontend Repository <ExternalLink className="w-4 h-4" />
                       </a>
-                    ) : (
-                      <button
-                        onClick={() => triggerToast(`Repository access requested for ${product.name}. A representative will invite you within 24 hours.`)}
-                        className="px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold rounded cursor-pointer transition-colors shrink-0"
+                    </div>
+                  )}
+
+                  {product.backendGithubUrl && (
+                    <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-850 p-5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-zinc-950 dark:text-white text-xs">Backend Repository Access</h4>
+                        <p className="text-zinc-500 text-[10px]">Access to the backend API server codebase repository for version control and cloning.</p>
+                      </div>
+                      <a
+                        href={product.backendGithubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded flex items-center gap-2 cursor-pointer transition-colors shrink-0"
                       >
-                        Request GitHub Access
-                      </button>
-                    )}
-                  </div>
+                        Open Backend Repository <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  )}
 
                   {/* License block */}
                   <div className="space-y-2">
