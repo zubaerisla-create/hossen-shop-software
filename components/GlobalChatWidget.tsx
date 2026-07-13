@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Sparkles, MessageCircle, HelpCircle, ArrowRight } from 'lucide-react';
+import { API_BASE_URL } from '@/app/utils/api';
 
 interface ChatMessage {
   id: string;

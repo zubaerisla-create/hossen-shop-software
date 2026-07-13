@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Product } from '../../types';
 import { getProducts, getPurchasedProducts } from '../../utils/storage';
 import { Search, Package, ExternalLink, Calendar, Shield, MessageSquare } from 'lucide-react';
+import { API_BASE_URL } from '@/app/utils/api';
 
 interface OrderItem {
   id: string;

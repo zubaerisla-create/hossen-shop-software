@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, X, Check, ArrowRight } from 'lucide-react';
 import { auth, googleProvider, signInWithPopup } from '../lib/firebase';
 import { showSuccessToast, showErrorToast } from '../app/utils/alert';
+import { API_BASE_URL } from '@/app/utils/api';
 
 interface AuthModalProps {
   isOpen: boolean;

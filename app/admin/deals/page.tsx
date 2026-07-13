@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { CustomDeal } from '../../types';
 import { getDeals, saveDeals } from '../../utils/storage';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from '@/app/utils/api';
 
 export default function AdminDealsPage() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);

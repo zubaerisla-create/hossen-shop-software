@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Lock, Shield, Bell, CheckCircle2, Save, Eye, EyeOff } from 'lucide-react';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
+import { API_BASE_URL } from '@/app/utils/api';
 
 export default function UserSettingsPage() {
   // Profile state

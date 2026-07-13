@@ -6,6 +6,7 @@ import { getDeals, saveDeals, getChats, saveChats } from '../../utils/storage';
 import { useRouter } from 'next/navigation';
 import { UploadCloud } from 'lucide-react';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
+import { API_BASE_URL } from '@/app/utils/api';
 
 export default function UserDealsPage() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);

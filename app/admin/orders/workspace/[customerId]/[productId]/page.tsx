@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Product, ChatMessage, CustomDeal } from '../../../../../types';
 import { getProducts } from '../../../../../utils/storage';
 import { io } from 'socket.io-client';
-import {
 import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
+import {
   ArrowLeft,
   ExternalLink,
   Lock,

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/app/utils/api';
 
 export default function AdminLoginPage() {
   const router = useRouter();

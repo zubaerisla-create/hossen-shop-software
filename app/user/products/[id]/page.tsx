@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { Product, ChatMessage } from '../../../types';
 import { getProducts, getPurchasedProducts } from '../../../utils/storage';
 import { io } from 'socket.io-client';
-import {
 import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
+import {
   ArrowLeft,
   Download,
   ExternalLink,

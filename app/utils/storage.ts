@@ -2,6 +2,7 @@
 
 import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket, Milestone } from '../types';
 import { mockProducts, mockCustomDeals, mockChatMessages, mockInvoices, mockSupportTickets } from '../mockData';
+import { API_BASE_URL } from '@/app/utils/api';
 
 // Standard keys
 const PRODUCTS_KEY = 'apex_products';
