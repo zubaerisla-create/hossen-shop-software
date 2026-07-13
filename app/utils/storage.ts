@@ -171,7 +171,9 @@ export async function syncWithBackend() {
 
   try {
     // 1. Fetch Products (Public endpoint)
-    const productsRes = await fetch('http://localhost:5000/api/products');
+    const productsRes = await fetch('http://localhost:5000/api/products', {
+      cache: 'no-store'
+    });
     if (productsRes.ok) {
       const data = await productsRes.json();
       if (data.data?.products) {
@@ -188,7 +190,8 @@ export async function syncWithBackend() {
   try {
     // 2. Fetch Deals
     const dealsRes = await fetch('http://localhost:5000/api/deals', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
     });
     if (dealsRes.ok) {
       const data = await dealsRes.json();
@@ -199,7 +202,8 @@ export async function syncWithBackend() {
 
     // 3. Fetch Invoices
     const invoicesRes = await fetch('http://localhost:5000/api/invoices', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
     });
     if (invoicesRes.ok) {
       const data = await invoicesRes.json();
@@ -210,7 +214,8 @@ export async function syncWithBackend() {
 
     // 4. Fetch Support Tickets
     const ticketsRes = await fetch('http://localhost:5000/api/tickets', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
     });
     if (ticketsRes.ok) {
       const data = await ticketsRes.json();

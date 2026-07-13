@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Send } from 'lucide-react';
 import { SupportTicket } from '../../types';
+import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 
 export default function UserSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -15,6 +16,11 @@ export default function UserSupportPage() {
   const [tktCategory, setTktCategory] = useState<'Technical' | 'Billing' | 'Customization' | 'Other'>('Technical');
   const [tktPriority, setTktPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
   const [tktReply, setTktReply] = useState('');
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
   // Fetch tickets from database
   const fetchTickets = async () => {
@@ -38,7 +44,18 @@ export default function UserSupportPage() {
 
   useEffect(() => {
     fetchTickets();
+    if (typeof window !== 'undefined') {
+      setUserAvatar(localStorage.getItem('apex_user_avatar'));
+    }
   }, []);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setTimeout(scrollToBottom, 50);
+  }, [selectedTicket?.messages]);
 
   // WebSocket real-time updates for selected ticket
   useEffect(() => {
@@ -61,8 +78,6 @@ export default function UserSupportPage() {
     };
   }, [selectedTicketId]);
 
-  const selectedTicket = tickets.find(t => t.id === selectedTicketId);
-
   const triggerToast = (text: string) => {
     const event = new CustomEvent('apex-user-toast', { detail: text });
     window.dispatchEvent(event);
@@ -74,7 +89,7 @@ export default function UserSupportPage() {
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication error.');
+      showErrorToast('Authentication error.');
       return;
     }
 
@@ -98,7 +113,7 @@ export default function UserSupportPage() {
         throw new Error(resData.message || 'Failed to create support ticket');
       }
 
-      triggerToast('Support ticket filed successfully!');
+      showSuccessAlert('Ticket Created!', 'Your support ticket has been filed successfully. A support representative will respond shortly.');
       setTktSubject('');
       setTktDesc('');
       
@@ -106,7 +121,7 @@ export default function UserSupportPage() {
       fetchTickets();
     } catch (err: any) {
       console.error(err);
-      triggerToast(err?.message || 'Failed to open ticket.');
+      showErrorAlert('Error Creating Ticket', err?.message || 'Failed to open ticket.');
     }
   };
 
@@ -116,7 +131,7 @@ export default function UserSupportPage() {
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication error.');
+      showErrorToast('Authentication error.');
       return;
     }
 
@@ -138,7 +153,7 @@ export default function UserSupportPage() {
       setTktReply('');
     } catch (err: any) {
       console.error(err);
-      triggerToast(err?.message || 'Failed to send reply.');
+      showErrorToast(err?.message || 'Failed to send reply.');
     }
   };
 
@@ -246,35 +261,41 @@ export default function UserSupportPage() {
                   {selectedTicket.messages.map((m, idx) => {
                     const isYou = m.sender === 'customer';
                     return (
-                      <div key={idx} className={`flex gap-3 items-start ${isYou ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div key={idx} className={`flex gap-2.5 items-start ${isYou ? 'flex-row-reverse' : 'flex-row'}`}>
                         {/* Avatar */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase shadow-sm border transition-all ${
-                          isYou 
-                            ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:border-zinc-200 dark:text-zinc-900' 
-                            : 'bg-zinc-100 border-zinc-200 text-zinc-700 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
-                        }`}>
-                          {isYou ? 'C' : 'S'}
-                        </div>
-
-                        <div className={`space-y-1 max-w-[78%] flex flex-col ${isYou ? 'items-end' : 'items-start'}`}>
-                          <div className="flex items-center gap-1.5 px-1">
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">
-                              {isYou ? 'You' : 'Support Specialist'}
-                            </span>
-                            <span className="text-[8px] text-zinc-400 font-mono">• {m.timestamp}</span>
+                        {isYou ? (
+                          userAvatar ? (
+                            <img src={userAvatar} className="w-8 h-8 rounded-full object-cover shrink-0 border border-zinc-200 dark:border-zinc-800 shadow-sm" alt="You" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-zinc-800 dark:border-zinc-200 shadow-xs">
+                              U
+                            </div>
+                          )
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-emerald-100 dark:border-emerald-900 shadow-xs">
+                            S
                           </div>
+                        )}
 
-                          <div className={`rounded-2xl px-4 py-3 text-[11px] leading-relaxed shadow-sm border transition-all ${
+                        <div className={`flex flex-col max-w-[75%] ${isYou ? 'items-end' : 'items-start'}`}>
+                          {/* Message Bubble (starts on same horizontal line as avatar) */}
+                          <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm border transition-all ${
                             isYou
-                              ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:border-zinc-200 rounded-tr-none'
+                              ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-905 dark:border-zinc-200 rounded-tr-none'
                               : 'bg-zinc-50 border-zinc-200 text-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
                           }`}>
                             <p className="whitespace-pre-wrap font-sans">{m.content}</p>
                           </div>
+
+                          {/* Meta Info Below Bubble */}
+                          <span className="text-[8px] text-zinc-400 font-mono mt-1 px-1">
+                            {isYou ? 'You' : 'Support Specialist'} • {m.timestamp}
+                          </span>
                         </div>
                       </div>
                     );
                   })}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Compose Form */}

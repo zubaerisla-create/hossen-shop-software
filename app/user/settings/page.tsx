@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Lock, Shield, Bell, CheckCircle2, Save, Eye, EyeOff } from 'lucide-react';
+import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 
 export default function UserSettingsPage() {
   // Profile state
@@ -78,7 +79,7 @@ export default function UserSettingsPage() {
     e.preventDefault();
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Error: Authentication token missing.');
+      showErrorToast('Error: Authentication token missing.');
       return;
     }
     
@@ -108,12 +109,12 @@ export default function UserSettingsPage() {
       localStorage.setItem('apex_notify_milestones', String(notifyMilestones));
       localStorage.setItem('apex_notify_whatsapp', String(notifyWhatsApp));
 
-      triggerToast('Profile settings saved successfully.');
+      showSuccessAlert('Profile Saved!', 'Your account profile settings have been updated successfully.');
       dispatchProfileUpdate();
 
     } catch (err: any) {
       console.error(err);
-      triggerToast(err?.message || 'Failed to save profile details.');
+      showErrorAlert('Profile Update Failed', err?.message || 'Failed to save profile details.');
     }
   };
 
@@ -121,21 +122,21 @@ export default function UserSettingsPage() {
     e.preventDefault();
 
     if (!currentPassword) {
-      triggerToast('Please enter your current password.');
+      showErrorToast('Please enter your current password.');
       return;
     }
     if (newPassword.length < 6) {
-      triggerToast('New password must be at least 6 characters long.');
+      showErrorToast('New password must be at least 6 characters long.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      triggerToast('Confirm password does not match new password.');
+      showErrorToast('Confirm password does not match new password.');
       return;
     }
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Error: Authentication token missing.');
+      showErrorToast('Error: Authentication token missing.');
       return;
     }
 
@@ -155,14 +156,14 @@ export default function UserSettingsPage() {
         throw new Error(resData.message || 'Failed to update password');
       }
 
-      triggerToast('Password updated successfully.');
+      showSuccessAlert('Password Updated!', 'Your account password has been changed successfully.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
 
     } catch (err: any) {
       console.error(err);
-      triggerToast(err?.message || 'Failed to update password.');
+      showErrorAlert('Password Update Failed', err?.message || 'Failed to update password.');
     }
   };
 

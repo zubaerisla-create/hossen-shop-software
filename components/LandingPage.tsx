@@ -60,6 +60,58 @@ export default function LandingPage({
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Interactive FAQ & Contact Form State
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactSubject, setContactSubject] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName.trim() || !contactEmail.trim() || !contactSubject.trim() || !contactMessage.trim()) {
+      setSubmitError('Please fill out all fields.');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitSuccess(null);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          subject: contactSubject,
+          message: contactMessage
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setSubmitSuccess('Thank you! Your inquiry was sent successfully.');
+        setContactName('');
+        setContactEmail('');
+        setContactSubject('');
+        setContactMessage('');
+      } else {
+        setSubmitError(data.message || 'Failed to send inquiry. Please try again.');
+      }
+    } catch (err) {
+      console.error('Contact submission error:', err);
+      setSubmitError('Connection error. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSearchSubmit = () => {
     if (searchTerm.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
@@ -530,67 +582,119 @@ export default function LandingPage({
 
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 rounded-xl p-5 space-y-2 hover:border-zinc-300 dark:hover:border-zinc-850 transition-colors">
-                <h4 className="font-bold text-zinc-900 dark:text-white text-xs flex items-start gap-2.5">
-                  <HelpCircle className="w-4 h-4 text-zinc-450 shrink-0 mt-0.5" />
-                  <span>{faq.q}</span>
-                </h4>
-                <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed pl-6.5">{faq.a}</p>
+              <div key={i} className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden transition-all duration-300">
+                <button
+                  onClick={() => setOpenFaqIndex(openFaqIndex === i ? null : i)}
+                  className="w-full text-left p-5 flex items-center justify-between font-bold text-zinc-900 dark:text-white text-xs cursor-pointer select-none hover:bg-zinc-100/40 dark:hover:bg-zinc-850/40 transition-colors"
+                >
+                  <span className="flex items-start gap-2.5">
+                    <HelpCircle className="w-4.5 h-4.5 text-zinc-450 shrink-0 mt-0.5" />
+                    <span>{faq.q}</span>
+                  </span>
+                  <span className={`text-zinc-400 transition-transform duration-300 ${openFaqIndex === i ? 'rotate-180' : 'rotate-0'}`}>
+                    <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
+                
+                <div
+                  className="transition-all duration-350 ease-in-out overflow-hidden"
+                  style={{
+                    maxHeight: openFaqIndex === i ? '200px' : '0px',
+                    opacity: openFaqIndex === i ? 1 : 0
+                  }}
+                >
+                  <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed px-5 pb-5 pl-11.5">
+                    {faq.a}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Contact Channels */}
-        <div className="lg:col-span-5 bg-zinc-50/70 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-8">
-          <div className="space-y-5">
-            <div>
-              <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Connect channels</span>
-              <h3 className="text-lg font-extrabold text-zinc-900 dark:text-white uppercase tracking-wider mt-1">Get in Touch</h3>
-              <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed mt-1">Connect with our support team or schedule a custom product planning session.</p>
-            </div>
+        {/* Contact Form */}
+        <div className="lg:col-span-5 bg-zinc-50/70 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-6">
+          <div>
+            <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Connect channels</span>
+            <h3 className="text-lg font-extrabold text-zinc-900 dark:text-white uppercase tracking-wider mt-1">Get in Touch</h3>
+            <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed mt-1">Send a direct message to our support desk via secure SMTP routing.</p>
+          </div>
 
-            <div className="space-y-3 text-xs">
-              <a href="mailto:support@Hossen Shop.com" className="flex items-center gap-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-800 transition-all text-zinc-700 dark:text-zinc-300 group">
-                <div className="bg-zinc-50 dark:bg-zinc-900 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850 group-hover:scale-105 transition-transform">
-                  <Mail className="w-4.5 h-4.5 text-zinc-500" />
-                </div>
-                <div>
-                  <span className="block text-[8px] text-zinc-450 uppercase font-bold tracking-wider">Email support Desk</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">support@Hossen Shop.com</span>
-                </div>
-              </a>
+          <form onSubmit={handleContactSubmit} className="space-y-4">
+            {submitSuccess && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-450 rounded-lg text-[10px] font-bold">
+                {submitSuccess}
+              </div>
+            )}
+            {submitError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-450 rounded-lg text-[10px] font-bold">
+                {submitError}
+              </div>
+            )}
 
-              <a href="https://wa.me/8801711000000" target="_blank" rel="noreferrer" className="flex items-center gap-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-800 transition-all text-zinc-700 dark:text-zinc-300 group">
-                <div className="bg-zinc-50 dark:bg-zinc-900 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850 group-hover:scale-105 transition-transform">
-                  <MessageSquare className="w-4.5 h-4.5 text-zinc-500" />
-                </div>
-                <div>
-                  <span className="block text-[8px] text-zinc-450 uppercase font-bold tracking-wider">WhatsApp chat direct</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">+880 1711 000000</span>
-                </div>
-              </a>
-
-              <div className="flex items-center gap-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl text-zinc-700 dark:text-zinc-300">
-                <div className="bg-zinc-50 dark:bg-zinc-900 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850">
-                  <Phone className="w-4.5 h-4.5 text-zinc-500" />
-                </div>
-                <div>
-                  <span className="block text-[8px] text-zinc-450 uppercase font-bold tracking-wider">Main Headquarters</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">Uttara Sector 11, Dhaka, BD</span>
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-zinc-450 dark:text-zinc-500 uppercase tracking-wider block">Your Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="John Doe"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 text-zinc-950 dark:text-white rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-700 transition-all font-medium text-xs shadow-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-zinc-450 dark:text-zinc-500 uppercase tracking-wider block">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="john@example.com"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 text-zinc-950 dark:text-white rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-700 transition-all font-medium text-xs shadow-xs"
+                />
               </div>
             </div>
-          </div>
 
-          <div className="border-t border-zinc-200 dark:border-zinc-850 pt-6">
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-zinc-450 dark:text-zinc-500 uppercase tracking-wider block">Subject</label>
+              <input
+                type="text"
+                required
+                placeholder="Custom project details / General query"
+                value={contactSubject}
+                onChange={(e) => setContactSubject(e.target.value)}
+                className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 text-zinc-950 dark:text-white rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-700 transition-all font-medium text-xs shadow-xs"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-zinc-450 dark:text-zinc-500 uppercase tracking-wider block">Message Description</label>
+              <textarea
+                required
+                rows={4}
+                placeholder="Describe your requirements or questions here..."
+                value={contactMessage}
+                onChange={(e) => setContactMessage(e.target.value)}
+                className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 text-zinc-950 dark:text-white rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-700 transition-all font-medium text-xs resize-none shadow-xs"
+              />
+            </div>
+
             <button
-              onClick={onStartCustomProject}
-              className="w-full py-3 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black disabled:opacity-50 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
             >
-              <span>Launch a Custom Project Request</span>
+              {isSubmitting ? (
+                <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white dark:border-black/20 dark:border-t-black animate-spin" />
+              ) : (
+                <span>Send Direct Inquiry</span>
+              )}
             </button>
-          </div>
+          </form>
         </div>
 
       </section>

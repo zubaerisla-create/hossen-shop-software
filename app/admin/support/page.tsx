@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Send } from 'lucide-react';
 import { SupportTicket } from '../../types';
@@ -9,6 +9,18 @@ export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState('');
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const selectedTicket = tickets.find(t => t.id === selectedTicketId);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setTimeout(scrollToBottom, 50);
+  }, [selectedTicket?.messages]);
 
   // Fetch tickets from database
   const fetchTickets = async () => {
@@ -54,8 +66,6 @@ export default function AdminSupportPage() {
       socket.disconnect();
     };
   }, [selectedTicketId]);
-
-  const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
   const triggerToast = (text: string) => {
     const event = new CustomEvent('apex-admin-toast', { detail: text });
@@ -189,36 +199,43 @@ export default function AdminSupportPage() {
               <div className="flex-1 overflow-y-auto p-5 space-y-4 pr-3 scrollbar-thin bg-white dark:bg-zinc-955/20">
                 {selectedTicket.messages.map((m, idx) => {
                   const isAdmin = m.sender === 'admin';
+                  const clientAvatar = (selectedTicket as any).customer?.avatar;
                   return (
-                    <div key={idx} className={`flex gap-3 items-start ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div key={idx} className={`flex gap-2.5 items-start ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
                       {/* Avatar */}
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase shadow-sm border transition-all ${
-                        isAdmin 
-                          ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:border-zinc-200 dark:text-zinc-900' 
-                          : 'bg-zinc-100 border-zinc-200 text-zinc-700 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
-                      }`}>
-                        {isAdmin ? 'S' : 'C'}
-                      </div>
-
-                      <div className={`space-y-1 max-w-[78%] flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}>
-                        <div className="flex items-center gap-1.5 px-1">
-                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">
-                            {isAdmin ? 'You (Support Specialist)' : 'Client'}
-                          </span>
-                          <span className="text-[8px] text-zinc-400 font-mono">• {m.timestamp}</span>
+                      {isAdmin ? (
+                        <div className="w-8 h-8 rounded-full bg-zinc-955 text-white dark:bg-white dark:text-zinc-955 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-zinc-800 dark:border-zinc-200 shadow-xs">
+                          S
                         </div>
+                      ) : (
+                        clientAvatar ? (
+                          <img src={clientAvatar} className="w-8 h-8 rounded-full object-cover shrink-0 border border-zinc-200 dark:border-zinc-800 shadow-sm" alt="Client" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-emerald-100 dark:border-emerald-900 shadow-xs">
+                            C
+                          </div>
+                        )
+                      )}
 
-                        <div className={`rounded-2xl px-4 py-3 text-[11px] leading-relaxed shadow-sm border transition-all ${
+                      <div className={`flex flex-col max-w-[75%] ${isAdmin ? 'items-end' : 'items-start'}`}>
+                        {/* Message Bubble (starts on same horizontal line as avatar) */}
+                        <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm border transition-all ${
                           isAdmin
-                            ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:border-zinc-200 rounded-tr-none'
-                            : 'bg-zinc-50 border-zinc-200 text-zinc-805 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
+                            ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-950 dark:border-zinc-250 rounded-tr-none'
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-808 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
                         }`}>
                           <p className="whitespace-pre-wrap font-sans">{m.content}</p>
                         </div>
+
+                        {/* Meta Info Below Bubble */}
+                        <span className="text-[8px] text-zinc-400 font-mono mt-1 px-1">
+                          {isAdmin ? 'You (Support Specialist)' : ((selectedTicket as any).customer?.name || 'Client')} • {m.timestamp}
+                        </span>
                       </div>
                     </div>
                   );
                 })}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Compose Form */}

@@ -63,6 +63,7 @@ export default function AdminDealsPage() {
                 <thead>
                   <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 text-zinc-500 dark:text-zinc-400 uppercase font-bold text-[9px] tracking-wider">
                     <th className="p-4">Project ID</th>
+                    <th className="p-4">Client Name</th>
                     <th className="p-4">Title & Type</th>
                     <th className="p-4 text-right">Target Budget</th>
                     <th className="p-4">Deadline</th>
@@ -76,6 +77,10 @@ export default function AdminDealsPage() {
                   {deals.map(d => (
                     <tr key={d.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 transition-colors">
                       <td className="p-4 font-mono font-bold text-zinc-400">{d.id}</td>
+                      <td className="p-4">
+                        <span className="font-semibold text-zinc-950 dark:text-white block">{d.customer?.name || 'John Doe'}</span>
+                        <span className="text-[10px] text-zinc-500 block">{d.customer?.email || 'john@example.com'}</span>
+                      </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           {d.unreadAdmin && (

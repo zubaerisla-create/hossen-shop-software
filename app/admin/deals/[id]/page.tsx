@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
 import { Info, CheckCircle2, XCircle, RefreshCw, FileText, Paperclip, Send } from 'lucide-react';
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
+import { showSuccessToast, showErrorToast } from '../../../utils/alert';
 
 export default function AdminDealDetailWorkspace() {
   const params = useParams();
@@ -15,6 +16,56 @@ export default function AdminDealDetailWorkspace() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
   const [chatInput, setChatInput] = useState('');
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [chatWidth, setChatWidth] = useState(420);
+  const [isMobile, setIsMobile] = useState(false);
+  const resizingRef = useRef(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    resizingRef.current = true;
+    const startX = e.clientX;
+    const startWidth = chatWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!resizingRef.current) return;
+      const deltaX = moveEvent.clientX - startX;
+      const newWidth = Math.max(280, Math.min(800, startWidth - deltaX));
+      setChatWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      resizingRef.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setTimeout(scrollToBottom, 50);
+  }, [chatMessages[dealId]]);
 
   // Design Quotation Form State
   const [quoteTime, setQuoteTime] = useState('30 Days');
@@ -138,9 +189,18 @@ export default function AdminDealDetailWorkspace() {
       setChatMessages(prev => {
         const thread = prev[dealId] || [];
         if (thread.some(m => m.id === msg.id)) return prev;
+        
+        // Remove matching optimistic message to avoid duplicate display
+        const filteredThread = thread.filter(m => {
+          if (m.id.startsWith('optimistic-') && m.content === msg.content) {
+            return false;
+          }
+          return true;
+        });
+
         return {
           ...prev,
-          [dealId]: [...thread, msg]
+          [dealId]: [...filteredThread, msg]
         };
       });
     });
@@ -804,13 +864,32 @@ export default function AdminDealDetailWorkspace() {
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    const messageContent = chatInput.trim();
+    if (!messageContent) return;
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication error.');
+      showErrorToast('Authentication error.');
       return;
     }
+
+    const tempId = `optimistic-${Date.now()}`;
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      sender: 'admin',
+      content: messageContent,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    // Update locally immediately and clear input
+    setChatMessages(prev => {
+      const thread = prev[dealId] || [];
+      return {
+        ...prev,
+        [dealId]: [...thread, optimisticMsg]
+      };
+    });
+    setChatInput('');
 
     try {
       const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
@@ -819,17 +898,24 @@ export default function AdminDealDetailWorkspace() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content: chatInput }),
+        body: JSON.stringify({ content: messageContent }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to send message');
       }
-
-      setChatInput('');
     } catch (err) {
       console.error(err);
-      triggerToast('Failed to send message.');
+      showErrorToast('Failed to send message.');
+      // Rollback optimistic message and restore input
+      setChatMessages(prev => {
+        const thread = prev[dealId] || [];
+        return {
+          ...prev,
+          [dealId]: thread.filter(m => m.id !== tempId)
+        };
+      });
+      setChatInput(messageContent);
     }
   };
 
@@ -882,10 +968,10 @@ export default function AdminDealDetailWorkspace() {
 
         <div className="p-6 md:p-8 flex-1 space-y-6">
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start h-full">
+          <div className="flex flex-col lg:flex-row gap-8 items-start h-full relative">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 lg:max-h-[calc(100vh-210px)] lg:overflow-y-auto pr-2 space-y-6">
+            <div className="flex-1 lg:max-h-[calc(100vh-210px)] lg:overflow-y-auto pr-2 space-y-6 w-full" style={{ minWidth: 200 }}>
               
               {/* Status Controller card */}
               <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-5 rounded space-y-4">
@@ -1695,8 +1781,35 @@ export default function AdminDealDetailWorkspace() {
               )}
             </div>
 
+            {/* Resizer Handle */}
+            <div 
+              onMouseDown={handleMouseDown}
+              className="hidden lg:block w-3 cursor-col-resize self-stretch relative z-10 group flex items-center justify-center"
+              style={{ marginLeft: -22, marginRight: -22 }}
+            >
+              {/* Thin Vertical Line */}
+              <div className="w-[1px] h-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-600 transition-colors relative flex items-center justify-center">
+                {/* Grip dots pill */}
+                <div className="absolute flex flex-col gap-1 py-2 px-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full shadow-xs group-hover:shadow-sm group-hover:scale-105 transition-all">
+                  <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                  <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                  <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                </div>
+              </div>
+            </div>
+
             {/* Right Column: Chat interface */}
-            <div className="lg:col-span-5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between h-[calc(100vh-210px)] shrink-0 overflow-hidden">
+            <div 
+              className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between shrink-0 overflow-hidden"
+              style={{
+                width: isMobile ? '100%' : `${chatWidth}px`,
+                minWidth: 280,
+                maxWidth: 800,
+                height: isMobile ? '600px' : 'calc(100vh - 210px)',
+                position: isMobile ? 'relative' : 'sticky',
+                top: isMobile ? 'auto' : '96px'
+              }}
+            >
               {/* Header */}
               <div className="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-200 dark:border-zinc-900 px-5 py-4 flex justify-between items-center">
                 <div className="flex items-center gap-2.5">
@@ -1712,7 +1825,7 @@ export default function AdminDealDetailWorkspace() {
               </div>
 
               {/* Chat message logs */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 pr-3 scrollbar-thin bg-white dark:bg-zinc-950/40">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 pr-3 scrollbar-thin bg-white dark:bg-zinc-955/20">
                 {(!chatMessages[dealId] || chatMessages[dealId].length === 0) ? (
                   <div className="text-center text-zinc-450 py-16 space-y-2">
                     <div className="text-lg">💬</div>
@@ -1722,30 +1835,24 @@ export default function AdminDealDetailWorkspace() {
                   chatMessages[dealId].map((msg) => {
                     const isAdmin = msg.sender === 'admin';
                     return (
-                      <div key={msg.id} className={`flex gap-3 items-start ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
-                        {/* Premium Avatar */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-extrabold tracking-tight uppercase shadow-sm border transition-all ${
-                          isAdmin 
-                            ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:border-zinc-200 dark:text-zinc-900' 
-                            : 'bg-zinc-100 border-zinc-200 text-zinc-700 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
-                        }`}>
-                          {isAdmin ? 'A' : 'C'}
-                        </div>
-
-                        <div className={`space-y-1 max-w-[78%] flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}>
-                          {/* Sender Info */}
-                          <div className="flex items-center gap-1.5 px-1">
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">
-                              {isAdmin ? 'You (Admin)' : 'Client Portal'}
-                            </span>
-                            <span className="text-[8px] text-zinc-400 font-mono">• {msg.timestamp}</span>
+                      <div key={msg.id} className={`flex gap-2.5 items-start ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
+                        {/* Avatar */}
+                        {isAdmin ? (
+                          <div className="w-8 h-8 rounded-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-zinc-800 dark:border-zinc-200 shadow-xs">
+                            A
                           </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-emerald-100 dark:border-emerald-900 shadow-xs">
+                            C
+                          </div>
+                        )}
 
-                          {/* Message Bubble */}
-                          <div className={`rounded-2xl px-4 py-3 text-[11px] leading-relaxed shadow-sm border transition-all ${
+                        <div className={`flex flex-col max-w-[75%] ${isAdmin ? 'items-end' : 'items-start'}`}>
+                          {/* Message Bubble (starts on same horizontal line as avatar) */}
+                          <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm border transition-all ${
                             isAdmin
                               ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:border-zinc-200 rounded-tr-none'
-                              : 'bg-zinc-50 border-zinc-200 text-zinc-805 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-808 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
                           }`}>
                             <p className="whitespace-pre-wrap font-sans">{msg.content}</p>
 
@@ -1772,11 +1879,17 @@ export default function AdminDealDetailWorkspace() {
                               </div>
                             )}
                           </div>
+
+                          {/* Meta Info Below Bubble */}
+                          <span className="text-[8px] text-zinc-400 font-mono mt-1 px-1">
+                            {isAdmin ? 'You (Admin)' : 'Client Portal'} • {msg.timestamp}
+                          </span>
                         </div>
                       </div>
                     );
                   })
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Modern Compose Box Input Panel */}

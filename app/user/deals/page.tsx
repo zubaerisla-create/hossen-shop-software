@@ -5,6 +5,7 @@ import { CustomDeal, ChatMessage } from '../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../utils/storage';
 import { useRouter } from 'next/navigation';
 import { UploadCloud } from 'lucide-react';
+import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 
 export default function UserDealsPage() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);
@@ -49,13 +50,13 @@ export default function UserDealsPage() {
     if (!dealTitle || !dealDesc) return;
 
     if (dealDesc.length < 10) {
-      triggerToast('Description must be at least 10 characters.');
+      showErrorToast('Description must be at least 10 characters.');
       return;
     }
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication required. Please log in.');
+      showErrorToast('Authentication required. Please log in.');
       return;
     }
 
@@ -95,11 +96,11 @@ export default function UserDealsPage() {
       setDealTech('');
       setShowRequestForm(false);
 
-      triggerToast('Requirements submitted! Workspace is now active.');
+      showSuccessAlert('Requirements Submitted!', 'Your project requirements have been successfully filed. Our engineers will review it and issue a proposal/quotation shortly.');
       router.push(`/user/deals/${createdDeal.id}`);
     } catch (err: any) {
       console.error(err);
-      triggerToast(err.message || 'Failed to submit requirements.');
+      showErrorAlert('Submission Failed', err.message || 'Failed to submit requirements.');
     }
   };
 

@@ -9,14 +9,21 @@ import Link from 'next/link';
 export default function PurchasedTemplatesPage() {
   const [purchasedProducts, setPurchasedProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      await syncWithBackend();
-      const allProducts = getProducts();
-      const purchasedIds = getPurchasedProducts();
-      const owned = allProducts.filter(p => purchasedIds.includes(p.id));
-      setPurchasedProducts(owned);
+      try {
+        await syncWithBackend();
+      } catch (err) {
+        console.error('Failed to sync products:', err);
+      } finally {
+        const allProducts = getProducts();
+        const purchasedIds = getPurchasedProducts();
+        const owned = allProducts.filter(p => purchasedIds.includes(p.id));
+        setPurchasedProducts(owned);
+        setLoading(false);
+      }
     };
     load();
   }, []);
@@ -25,6 +32,23 @@ export default function PurchasedTemplatesPage() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="animate-fadeIn text-xs flex flex-col min-h-full bg-white dark:bg-zinc-950 transition-colors">
+        <div className="sticky top-0 bg-white dark:bg-zinc-950 z-20 px-6 py-5 md:px-8 md:py-6 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center transition-colors">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-zinc-950 dark:text-white uppercase tracking-tight font-sans">Purchased Templates</h2>
+            <p className="text-zinc-500 text-[10px]">Loading your secure workspace templates...</p>
+          </div>
+        </div>
+        <div className="p-6 md:p-8 space-y-4 flex-1 flex flex-col items-center justify-center min-h-[400px]">
+          <div className="w-8 h-8 rounded-full border-2 border-zinc-200 dark:border-zinc-800 border-t-[#6A2D3D] dark:border-t-rose-400 animate-spin" />
+          <p className="text-zinc-500 dark:text-zinc-400 text-xs">Synchronizing purchased templates...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fadeIn text-xs flex flex-col min-h-full bg-white dark:bg-zinc-950 transition-colors">

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { Product, FAQItem, ChangelogItem } from '../../types';
 import { getProducts, saveProducts } from '../../utils/storage';
+import Swal from 'sweetalert2';
+import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 import { 
   Plus, 
   Trash2, 
@@ -138,42 +140,56 @@ export default function AdminProductsPage() {
 
   // Delete Product
   const handleDeleteProduct = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
-      const token = localStorage.getItem('apex_user_token');
-      if (!token) {
-        triggerToast('Authentication token not found. Please log in.');
-        return;
-      }
-
-      try {
-        const response = await fetch(`http://localhost:5000/api/products/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const updated = products.filter(p => p.id !== id);
-          saveProducts(updated);
-          setProducts(updated);
-          triggerToast('Product deleted from listings.');
-        } else {
-          const resData = await response.json();
-          throw new Error(resData.message || 'Failed to delete product from database');
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete "${name}" from the product listings.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#4b5563',
+      background: isDark ? '#121214' : '#ffffff',
+      color: isDark ? '#ffffff' : '#09090b',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const token = localStorage.getItem('apex_user_token');
+        if (!token) {
+          showErrorToast('Authentication token not found. Please log in.');
+          return;
         }
-      } catch (err: any) {
-        console.error(err);
-        triggerToast(err.message || 'Failed to delete product.');
+
+        try {
+          const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const updated = products.filter(p => p.id !== id);
+            saveProducts(updated);
+            setProducts(updated);
+            showSuccessToast('Product deleted from listings.');
+          } else {
+            const resData = await response.json();
+            throw new Error(resData.message || 'Failed to delete product from database');
+          }
+        } catch (err: any) {
+          console.error(err);
+          showErrorAlert('Delete Failed', err.message || 'Failed to delete product.');
+        }
       }
-    }
+    });
   };
 
   // Handle Form Submit
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      triggerToast('Product name is required.');
+      showErrorToast('Product name is required.');
       return;
     }
 
@@ -202,7 +218,7 @@ export default function AdminProductsPage() {
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication token not found. Please log in.');
+      showErrorToast('Authentication token not found. Please log in.');
       return;
     }
 
@@ -233,10 +249,10 @@ export default function AdminProductsPage() {
       let updatedList: Product[];
       if (isEditMode && editingProduct) {
         updatedList = products.map(p => p.id === editingProduct.id ? savedProduct : p);
-        triggerToast('Product catalog updated successfully.');
+        showSuccessAlert('Product Catalog Updated!', 'The product details have been successfully modified.');
       } else {
         updatedList = [savedProduct, ...products];
-        triggerToast('New product added to catalog.');
+        showSuccessAlert('Product Added!', 'The new product has been successfully listed on the marketplace.');
       }
 
       saveProducts(updatedList);
@@ -244,7 +260,7 @@ export default function AdminProductsPage() {
       setShowModal(false);
     } catch (err: any) {
       console.error(err);
-      triggerToast(err.message || 'Failed to save product.');
+      showErrorAlert('Operation Failed', err.message || 'Failed to save product.');
     }
   };
 

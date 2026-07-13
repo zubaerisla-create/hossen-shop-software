@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, X, Check, ArrowRight } from 'lucide-react';
 import { auth, googleProvider, signInWithPopup } from '../lib/firebase';
+import { showSuccessToast, showErrorToast } from '../app/utils/alert';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -94,6 +95,7 @@ export default function AuthModal({
       localStorage.setItem('apex_user_avatar', user.avatar || '');
 
       triggerAuthChangeEvent();
+      showSuccessToast('Signed in successfully with Google!');
       const searchParams = new URLSearchParams(window.location.search);
       const redirectUrl = searchParams.get('redirect');
 
@@ -108,7 +110,9 @@ export default function AuthModal({
       }
     } catch (err: any) {
       console.error("Firebase Google Auth failed:", err);
-      setError(err?.message || 'Firebase sign-in failed. Please try again.');
+      const errMsg = err?.message || 'Firebase sign-in failed. Please try again.';
+      setError(errMsg);
+      showErrorToast(errMsg);
     } finally {
       setLoading(false);
     }
@@ -174,7 +178,9 @@ export default function AuthModal({
       localStorage.setItem('apex_user_name', user.name);
       localStorage.setItem('apex_user_avatar', user.avatar || '');
 
-      setSuccess(mode === 'signup' ? 'Account created successfully! Redirecting...' : 'Signed in successfully! Redirecting...');
+      const successMsg = mode === 'signup' ? 'Account created successfully!' : 'Signed in successfully!';
+      setSuccess(successMsg + ' Redirecting...');
+      showSuccessToast(successMsg);
       triggerAuthChangeEvent();
 
       setTimeout(() => {
@@ -193,7 +199,9 @@ export default function AuthModal({
 
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'Authentication failed. Please check your credentials.');
+      const errMsg = err?.message || 'Authentication failed. Please check your credentials.';
+      setError(errMsg);
+      showErrorToast(errMsg);
     } finally {
       setLoading(false);
     }

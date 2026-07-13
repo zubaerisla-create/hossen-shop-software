@@ -104,6 +104,11 @@ export interface CustomDeal {
   finalDeliveryFiles?: FileAttachment[];
   unreadAdmin?: boolean;
   unreadPortal?: boolean;
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface ChatMessage {

@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import AuthModal from '@/components/AuthModal';
 import Link from 'next/link';
 import { Check, ArrowLeft, Terminal, Shield, ExternalLink, ArrowRight } from 'lucide-react';
+import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -18,6 +19,33 @@ export default function ProductDetailPage() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Multi-currency and dynamic gateway states
+  const [selectedGateway, setSelectedGateway] = useState<'stripe' | 'bkash'>('bkash');
+  const [selectedCurrency, setSelectedCurrency] = useState<'BDT' | 'USD'>('BDT');
+  const [showBkashModal, setShowBkashModal] = useState(false);
+  const [bkashStep, setBkashStep] = useState<1 | 2 | 3 | 4>(1);
+  const [bkashWallet, setBkashWallet] = useState('');
+  const [bkashOTP, setBkashOTP] = useState('');
+  const [bkashPIN, setBkashPIN] = useState('');
+  const [bkashInvoiceId, setBkashInvoiceId] = useState('');
+  const [bkashAmount, setBkashAmount] = useState(0);
+
+  const handleCurrencyChange = (curr: 'BDT' | 'USD') => {
+    setSelectedCurrency(curr);
+    if (curr === 'USD') {
+      setSelectedGateway('stripe');
+    } else {
+      setSelectedGateway('bkash');
+    }
+  };
+
+  const handleGatewayChange = (gw: 'stripe' | 'bkash') => {
+    setSelectedGateway(gw);
+    if (gw === 'bkash') {
+      setSelectedCurrency('BDT');
+    }
+  };
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'faq'>('overview');
@@ -147,10 +175,12 @@ export default function ProductDetailPage() {
           setFeedbacks(dbReviews);
           localStorage.setItem(`apex_feedbacks_${product.id}`, JSON.stringify(dbReviews));
           setNewComment('');
+          showSuccessToast('Review submitted successfully!');
           return;
         }
       } else {
         setCommentError(resData.message || 'Failed to submit feedback.');
+        showErrorToast(resData.message || 'Failed to submit feedback.');
         return;
       }
     } catch (err) {
@@ -171,6 +201,7 @@ export default function ProductDetailPage() {
     setFeedbacks(updated);
     localStorage.setItem(`apex_feedbacks_${product.id}`, JSON.stringify(updated));
     setNewComment('');
+    showSuccessToast('Review submitted successfully!');
   };
 
   if (!product) {
@@ -180,6 +211,11 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  const basePrice = selectedCurrency === 'USD' ? Math.round(product.price / 120) : product.price;
+  const vatAmount = Math.round(basePrice * 0.05);
+  const totalAmount = basePrice + vatAmount;
+  const currencySymbol = selectedCurrency === 'USD' ? '$' : 'BDT';
 
   const handleBuyClick = () => {
     const token = localStorage.getItem('apex_user_token');
@@ -226,12 +262,17 @@ export default function ProductDetailPage() {
 
       const invoiceId = resData.data.invoice.id;
 
-      // 2. Create Stripe checkout session
+      // 2. Create payment session
       const payResponse = await fetch(`http://localhost:5000/api/invoices/${invoiceId}/pay`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({
+          gateway: selectedGateway,
+          currency: selectedCurrency
+        })
       });
 
       const payData = await payResponse.json();
@@ -241,13 +282,24 @@ export default function ProductDetailPage() {
 
       const checkoutUrl = payData.data.checkoutUrl;
       if (checkoutUrl) {
-        window.location.href = checkoutUrl;
+        if (checkoutUrl.startsWith('mock_bkash_checkout')) {
+          setBkashInvoiceId(invoiceId);
+          setBkashAmount(product.price + Math.round(product.price * 0.05));
+          setBkashStep(1);
+          setShowBkashModal(true);
+          setShowCheckout(false);
+          setIsProcessing(false);
+        } else {
+          window.location.href = checkoutUrl;
+        }
       } else {
-        throw new Error('Stripe checkout session was not returned');
+        throw new Error('Payment gateway session URL was not returned');
       }
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err?.message || 'Payment initialization failed. Please try again.');
+      const errMsg = err?.message || 'Payment initialization failed. Please try again.';
+      setErrorMessage(errMsg);
+      showErrorAlert('Payment Initialization Failed', errMsg);
       setIsProcessing(false);
     }
   };
@@ -588,10 +640,10 @@ export default function ProductDetailPage() {
         </div>
       </main>
 
-      {/* Stripe Payment Checkout overlay */}
+      {/* Stripe/bKash Payment Checkout overlay */}
       {showCheckout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
-          <div className="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl relative font-sans">
+          <div className="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl relative font-sans animate-scaleIn">
             <button 
               onClick={() => setShowCheckout(false)} 
               className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
@@ -601,7 +653,7 @@ export default function ProductDetailPage() {
 
             <div className="bg-zinc-50 dark:bg-zinc-950 py-3.5 px-6 border-b border-zinc-200 dark:border-zinc-850 flex justify-between items-center">
               <span className="font-extrabold text-[10px] text-zinc-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-zinc-400" /> Stripe Secure Checkout
+                <Shield className="w-3.5 h-3.5 text-zinc-400" /> Secure Checkout
               </span>
               <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wide">License Order</span>
             </div>
@@ -613,6 +665,66 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
+              {/* Currency & Payment Gateway Selectors */}
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 block mb-1.5">Select Currency</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleCurrencyChange('BDT')}
+                      className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] ${
+                        selectedCurrency === 'BDT'
+                          ? 'bg-zinc-950 dark:bg-white text-white dark:text-black border-transparent'
+                          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      🇧🇩 BDT (৳)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCurrencyChange('USD')}
+                      className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] ${
+                        selectedCurrency === 'USD'
+                          ? 'bg-zinc-950 dark:bg-white text-white dark:text-black border-transparent'
+                          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      🇺🇸 USD ($)
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 block mb-1.5">Payment Method</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleGatewayChange('bkash')}
+                      disabled={selectedCurrency === 'USD'}
+                      className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] flex items-center justify-center gap-1.5 ${
+                        selectedGateway === 'bkash'
+                          ? 'bg-[#e2136e] text-white border-transparent'
+                          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed'
+                      }`}
+                    >
+                      <span>bKash</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGatewayChange('stripe')}
+                      className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] flex items-center justify-center gap-1.5 ${
+                        selectedGateway === 'stripe'
+                          ? 'bg-[#635bff] text-white border-transparent'
+                          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <span>Stripe</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Order Invoice Breakdown */}
               <div className="border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/60 p-4 rounded-lg space-y-2">
                 <div className="text-center pb-2 border-b border-zinc-200/60 dark:border-zinc-900/60">
@@ -621,32 +733,43 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="flex justify-between text-[10px] text-zinc-500">
                   <span>Base Price</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">{product.price.toLocaleString()} BDT</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{basePrice.toLocaleString()} {currencySymbol}</span>
                 </div>
                 <div className="flex justify-between text-[10px] text-zinc-500">
                   <span>VAT (5%)</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">{(Math.round(product.price * 0.05)).toLocaleString()} BDT</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{vatAmount.toLocaleString()} {currencySymbol}</span>
                 </div>
                 <div className="flex justify-between text-xs pt-1.5 border-t border-zinc-200/60 dark:border-zinc-900/60 font-bold">
                   <span className="text-zinc-900 dark:text-white">Total Amount</span>
-                  <span className="text-emerald-600 dark:text-emerald-400">{(product.price + Math.round(product.price * 0.05)).toLocaleString()} BDT</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">{totalAmount.toLocaleString()} {currencySymbol}</span>
                 </div>
               </div>
 
-              {/* Card illustration decoration */}
-              <div className="relative h-20 bg-gradient-to-br from-violet-600/10 to-indigo-600/10 dark:from-violet-600/5 dark:to-indigo-600/5 border border-zinc-200/50 dark:border-zinc-850 rounded-lg flex items-center justify-center overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
+              {/* Gateway decoration */}
+              <div className="relative h-20 bg-gradient-to-br from-violet-600/10 to-indigo-600/10 dark:from-violet-600/5 dark:to-indigo-600/5 border border-zinc-200/50 dark:border-zinc-850 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300">
                 <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-                <div className="flex items-center gap-3 z-10">
-                  {/* Credit Card Icon representation */}
-                  <div className="w-10 h-6 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded flex flex-col justify-between p-1 shadow-md border border-zinc-800 dark:border-zinc-200">
-                    <span className="text-[4px] font-bold tracking-widest font-mono">STRIPE</span>
-                    <span className="text-[5px] text-right font-mono mt-1">••••</span>
+                {selectedGateway === 'stripe' ? (
+                  <div className="flex items-center gap-3 z-10">
+                    <div className="w-10 h-6 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded flex flex-col justify-between p-1 shadow-md border border-zinc-800 dark:border-zinc-200">
+                      <span className="text-[4px] font-bold tracking-widest font-mono">STRIPE</span>
+                      <span className="text-[5px] text-right font-mono mt-1">••••</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-zinc-900 dark:text-white text-[10px] block">Pay Securely with Card</span>
+                      <span className="text-zinc-400 text-[8px] block">Visa, Mastercard, American Express</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-bold text-zinc-900 dark:text-white text-[10px] block">Pay Securely with Card</span>
-                    <span className="text-zinc-400 text-[8px] block">Visa, Mastercard, American Express</span>
+                ) : (
+                  <div className="flex items-center gap-3 z-10">
+                    <div className="w-10 h-6 bg-[#e2136e] text-white rounded flex items-center justify-center font-bold text-[8px] tracking-wide shadow-md border border-[#d12053]">
+                      bKash
+                    </div>
+                    <div>
+                      <span className="font-bold text-zinc-900 dark:text-white text-[10px] block">Pay Securely with bKash</span>
+                      <span className="text-zinc-400 text-[8px] block">Instant mobile wallet authorization</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {isProcessing ? (
@@ -655,7 +778,7 @@ export default function ProductDetailPage() {
                   className="w-full py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg font-bold flex items-center justify-center gap-2 text-[10px] uppercase tracking-wider opacity-60"
                 >
                   <span className="w-3.5 h-3.5 rounded-full border-2 border-zinc-400 border-t-white animate-spin"></span>
-                  Redirecting to Stripe...
+                  {selectedGateway === 'stripe' ? 'Redirecting to Stripe...' : 'Initializing bKash Wallet...'}
                 </button>
               ) : (
                 <button
@@ -666,6 +789,195 @@ export default function ProductDetailPage() {
                 </button>
               )}
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Simulated bKash checkout overlay */}
+      {showBkashModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-[4px] animate-fadeIn">
+          <div className="bg-[#e2136e] w-full max-w-[370px] rounded-2xl overflow-hidden shadow-2xl relative font-sans flex flex-col items-center text-white border border-[#d12053]">
+            
+            {/* Header with bKash Logo */}
+            <div className="w-full bg-[#d12053] py-4 px-6 flex justify-between items-center border-b border-[#e2136e]/20">
+              <div className="flex items-center gap-2">
+                <span className="font-bold tracking-wider text-sm">bKash</span>
+                <span className="text-[10px] bg-white text-[#e2136e] font-extrabold px-1.5 py-0.5 rounded">Checkout</span>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowBkashModal(false);
+                  setBkashStep(1);
+                  setBkashWallet('');
+                  setBkashOTP('');
+                  setBkashPIN('');
+                }} 
+                className="text-white hover:opacity-80 font-bold text-sm cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Merchant Details Block */}
+            <div className="w-full bg-white text-zinc-900 px-6 py-4 flex justify-between items-center text-xs border-b border-zinc-100 shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#e2136e]/10 flex items-center justify-center font-bold text-[#e2136e] text-[10px]">
+                  AP
+                </div>
+                <div>
+                  <p className="font-bold text-zinc-950 text-[11px]">Apex Software Shop</p>
+                  <p className="text-zinc-500 text-[9px] font-mono">Invoice: {bkashInvoiceId.substring(0, 8)}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wide">Amount</p>
+                <p className="font-extrabold text-[#e2136e] text-xs">৳ {bkashAmount.toLocaleString()}</p>
+              </div>
+            </div>
+
+            {/* Main Checkout Form Area */}
+            <div className="w-full p-6 flex-1 flex flex-col justify-between min-h-[220px]">
+              {bkashStep === 1 && (
+                <div className="space-y-4">
+                  <div className="text-center space-y-1.5">
+                    <p className="text-xs font-semibold">Your bKash Account Number</p>
+                    <p className="text-[10px] text-white/80">Enter your 11-digit mobile number</p>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">+88</span>
+                    <input
+                      type="text"
+                      maxLength={11}
+                      placeholder="017XXXXXXXX"
+                      value={bkashWallet}
+                      onChange={(e) => setBkashWallet(e.target.value.replace(/\D/g, ''))}
+                      className="w-full pl-12 pr-4 py-2.5 bg-white text-zinc-950 font-bold rounded-lg text-xs tracking-widest text-center shadow-inner focus:outline-none focus:ring-2 focus:ring-[#d12053]"
+                    />
+                  </div>
+                  <div className="text-[9px] text-center text-white/70 leading-normal">
+                    By clicking Proceed, you agree to the terms and conditions of bKash checkout.
+                  </div>
+                </div>
+              )}
+
+              {bkashStep === 2 && (
+                <div className="space-y-4">
+                  <div className="text-center space-y-1.5">
+                    <p className="text-xs font-semibold">Verification Code (OTP)</p>
+                    <p className="text-[10px] text-white/80">Enter the 6-digit code sent to +88 {bkashWallet}</p>
+                    <span className="inline-block text-[9px] bg-white/20 px-2 py-0.5 rounded font-mono font-bold">Helper Test Code: 123456</span>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="123456"
+                    value={bkashOTP}
+                    onChange={(e) => setBkashOTP(e.target.value.replace(/\D/g, ''))}
+                    className="w-full py-2.5 bg-white text-zinc-950 font-bold rounded-lg text-xs tracking-widest text-center shadow-inner focus:outline-none focus:ring-2 focus:ring-[#d12053]"
+                  />
+                </div>
+              )}
+
+              {bkashStep === 3 && (
+                <div className="space-y-4">
+                  <div className="text-center space-y-1.5">
+                    <p className="text-xs font-semibold">Enter Account PIN</p>
+                    <p className="text-[10px] text-white/80">Enter your 5-digit secret bKash PIN</p>
+                  </div>
+                  <input
+                    type="password"
+                    maxLength={5}
+                    placeholder="•••••"
+                    value={bkashPIN}
+                    onChange={(e) => setBkashPIN(e.target.value.replace(/\D/g, ''))}
+                    className="w-full py-2.5 bg-white text-zinc-950 font-bold rounded-lg text-xs tracking-widest text-center shadow-inner focus:outline-none focus:ring-2 focus:ring-[#d12053]"
+                  />
+                </div>
+              )}
+
+              {bkashStep === 4 && (
+                <div className="flex flex-col items-center justify-center py-6 space-y-4 flex-1">
+                  <div className="w-10 h-10 rounded-full border-4 border-white/20 border-t-white animate-spin"></div>
+                  <div className="text-center">
+                    <p className="text-xs font-bold uppercase tracking-wider">Processing payment...</p>
+                    <p className="text-[9px] text-white/80 mt-1">Completing secure handshake with bKash API</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              {bkashStep !== 4 && (
+                <div className="grid grid-cols-2 gap-3 pt-6 border-t border-white/10 mt-6">
+                  <button
+                    onClick={() => {
+                      if (bkashStep === 1) {
+                        setShowBkashModal(false);
+                      } else {
+                        setBkashStep((prev) => (prev - 1) as any);
+                      }
+                    }}
+                    className="py-2 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-pointer text-center"
+                  >
+                    {bkashStep === 1 ? 'Close' : 'Back'}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (bkashStep === 1) {
+                        if (bkashWallet.length < 11) {
+                          alert('Please enter a valid 11-digit bKash account number.');
+                          return;
+                        }
+                        setBkashStep(2);
+                      } else if (bkashStep === 2) {
+                        if (bkashOTP !== '123456') {
+                          alert('Please enter the helper OTP code: 123456');
+                          return;
+                        }
+                        setBkashStep(3);
+                      } else if (bkashStep === 3) {
+                        if (bkashPIN.length < 5) {
+                          alert('Please enter your 5-digit PIN.');
+                          return;
+                        }
+                        
+                        setBkashStep(4);
+                        
+                        // Call confirm-payment API on server to mark invoice as Paid!
+                        try {
+                          const token = localStorage.getItem('apex_user_token');
+                          const response = await fetch(`http://localhost:5000/api/invoices/${bkashInvoiceId}/confirm-payment`, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`
+                            }
+                          });
+                          
+                          if (response.ok) {
+                            setTimeout(() => {
+                              router.push(`/invoices/success?invoice_id=${bkashInvoiceId}&method=bkash`);
+                            }, 2000);
+                          } else {
+                            throw new Error('Failed to verify payment with backend');
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('Payment verification failed. Please try again.');
+                          setBkashStep(3);
+                        }
+                      }
+                    }}
+                    className="py-2 bg-[#d12053] hover:bg-[#b01642] border border-white/20 rounded-lg text-[10px] font-extrabold uppercase tracking-wider cursor-pointer text-center"
+                  >
+                    Proceed
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Brand Bar */}
+            <div className="w-full bg-[#d12053] py-2.5 text-center text-[9px] text-white/60 font-mono tracking-tight border-t border-white/5">
+              Secure mobile gateway • Dial *247#
+            </div>
           </div>
         </div>
       )}

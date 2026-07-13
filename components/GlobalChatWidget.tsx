@@ -18,6 +18,109 @@ export default function GlobalChatWidget() {
   const [unreadCount, setUnreadCount] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; posX: number; posY: number; hasMoved: boolean } | null>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    // Only allow left click
+    if ('button' in e && e.button !== 0) return;
+
+    // Skip if interacting with controls
+    const target = e.target as HTMLElement;
+    const isControl = target.closest('input') || target.closest('textarea') || target.closest('a') || (isOpen && target.closest('button'));
+    if (isControl) {
+      return;
+    }
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    const rect = widgetRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    dragRef.current = {
+      startX: clientX,
+      startY: clientY,
+      posX: rect.left,
+      posY: rect.top,
+      hasMoved: false
+    };
+
+    const handleDragMove = (moveEvent: MouseEvent | TouchEvent) => {
+      if (!dragRef.current) return;
+      const currentX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const currentY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
+
+      const deltaX = currentX - dragRef.current.startX;
+      const deltaY = currentY - dragRef.current.startY;
+
+      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        dragRef.current.hasMoved = true;
+      }
+
+      let newX = dragRef.current.posX + deltaX;
+      let newY = dragRef.current.posY + deltaY;
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const widgetWidth = rect.width;
+      const widgetHeight = rect.height;
+
+      newX = Math.max(0, Math.min(viewportWidth - widgetWidth, newX));
+      newY = Math.max(0, Math.min(viewportHeight - widgetHeight, newY));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleDragEnd = () => {
+      const moved = dragRef.current?.hasMoved;
+      dragRef.current = null;
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleDragMove);
+      document.removeEventListener('touchend', handleDragEnd);
+
+      if (!moved && !isOpen) {
+        handleOpenToggle();
+      }
+    };
+
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('touchmove', handleDragMove, { passive: false });
+    document.addEventListener('touchend', handleDragEnd);
+  };
+
+  useEffect(() => {
+    if (!position || !widgetRef.current) return;
+    const rect = widgetRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const newX = Math.max(0, Math.min(viewportWidth - rect.width, position.x));
+    const newY = Math.max(0, Math.min(viewportHeight - rect.height, position.y));
+
+    setPosition({ x: newX, y: newY });
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (!position || !widgetRef.current) return;
+      const rect = widgetRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      const newX = Math.max(0, Math.min(viewportWidth - rect.width, position.x));
+      const newY = Math.max(0, Math.min(viewportHeight - rect.height, position.y));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [position]);
+
   // Initialize with welcome message
   useEffect(() => {
     setMessages([
@@ -70,7 +173,7 @@ export default function GlobalChatWidget() {
     return "Thank you for reaching out! To get custom solutions or sign design agreements, please sign up for a Client Workspace, click 'Start a New Custom Project', and chat directly with our lead developers.";
   };
 
-  const submitUserMessage = (text: string) => {
+  const submitUserMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const userMsg: ChatMessage = {
@@ -84,9 +187,20 @@ export default function GlobalChatWidget() {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI typing delay
-    setTimeout(() => {
-      const replyText = getSystemResponse(text);
+    try {
+      const response = await fetch('http://localhost:5000/api/estimator/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: text })
+      });
+
+      const resData = await response.json();
+      const replyText = response.ok && resData.data?.reply
+        ? resData.data.reply
+        : "I apologize, but I am having trouble connecting to the support server right now. Please try again in a moment.";
+
       const assistantMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         sender: 'assistant',
@@ -94,8 +208,18 @@ export default function GlobalChatWidget() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, assistantMsg]);
+    } catch (err) {
+      console.error('Chat assistant request failed:', err);
+      const assistantMsg: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        sender: 'assistant',
+        content: "I apologize, but I am currently offline. Please check your internet connection or email us at support@hossen-software.com.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+    } finally {
       setIsTyping(false);
-    }, 900);
+    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -111,18 +235,35 @@ export default function GlobalChatWidget() {
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] font-sans text-xs">
+    <div
+      ref={widgetRef}
+      className="fixed z-[9999] font-sans text-xs select-none"
+      style={
+        position
+          ? {
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              bottom: 'auto',
+              right: 'auto',
+            }
+          : {
+              bottom: '24px',
+              right: '24px',
+            }
+      }
+    >
       {/* Floating Chat Bubble */}
       {!isOpen && (
         <button
-          onClick={handleOpenToggle}
-          className="relative w-14 h-14 bg-zinc-950 dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer group border border-zinc-800 dark:border-zinc-200"
+          onMouseDown={handleDragStart}
+          onTouchStart={handleDragStart}
+          className="relative w-14 h-14 bg-zinc-950 dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-move group border border-zinc-800 dark:border-zinc-200 select-none"
           aria-label="Open support assistant chat"
         >
-          <MessageCircle className="w-6 h-6 group-hover:rotate-6 transition-transform" />
+          <MessageCircle className="w-6 h-6 group-hover:rotate-6 transition-transform pointer-events-none" />
 
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-600 text-white font-extrabold text-[9px] w-5 h-5 rounded-full flex items-center justify-center border border-white dark:border-zinc-950 animate-bounce">
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white font-extrabold text-[9px] w-5 h-5 rounded-full flex items-center justify-center border border-white dark:border-zinc-950 animate-bounce pointer-events-none">
               {unreadCount}
             </span>
           )}
@@ -134,15 +275,19 @@ export default function GlobalChatWidget() {
         <div className="w-[360px] max-w-[calc(100vw-2rem)] h-[500px] bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slideUp transition-all duration-300">
 
           {/* Window Header */}
-          <div className="p-4 border-b border-zinc-150 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-950 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+            className="p-4 border-b border-zinc-150 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-955 flex items-center justify-between cursor-move select-none"
+          >
+            <div className="flex items-center gap-2 pointer-events-none">
               <div className="w-8 h-8 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-black flex items-center justify-center font-bold relative">
                 <Sparkles className="w-4 h-4 text-white dark:text-black" />
                 <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-zinc-950" />
               </div>
               <div>
-                <span className="font-bold text-zinc-950 dark:text-white block">Hossen Software Shop Asistant</span>
-                <span className="text-[9px] text-zinc-500 flex items-center gap-1">
+                <span className="font-bold text-zinc-950 dark:text-white block">Hossen Software Shop Assistant</span>
+                <span className="text-[9px] text-zinc-505 flex items-center gap-1">
                   <span>AI Agent Online</span>
                 </span>
               </div>

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
 import { FileText, Paperclip, Send } from 'lucide-react';
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
+import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../../utils/alert';
 
 export default function UserDealDetailWorkspace() {
   const params = useParams();
@@ -16,6 +17,49 @@ export default function UserDealDetailWorkspace() {
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
   const [chatInput, setChatInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [chatWidth, setChatWidth] = useState(420);
+  const [isMobile, setIsMobile] = useState(false);
+  const resizingRef = useRef(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    resizingRef.current = true;
+    const startX = e.clientX;
+    const startWidth = chatWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!resizingRef.current) return;
+      const deltaX = moveEvent.clientX - startX;
+      const newWidth = Math.max(280, Math.min(800, startWidth - deltaX));
+      setChatWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      resizingRef.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
 
   // Payment Sim modal state
   const [payingMilestone, setPayingMilestone] = useState<{ milId: string; mil: any } | null>(null);
@@ -23,6 +67,20 @@ export default function UserDealDetailWorkspace() {
   const [phoneNum, setPhoneNum] = useState('');
   const [pin, setPin] = useState('');
   const [viewingDeliverablesMilestone, setViewingDeliverablesMilestone] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserAvatar(localStorage.getItem('apex_user_avatar'));
+    }
+  }, []);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setTimeout(scrollToBottom, 50);
+  }, [chatMessages[dealId]]);
 
   useEffect(() => {
     const initializeDeal = async () => {
@@ -126,9 +184,18 @@ export default function UserDealDetailWorkspace() {
       setChatMessages(prev => {
         const thread = prev[dealId] || [];
         if (thread.some(m => m.id === msg.id)) return prev;
+        
+        // Remove matching optimistic message to avoid duplicate display
+        const filteredThread = thread.filter(m => {
+          if (m.id.startsWith('optimistic-') && m.content === msg.content) {
+            return false;
+          }
+          return true;
+        });
+
         return {
           ...prev,
-          [dealId]: [...thread, msg]
+          [dealId]: [...filteredThread, msg]
         };
       });
     });
@@ -223,18 +290,37 @@ export default function UserDealDetailWorkspace() {
     saveChats(updatedChats);
     setChatMessages(updatedChats);
 
-    triggerToast('Contract E-Signed! Phase 1 initiated.');
+    showSuccessAlert('Contract E-Signed!', 'The proposal contract has been e-signed successfully. Development Phase 1 is now officially active.');
   };
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    const messageContent = chatInput.trim();
+    if (!messageContent) return;
 
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication error.');
+      showErrorToast('Authentication error.');
       return;
     }
+
+    const tempId = `optimistic-${Date.now()}`;
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      sender: 'customer',
+      content: messageContent,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    // Update locally immediately and clear input
+    setChatMessages(prev => {
+      const thread = prev[dealId] || [];
+      return {
+        ...prev,
+        [dealId]: [...thread, optimisticMsg]
+      };
+    });
+    setChatInput('');
 
     try {
       const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
@@ -243,24 +329,31 @@ export default function UserDealDetailWorkspace() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content: chatInput }),
+        body: JSON.stringify({ content: messageContent }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to send message');
       }
-
-      setChatInput('');
     } catch (err) {
       console.error(err);
-      triggerToast('Failed to send message.');
+      showErrorToast('Failed to send message.');
+      // Rollback optimistic message and restore input
+      setChatMessages(prev => {
+        const thread = prev[dealId] || [];
+        return {
+          ...prev,
+          [dealId]: thread.filter(m => m.id !== tempId)
+        };
+      });
+      setChatInput(messageContent);
     }
   };
 
   const triggerMockUpload = async () => {
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
-      triggerToast('Authentication error.');
+      showErrorToast('Authentication error.');
       return;
     }
 
@@ -278,10 +371,10 @@ export default function UserDealDetailWorkspace() {
         throw new Error('Failed to upload mock file');
       }
 
-      triggerToast('Uploaded Specs file.');
+      showSuccessToast('Uploaded specs successfully.');
     } catch (err) {
       console.error(err);
-      triggerToast('Failed to upload mock specs.');
+      showErrorToast('Failed to upload mock specs.');
     }
   };
 
@@ -357,8 +450,9 @@ export default function UserDealDetailWorkspace() {
       saveChats(updatedChats);
       setChatMessages(updatedChats);
 
+      const paidCost = payingMilestone.mil.cost;
       setPayingMilestone(null);
-      triggerToast(`Milestone payment of BDT ${payingMilestone.mil.cost.toLocaleString()} successfully processed via bKash.`);
+      showSuccessAlert('Payment Successful!', `Milestone payment of BDT ${paidCost.toLocaleString()} has been successfully processed via bKash.`);
     }, 2500);
   };
 
@@ -391,10 +485,10 @@ export default function UserDealDetailWorkspace() {
         <div className="p-6 md:p-8 flex-1 space-y-6">
 
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start h-full">
+          <div className="flex flex-col lg:flex-row gap-8 items-start h-full relative">
             
             {/* Left Column: Details, files, contract */}
-            <div className="lg:col-span-7 lg:max-h-[calc(100vh-210px)] lg:overflow-y-auto pr-2 space-y-6">
+            <div className="flex-1 lg:max-h-[calc(100vh-210px)] lg:overflow-y-auto pr-2 space-y-6 w-full" style={{ minWidth: 200 }}>
               
               {/* Scope requirements overview */}
               <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-5 rounded space-y-3">
@@ -622,8 +716,35 @@ export default function UserDealDetailWorkspace() {
 
             </div>
 
+            {/* Resizer Handle */}
+            <div 
+              onMouseDown={handleMouseDown}
+              className="hidden lg:block w-3 cursor-col-resize self-stretch relative z-10 group flex items-center justify-center"
+              style={{ marginLeft: -22, marginRight: -22 }}
+            >
+              {/* Thin Vertical Line */}
+              <div className="w-[1px] h-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-600 transition-colors relative flex items-center justify-center">
+                {/* Grip dots pill */}
+                <div className="absolute flex flex-col gap-1 py-2 px-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full shadow-xs group-hover:shadow-sm group-hover:scale-105 transition-all">
+                  <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                  <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                  <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                </div>
+              </div>
+            </div>
+
             {/* Right Column: Chat messages discuss room */}
-            <div className="lg:col-span-5 lg:sticky lg:top-24 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between lg:h-[calc(100vh-210px)] h-[600px] shrink-0 overflow-hidden">
+            <div 
+              className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between shrink-0 overflow-hidden"
+              style={{
+                width: isMobile ? '100%' : `${chatWidth}px`,
+                minWidth: 280,
+                maxWidth: 800,
+                height: isMobile ? '600px' : 'calc(100vh - 210px)',
+                position: isMobile ? 'relative' : 'sticky',
+                top: isMobile ? 'auto' : '96px'
+              }}
+            >
               {/* Header */}
               <div className="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-200 dark:border-zinc-900 px-5 py-4 flex justify-between items-center">
                 <div className="flex items-center gap-2.5">
@@ -649,27 +770,25 @@ export default function UserDealDetailWorkspace() {
                   chatMessages[dealId].map((msg) => {
                     const isYou = msg.sender === 'customer';
                     return (
-                      <div key={msg.id} className={`flex gap-3 items-start ${isYou ? 'flex-row-reverse' : 'flex-row'}`}>
-                        {/* Premium Avatar */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-extrabold tracking-tight uppercase shadow-sm border transition-all ${
-                          isYou 
-                            ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:border-zinc-200 dark:text-zinc-900' 
-                            : 'bg-zinc-100 border-zinc-200 text-zinc-700 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300'
-                        }`}>
-                          {isYou ? 'C' : 'A'}
-                        </div>
-
-                        <div className={`space-y-1 max-w-[78%] flex flex-col ${isYou ? 'items-end' : 'items-start'}`}>
-                          {/* Sender Info */}
-                          <div className="flex items-center gap-1.5 px-1">
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">
-                              {isYou ? 'You (Client)' : 'Admin Agent'}
-                            </span>
-                            <span className="text-[8px] text-zinc-400 font-mono">• {msg.timestamp}</span>
+                      <div key={msg.id} className={`flex gap-2.5 items-start ${isYou ? 'flex-row-reverse' : 'flex-row'}`}>
+                        {/* Avatar */}
+                        {isYou ? (
+                          userAvatar ? (
+                            <img src={userAvatar} className="w-8 h-8 rounded-full object-cover shrink-0 border border-zinc-200 dark:border-zinc-800 shadow-sm" alt="You" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-zinc-800 dark:border-zinc-200 shadow-xs">
+                              U
+                            </div>
+                          )
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-extrabold uppercase border border-emerald-100 dark:border-emerald-900 shadow-xs">
+                            A
                           </div>
+                        )}
 
-                          {/* Message Bubble */}
-                          <div className={`rounded-2xl px-4 py-3 text-[11px] leading-relaxed shadow-sm border transition-all ${
+                        <div className={`flex flex-col max-w-[75%] ${isYou ? 'items-end' : 'items-start'}`}>
+                          {/* Message Bubble (starts on same horizontal line as avatar) */}
+                          <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm border transition-all ${
                             isYou
                               ? 'bg-zinc-900 border-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:border-zinc-200 rounded-tr-none'
                               : 'bg-zinc-50 border-zinc-200 text-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200 dark:border-zinc-805 rounded-tl-none'
@@ -699,11 +818,17 @@ export default function UserDealDetailWorkspace() {
                               </div>
                             )}
                           </div>
+
+                          {/* Meta Info Below Bubble */}
+                          <span className="text-[8px] text-zinc-400 font-mono mt-1 px-1">
+                            {isYou ? 'You' : 'Admin Agent'} • {msg.timestamp}
+                          </span>
                         </div>
                       </div>
                     );
                   })
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Modern Compose Box Input Panel */}

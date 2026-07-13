@@ -6,6 +6,7 @@ import { Product } from './types';
 import { getProducts, initializeStorage } from './utils/storage';
 import LandingPage from '@/components/LandingPage';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const router = useRouter();
@@ -59,10 +60,7 @@ export default function Home() {
         />
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-950/40 py-8 text-center text-xs text-zinc-500">
-        <p>© 2026 Hossen Shop Hybrid Marketplace & Software Engineering Firm. Uttara Sector 11 Dhaka BD.</p>
-        <p className="mt-1 text-[10px] text-zinc-600 dark:text-zinc-600">Built as a pure React / Next.js high-fidelity frontend mockup.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
