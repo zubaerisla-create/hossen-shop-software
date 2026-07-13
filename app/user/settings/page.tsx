@@ -30,7 +30,7 @@ export default function UserSettingsPage() {
       const token = localStorage.getItem('apex_user_token');
       if (!token) return;
       try {
-        const response = await fetch('http://localhost:5000/api/auth/me', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -84,7 +84,7 @@ export default function UserSettingsPage() {
     }
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/update-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export default function UserSettingsPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/update-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

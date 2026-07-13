@@ -61,7 +61,7 @@ export default function UserDealsPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/deals', {
+      const response = await fetch(`${API_BASE_URL}/api/deals`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

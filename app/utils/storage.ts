@@ -171,7 +171,7 @@ export async function syncWithBackend() {
 
   try {
     // 1. Fetch Products (Public endpoint)
-    const productsRes = await fetch('http://localhost:5000/api/products', {
+    const productsRes = await fetch(`${API_BASE_URL}/api/products`, {
       cache: 'no-store'
     });
     if (productsRes.ok) {
@@ -189,7 +189,7 @@ export async function syncWithBackend() {
 
   try {
     // 2. Fetch Deals
-    const dealsRes = await fetch('http://localhost:5000/api/deals', {
+    const dealsRes = await fetch(`${API_BASE_URL}/api/deals`, {
       headers: { 'Authorization': `Bearer ${token}` },
       cache: 'no-store'
     });
@@ -201,7 +201,7 @@ export async function syncWithBackend() {
     }
 
     // 3. Fetch Invoices
-    const invoicesRes = await fetch('http://localhost:5000/api/invoices', {
+    const invoicesRes = await fetch(`${API_BASE_URL}/api/invoices`, {
       headers: { 'Authorization': `Bearer ${token}` },
       cache: 'no-store'
     });
@@ -213,7 +213,7 @@ export async function syncWithBackend() {
     }
 
     // 4. Fetch Support Tickets
-    const ticketsRes = await fetch('http://localhost:5000/api/tickets', {
+    const ticketsRes = await fetch(`${API_BASE_URL}/api/tickets`, {
       headers: { 'Authorization': `Bearer ${token}` },
       cache: 'no-store'
     });

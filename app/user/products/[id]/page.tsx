@@ -7,6 +7,7 @@ import { Product, ChatMessage } from '../../../types';
 import { getProducts, getPurchasedProducts } from '../../../utils/storage';
 import { io } from 'socket.io-client';
 import {
+import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
   ArrowLeft,
   Download,
   ExternalLink,
@@ -64,7 +65,7 @@ export default function PurchasedProductDetailPage() {
   useEffect(() => {
     if (!supportDealId) return;
 
-    const socket = io('http://localhost:5000');
+    const socket = io(SOCKET_URL);
     socketRef.current = socket;
     socket.emit('join_deal', supportDealId);
 
@@ -128,7 +129,7 @@ export default function PurchasedProductDetailPage() {
     }
     setLoadingChat(true);
     try {
-      const meRes = await fetch('http://localhost:5000/api/auth/me', {
+      const meRes = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!meRes.ok) throw new Error('Failed to get user profile');
@@ -143,7 +144,7 @@ export default function PurchasedProductDetailPage() {
         avatar: meUser?.avatar || meUser?.profileImage || null
       });
 
-      const dealRes = await fetch(`http://localhost:5000/api/deals/support/${customerId}/${params.id}`, {
+      const dealRes = await fetch(`${API_BASE_URL}/api/deals/support/${customerId}/${params.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!dealRes.ok) throw new Error('Failed to get or create support deal');
@@ -153,7 +154,7 @@ export default function PurchasedProductDetailPage() {
 
       setSupportDealId(deal.id);
 
-      const msgsRes = await fetch(`http://localhost:5000/api/deals/${deal.id}/messages`, {
+      const msgsRes = await fetch(`${API_BASE_URL}/api/deals/${deal.id}/messages`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (msgsRes.ok) {
@@ -196,7 +197,7 @@ export default function PurchasedProductDetailPage() {
     setChatInput('');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${supportDealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +223,7 @@ export default function PurchasedProductDetailPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${supportDealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

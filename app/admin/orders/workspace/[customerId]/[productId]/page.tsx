@@ -6,6 +6,7 @@ import { Product, ChatMessage, CustomDeal } from '../../../../../types';
 import { getProducts } from '../../../../../utils/storage';
 import { io } from 'socket.io-client';
 import {
+import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
   ArrowLeft,
   ExternalLink,
   Lock,
@@ -62,7 +63,7 @@ export default function AdminOrderWorkspacePage() {
 
       try {
         // 1. Fetch/Create support deal
-        const dealRes = await fetch(`http://localhost:5000/api/deals/support/${customerId}/${productId}`, {
+        const dealRes = await fetch(`${API_BASE_URL}/api/deals/support/${customerId}/${productId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (dealRes.ok) {
@@ -71,7 +72,7 @@ export default function AdminOrderWorkspacePage() {
           setDeal(foundDeal);
 
           // Find customer details from invoices or use default
-          const invRes = await fetch('http://localhost:5000/api/invoices', {
+          const invRes = await fetch(`${API_BASE_URL}/api/invoices`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (invRes.ok) {
@@ -87,7 +88,7 @@ export default function AdminOrderWorkspacePage() {
         }
 
         // 2. Fetch messages
-        const msgsRes = await fetch(`http://localhost:5000/api/deals/${supportDealId}/messages`, {
+        const msgsRes = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (msgsRes.ok) {
@@ -107,7 +108,7 @@ export default function AdminOrderWorkspacePage() {
     initWorkspace();
 
     // Socket.io connection
-    const socket = io('http://localhost:5000');
+    const socket = io(SOCKET_URL);
     socketRef.current = socket;
     socket.emit('join_deal', supportDealId);
 
@@ -145,7 +146,7 @@ export default function AdminOrderWorkspacePage() {
     setChatInput('');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${supportDealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +171,7 @@ export default function AdminOrderWorkspacePage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${supportDealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

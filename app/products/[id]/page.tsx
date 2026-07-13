@@ -9,6 +9,7 @@ import AuthModal from '@/components/AuthModal';
 import Link from 'next/link';
 import { Check, ArrowLeft, Terminal, Shield, ExternalLink, ArrowRight } from 'lucide-react';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
+import { API_BASE_URL } from '@/app/utils/api';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -71,7 +72,7 @@ export default function ProductDetailPage() {
 
       // 2. Fetch from backend API
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${params.id}`);
+        const response = await fetch(`${API_BASE_URL}/api/products/${params.id}`);
         if (response.ok) {
           const resData = await response.json();
           if (resData.data?.product) {
@@ -160,7 +161,7 @@ export default function ProductDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${product.id}/reviews`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -249,7 +250,7 @@ export default function ProductDetailPage() {
 
     try {
       // 1. Create Invoice on backend
-      const response = await fetch('http://localhost:5000/api/invoices', {
+      const response = await fetch(`${API_BASE_URL}/api/invoices`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,7 +273,7 @@ export default function ProductDetailPage() {
       const invoiceId = resData.data.invoice.id;
 
       // 2. Create payment session
-      const payResponse = await fetch(`http://localhost:5000/api/invoices/${invoiceId}/pay`, {
+      const payResponse = await fetch(`${API_BASE_URL}/api/invoices/${invoiceId}/pay`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1026,7 +1027,7 @@ export default function ProductDetailPage() {
                         // Call confirm-payment API on server to mark invoice as Paid!
                         try {
                           const token = localStorage.getItem('apex_user_token');
-                          const response = await fetch(`http://localhost:5000/api/invoices/${bkashInvoiceId}/confirm-payment`, {
+                          const response = await fetch(`${API_BASE_URL}/api/invoices/${bkashInvoiceId}/confirm-payment`, {
                             method: 'POST',
                             headers: {
                               'Authorization': `Bearer ${token}`

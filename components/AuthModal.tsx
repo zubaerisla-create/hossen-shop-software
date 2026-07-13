@@ -68,7 +68,7 @@ export default function AuthModal({
       const firebaseUser = result.user;
       
       // Make backend API request to authenticate Google user
-      const response = await fetch('http://localhost:5000/api/auth/google', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -149,8 +149,8 @@ export default function AuthModal({
 
     try {
       const url = mode === 'signup' 
-        ? 'http://localhost:5000/api/auth/register' 
-        : 'http://localhost:5000/api/auth/login';
+        ? `${API_BASE_URL}/api/auth/register` 
+        : `${API_BASE_URL}/api/auth/login`;
       
       const body = mode === 'signup' 
         ? { name, email, password }

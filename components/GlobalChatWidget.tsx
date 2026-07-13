@@ -188,7 +188,7 @@ export default function GlobalChatWidget() {
     setIsTyping(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/estimator/chat', {
+      const response = await fetch(`${API_BASE_URL}/api/estimator/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

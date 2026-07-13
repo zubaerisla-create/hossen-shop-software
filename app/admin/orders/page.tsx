@@ -38,7 +38,7 @@ export default function AdminOrdersPage() {
 
       if (token) {
         try {
-          const res = await fetch('http://localhost:5000/api/invoices', {
+          const res = await fetch(`${API_BASE_URL}/api/invoices`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {

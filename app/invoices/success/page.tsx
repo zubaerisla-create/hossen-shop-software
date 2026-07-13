@@ -6,6 +6,7 @@ import { syncWithBackend } from '../../utils/storage';
 import Header from '@/components/Header';
 import { CheckCircle2, ArrowRight, Download, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/app/utils/api';
 
 function SuccessPageContent() {
   const searchParams = useSearchParams();
@@ -23,7 +24,7 @@ function SuccessPageContent() {
         if (token) {
           try {
             // 1. Confirm payment on backend
-            await fetch(`http://localhost:5000/api/invoices/${invoiceId}/confirm-payment`, {
+            await fetch(`${API_BASE_URL}/api/invoices/${invoiceId}/confirm-payment`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -31,7 +32,7 @@ function SuccessPageContent() {
             });
 
             // 2. Fetch invoice details to retrieve productId
-            const invoiceRes = await fetch(`http://localhost:5000/api/invoices/${invoiceId}`, {
+            const invoiceRes = await fetch(`${API_BASE_URL}/api/invoices/${invoiceId}`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               },

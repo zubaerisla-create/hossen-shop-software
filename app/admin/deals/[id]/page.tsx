@@ -7,6 +7,7 @@ import { Info, CheckCircle2, XCircle, RefreshCw, FileText, Paperclip, Send } fro
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
 import { showSuccessToast, showErrorToast } from '../../../utils/alert';
+import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
 
 export default function AdminDealDetailWorkspace() {
   const params = useParams();
@@ -131,7 +132,7 @@ export default function AdminDealDetailWorkspace() {
       const token = localStorage.getItem('apex_user_token');
       if (token) {
         try {
-          const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const resData = await response.json();
@@ -162,7 +163,7 @@ export default function AdminDealDetailWorkspace() {
         const token = localStorage.getItem('apex_user_token');
         if (!token) return;
         try {
-          const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const resData = await response.json();
@@ -182,7 +183,7 @@ export default function AdminDealDetailWorkspace() {
     initializeDeal();
 
     // WebSocket real-time connection
-    const socket = io('http://localhost:5000');
+    const socket = io(SOCKET_URL);
     socket.emit('join_deal', dealId);
 
     socket.on('new_deal_message', (msg: ChatMessage) => {
@@ -254,7 +255,7 @@ export default function AdminDealDetailWorkspace() {
     const token = localStorage.getItem('apex_user_token');
     if (!token) return;
     try {
-      await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+      await fetch(`${API_BASE_URL}/api/deals/${dealId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -403,7 +404,7 @@ export default function AdminDealDetailWorkspace() {
 
     const token = localStorage.getItem('apex_user_token');
     if (token) {
-      fetch(`http://localhost:5000/api/deals/${dealId}/quotation`, {
+      fetch(`${API_BASE_URL}/api/deals/${dealId}/quotation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -892,7 +893,7 @@ export default function AdminDealDetailWorkspace() {
     setChatInput('');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -927,7 +928,7 @@ export default function AdminDealDetailWorkspace() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

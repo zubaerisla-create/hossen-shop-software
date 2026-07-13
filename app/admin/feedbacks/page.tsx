@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Product } from '../../types';
 import { getProducts as getStoredProducts, syncWithBackend } from '../../utils/storage';
 import { Trash2, Edit3, MessageSquare, Save, X, Search, Filter } from 'lucide-react';
+import { API_BASE_URL } from '@/app/utils/api';
 
 interface FeedbackItem {
   productId: string;
@@ -91,7 +92,7 @@ export default function AdminFeedbacksPage() {
 
     const token = localStorage.getItem('apex_user_token');
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +155,7 @@ export default function AdminFeedbacksPage() {
 
     const token = localStorage.getItem('apex_user_token');
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Send } from 'lucide-react';
 import { SupportTicket } from '../../types';
+import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
 
 export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -27,7 +28,7 @@ export default function AdminSupportPage() {
     const token = localStorage.getItem('apex_user_token');
     if (!token) return;
     try {
-      const response = await fetch('http://localhost:5000/api/tickets', {
+      const response = await fetch(`${API_BASE_URL}/api/tickets`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const resData = await response.json();
@@ -50,7 +51,7 @@ export default function AdminSupportPage() {
   useEffect(() => {
     if (!selectedTicketId) return;
 
-    const socket = io('http://localhost:5000');
+    const socket = io(SOCKET_URL);
     socket.emit('join_ticket', selectedTicketId);
 
     socket.on('new_ticket_message', (updatedTicket: any) => {
@@ -83,7 +84,7 @@ export default function AdminSupportPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tickets/${selectedTicketId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/${selectedTicketId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +110,7 @@ export default function AdminSupportPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tickets/${ticketId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

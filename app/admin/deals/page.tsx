@@ -15,7 +15,7 @@ export default function AdminDealsPage() {
       const token = localStorage.getItem('apex_user_token');
       if (token) {
         try {
-          const response = await fetch('http://localhost:5000/api/deals', {
+          const response = await fetch(`${API_BASE_URL}/api/deals`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const resData = await response.json();

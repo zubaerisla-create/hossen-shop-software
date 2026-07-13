@@ -6,6 +6,7 @@ import { getProducts, saveProducts } from '../../utils/storage';
 import Swal from 'sweetalert2';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 import { 
+import { API_BASE_URL } from '@/app/utils/api';
   Plus, 
   Trash2, 
   Edit, 
@@ -161,7 +162,7 @@ export default function AdminProductsPage() {
         }
 
         try {
-          const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+          const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`
@@ -224,8 +225,8 @@ export default function AdminProductsPage() {
 
     try {
       const url = isEditMode && editingProduct 
-        ? `http://localhost:5000/api/products/${editingProduct.id}`
-        : 'http://localhost:5000/api/products';
+        ? `${API_BASE_URL}/api/products/${editingProduct.id}`
+        : `${API_BASE_URL}/api/products`;
       
       const method = isEditMode && editingProduct ? 'PUT' : 'POST';
 

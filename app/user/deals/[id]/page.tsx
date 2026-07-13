@@ -7,6 +7,7 @@ import { FileText, Paperclip, Send } from 'lucide-react';
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../../utils/alert';
+import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
 
 export default function UserDealDetailWorkspace() {
   const params = useParams();
@@ -126,7 +127,7 @@ export default function UserDealDetailWorkspace() {
       const token = localStorage.getItem('apex_user_token');
       if (token) {
         try {
-          const response = await fetch(`http://localhost:5000/api/deals/${dealId}`, {
+          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const resData = await response.json();
@@ -157,7 +158,7 @@ export default function UserDealDetailWorkspace() {
         const token = localStorage.getItem('apex_user_token');
         if (!token) return;
         try {
-          const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const resData = await response.json();
@@ -177,7 +178,7 @@ export default function UserDealDetailWorkspace() {
     initializeDeal();
 
     // WebSocket real-time connection
-    const socket = io('http://localhost:5000');
+    const socket = io(SOCKET_URL);
     socket.emit('join_deal', dealId);
 
     socket.on('new_deal_message', (msg: ChatMessage) => {
@@ -249,7 +250,7 @@ export default function UserDealDetailWorkspace() {
     const token = localStorage.getItem('apex_user_token');
     if (token) {
       try {
-        await fetch(`http://localhost:5000/api/deals/${dealId}/sign`, {
+        await fetch(`${API_BASE_URL}/api/deals/${dealId}/sign`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -323,7 +324,7 @@ export default function UserDealDetailWorkspace() {
     setChatInput('');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +359,7 @@ export default function UserDealDetailWorkspace() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deals/${dealId}/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -422,7 +423,7 @@ export default function UserDealDetailWorkspace() {
       if (token) {
         const updatedDeal = updatedDeals.find(d => d.id === dealId);
         if (updatedDeal && updatedDeal.quotation) {
-          fetch(`http://localhost:5000/api/deals/${dealId}`, {
+          fetch(`${API_BASE_URL}/api/deals/${dealId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
