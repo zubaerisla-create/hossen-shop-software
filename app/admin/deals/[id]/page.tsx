@@ -19,6 +19,8 @@ export default function AdminDealDetailWorkspace() {
   const [chatInput, setChatInput] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const [chatWidth, setChatWidth] = useState(420);
   const [isMobile, setIsMobile] = useState(false);
@@ -163,8 +165,12 @@ export default function AdminDealDetailWorkspace() {
         const token = localStorage.getItem('apex_user_token');
         if (!token) return;
         try {
-          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages?t=${Date.now()}`, {
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
           });
           const resData = await response.json();
           if (response.ok && resData.data?.messages) {
@@ -177,7 +183,46 @@ export default function AdminDealDetailWorkspace() {
           console.error('Failed to load chat history:', err);
         }
       };
+
+      // Fetch deal status and details from database
+      const fetchDealDetails = async () => {
+        const token = localStorage.getItem('apex_user_token');
+        if (!token) return;
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}?t=${Date.now()}`, {
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          });
+          const resData = await response.json();
+          if (response.ok && resData.data?.deal) {
+            const backendDeal = resData.data.deal;
+            setDeals(prev => {
+              const updated = prev.map(d => d.id === dealId ? backendDeal : d);
+              if (!updated.some(d => d.id === dealId)) {
+                updated.push(backendDeal);
+              }
+              saveDeals(updated);
+              return updated;
+            });
+          }
+        } catch (err) {
+          console.error('Failed to poll deal details:', err);
+        }
+      };
+
       fetchMessages();
+      fetchDealDetails();
+
+      // Start periodic polling fallback (every 4 seconds) for Vercel/serverless environments
+      const pollInterval = setInterval(() => {
+        fetchMessages();
+        fetchDealDetails();
+      }, 4000);
+
+      (window as any)._adminDealPollInterval = pollInterval;
     };
 
     initializeDeal();
@@ -219,6 +264,9 @@ export default function AdminDealDetailWorkspace() {
 
     return () => {
       socket.disconnect();
+      if ((window as any)._adminDealPollInterval) {
+        clearInterval((window as any)._adminDealPollInterval);
+      }
     };
   }, [dealId]);
 
@@ -920,31 +968,56 @@ export default function AdminDealDetailWorkspace() {
     }
   };
 
-  const triggerMockUpload = async () => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     const token = localStorage.getItem('apex_user_token');
     if (!token) {
       triggerToast('Authentication error.');
       return;
     }
 
+    setUploadingFile(true);
+    triggerToast(`Uploading ${file.name}...`);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('content', `Shared file attachment: ${file.name}`);
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content: 'Shared supplementary requirements breakdown spec sheet.' }),
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload mock spec');
+        const errData = await response.json();
+        throw new Error(errData.message || 'Failed to upload file');
       }
 
-      triggerToast('Document uploaded to Client Chat.');
-    } catch (err) {
+      triggerToast('File uploaded successfully.');
+
+      // Refresh messages list
+      const msgsResponse = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const resData = await msgsResponse.json();
+      if (msgsResponse.ok && resData.data?.messages) {
+        setChatMessages(prev => ({
+          ...prev,
+          [dealId]: resData.data.messages
+        }));
+      }
+    } catch (err: any) {
       console.error(err);
-      triggerToast('Failed to upload document.');
+      triggerToast(err.message || 'Failed to upload file.');
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -1868,11 +1941,9 @@ export default function AdminDealDetailWorkspace() {
                                   </div>
                                 </div>
                                 <a 
-                                  href="#" 
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    triggerToast(`Downloading ${msg.file?.name}...`);
-                                  }} 
+                                  href={msg.file.url} 
+                                  target="_blank"
+                                  rel="noreferrer"
                                   className="text-zinc-900 dark:text-white font-extrabold hover:underline shrink-0 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded text-[8px]"
                                 >
                                   Download
@@ -1914,11 +1985,12 @@ export default function AdminDealDetailWorkspace() {
                   <div className="bg-zinc-50/50 dark:bg-zinc-900/30 px-3 py-2 border-t border-zinc-100 dark:border-zinc-900 flex justify-between items-center">
                     <button
                       type="button"
-                      onClick={triggerMockUpload}
+                      disabled={uploadingFile}
+                      onClick={() => fileInputRef.current?.click()}
                       className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white rounded hover:bg-zinc-100 dark:hover:bg-zinc-800/80 cursor-pointer transition-colors flex items-center gap-1.5 text-[9px] font-bold"
                       title="Attach specs file"
                     >
-                      <Paperclip className="w-3.5 h-3.5" /> Attach Specs
+                      <Paperclip className="w-3.5 h-3.5" /> {uploadingFile ? 'Uploading...' : 'Attach Specs'}
                     </button>
                     
                     <button 
@@ -1928,6 +2000,13 @@ export default function AdminDealDetailWorkspace() {
                       Send Message <Send className="w-3 h-3" />
                     </button>
                   </div>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
                 </form>
               </div>
             </div>

@@ -44,6 +44,8 @@ export default function PurchasedProductDetailPage() {
 
   const socketRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   // Mock license key and login credentials
   const mockLicenseKey = `APX-LIC-${params.id?.toString().toUpperCase()}-${Math.floor(Math.random() * 90000) + 10000}`;
@@ -65,6 +67,31 @@ export default function PurchasedProductDetailPage() {
   useEffect(() => {
     if (!supportDealId) return;
 
+    // Fetch messages periodically
+    const fetchPollMessages = async () => {
+      const token = localStorage.getItem('apex_user_token');
+      if (!token) return;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages?t=${Date.now()}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData.data?.messages) {
+            setChatMessages(resData.data.messages);
+          }
+        }
+      } catch (err) {
+        console.error("Error polling support messages:", err);
+      }
+    };
+
+    const pollInterval = setInterval(fetchPollMessages, 4000);
+
     const socket = io(SOCKET_URL);
     socketRef.current = socket;
     socket.emit('join_deal', supportDealId);
@@ -79,6 +106,7 @@ export default function PurchasedProductDetailPage() {
 
     return () => {
       socket.disconnect();
+      clearInterval(pollInterval);
     };
   }, [supportDealId]);
 
@@ -217,26 +245,50 @@ export default function PurchasedProductDetailPage() {
     }
   };
 
-  const triggerMockUpload = async () => {
-    if (!supportDealId) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !supportDealId) return;
+
     const token = localStorage.getItem('apex_user_token');
     if (!token) return;
+
+    setUploadingFile(true);
+    triggerToast(`Uploading ${file.name}...`);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('content', `Shared file attachment: ${file.name}`);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content: 'Shared server configuration env file.' }),
+        body: formData,
       });
 
-      if (!response.ok) throw new Error('Failed');
-      triggerToast('Attached server config.');
-    } catch (err) {
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || 'Failed to upload file');
+      }
+
+      triggerToast('File uploaded successfully.');
+
+      // Refresh messages list
+      const msgsResponse = await fetch(`${API_BASE_URL}/api/deals/${supportDealId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const resData = await msgsResponse.json();
+      if (msgsResponse.ok && resData.data?.messages) {
+        setChatMessages(resData.data.messages);
+      }
+    } catch (err: any) {
       console.error(err);
-      triggerToast('Failed to attach config.');
+      triggerToast(err.message || 'Failed to upload file.');
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -698,7 +750,26 @@ export default function PurchasedProductDetailPage() {
                                       ? 'bg-zinc-900 dark:bg-zinc-800 text-white rounded-2xl rounded-tr-sm'
                                       : 'bg-zinc-100 dark:bg-zinc-800/70 text-zinc-800 dark:text-zinc-100 rounded-2xl rounded-tl-sm'
                                   }`}>
-                                    {msg.content}
+                                    <div>{msg.content}</div>
+                                    {msg.file && (
+                                      <div className="bg-white/90 dark:bg-zinc-955/80 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2.5 flex items-center justify-between gap-3 mt-2 text-[9px] shadow-xs">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="text-emerald-600 dark:text-emerald-500 font-bold shrink-0">📎</span>
+                                          <div className="truncate text-left">
+                                            <span className="text-zinc-900 dark:text-white truncate block font-bold leading-tight">{msg.file.name}</span>
+                                            <span className="text-zinc-400 text-[8px] block font-mono">{msg.file.size || 'Secured Spec'}</span>
+                                          </div>
+                                        </div>
+                                        <a 
+                                          href={msg.file.url} 
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-zinc-900 dark:text-white font-extrabold hover:underline shrink-0 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded text-[8px]"
+                                        >
+                                          Download
+                                        </a>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -729,10 +800,11 @@ export default function PurchasedProductDetailPage() {
                         <div className="flex justify-between items-center px-3 py-2 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60">
                           <button
                             type="button"
-                            onClick={triggerMockUpload}
+                            disabled={uploadingFile}
+                            onClick={() => fileInputRef.current?.click()}
                             className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 text-[9px] font-semibold transition-colors cursor-pointer px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
                           >
-                            <Paperclip className="w-3.5 h-3.5" /> Attach Config
+                            <Paperclip className="w-3.5 h-3.5" /> {uploadingFile ? 'Uploading...' : 'Attach File'}
                           </button>
                           <button
                             type="submit"
@@ -742,6 +814,13 @@ export default function PurchasedProductDetailPage() {
                             Send <Send className="w-3 h-3" />
                           </button>
                         </div>
+
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
                       </form>
                     </>
                   )}

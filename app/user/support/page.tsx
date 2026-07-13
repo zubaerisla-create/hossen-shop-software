@@ -28,8 +28,12 @@ export default function UserSupportPage() {
     const token = localStorage.getItem('apex_user_token');
     if (!token) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tickets`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`${API_BASE_URL}/api/tickets?t=${Date.now()}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
       const resData = await response.json();
       if (response.ok && resData.data?.tickets) {
@@ -62,6 +66,11 @@ export default function UserSupportPage() {
   useEffect(() => {
     if (!selectedTicketId) return;
 
+    // Polling fallback
+    const pollInterval = setInterval(() => {
+      fetchTickets();
+    }, 4000);
+
     const socket = io(SOCKET_URL);
     socket.emit('join_ticket', selectedTicketId);
 
@@ -76,6 +85,7 @@ export default function UserSupportPage() {
 
     return () => {
       socket.disconnect();
+      clearInterval(pollInterval);
     };
   }, [selectedTicketId]);
 
@@ -152,6 +162,7 @@ export default function UserSupportPage() {
       }
 
       setTktReply('');
+      fetchTickets();
     } catch (err: any) {
       console.error(err);
       showErrorToast(err?.message || 'Failed to send reply.');
