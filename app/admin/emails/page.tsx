@@ -232,7 +232,7 @@ export default function AdminEmailsPage() {
   };
 
   return (
-    <div className="flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-8">
+    <div className="flex-1 p-6 md:p-10 w-full space-y-8">
       
       {/* Title Header Banner */}
       <div className="border-b border-zinc-200 dark:border-zinc-800 pb-5">

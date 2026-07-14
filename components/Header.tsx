@@ -784,7 +784,7 @@ export default function Header() {
             >
               <button
                 onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-                className="theme-btn text-[10px] font-extrabold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60 px-2.5 flex items-center gap-1.5 select-none"
+                className="h-8 px-2.5 rounded-[10px] text-[10px] font-extrabold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60 flex items-center gap-1.5 select-none cursor-pointer transition-all duration-200"
                 title="Select Currency"
               >
                 <span className="font-mono">{currencyConfig.symbol}</span>

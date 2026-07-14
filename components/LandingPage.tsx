@@ -302,16 +302,16 @@ export default function LandingPage({
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 dark:bg-zinc-900/80 border border-white/20 dark:border-zinc-800 backdrop-blur-md text-white text-[10px] font-bold tracking-widest uppercase animate-fade-in">
-            <Sparkles className="w-3.5 h-3.5 text-yellow-450 animate-pulse" /> Elite Engineering Agency & Marketplace
+            <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" /> Elite Engineering Studio & Marketplace
           </div>
 
-          <h1 className="text-4xl md:text-7xl font-extrabold text-white leading-[1.08] tracking-tight max-w-4xl animate-fade-in-up font-sans">
-            Our engineering experts <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 via-zinc-400 to-zinc-650 italic font-serif">will take it from here</span>
+          <h1 className="text-4xl md:text-7xl font-extrabold text-white leading-[1.05] tracking-tight max-w-4xl animate-fade-in-up font-sans">
+            Crafting Elite Software & <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-300 to-indigo-300 font-black">Production-Ready Codebases</span>
           </h1>
 
-          <p className="text-zinc-100 dark:text-zinc-50 text-xs md:text-sm max-w-xl font-bold leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-            Hossen Shop turns complex business requirements into fast, robust, and scalable custom solutions. Browse production-ready codes or start a direct custom workflow.
+          <p className="text-zinc-200 dark:text-zinc-100 text-xs md:text-sm max-w-xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+            We design, build, and deliver high-performance web applications and source codes for modern founders. Skip the developer search and launch verified, optimized architectures instantly.
           </p>
 
           {/* Search bar */}
@@ -329,49 +329,49 @@ export default function LandingPage({
                   handleSearchSubmit();
                 }
               }}
-              className="w-full bg-white/95 dark:bg-zinc-900/90 text-zinc-900 dark:text-white placeholder:text-zinc-400 rounded-lg pl-10 pr-16 py-4 text-xs font-semibold focus:outline-none border border-white/10 dark:border-zinc-800 focus:border-zinc-300 focus:ring-1 focus:ring-zinc-350 dark:focus:border-zinc-700 dark:focus:ring-zinc-800 transition-all backdrop-blur-md"
+              className="w-full bg-white/10 dark:bg-black/40 text-white placeholder:text-zinc-400 rounded-xl pl-10 pr-20 py-4 text-xs font-semibold focus:outline-none border border-white/15 dark:border-zinc-800/80 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-all backdrop-blur-lg shadow-[0_0_50px_-12px_rgba(168,85,247,0.2)]"
             />
             <button 
               onClick={handleSearchSubmit}
-              className="absolute right-2 top-2 bottom-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black px-4 rounded-md flex items-center justify-center cursor-pointer transition-colors text-[10px] font-bold uppercase tracking-wider"
+              className="absolute right-2 top-2 bottom-2 bg-white hover:bg-zinc-200 text-black px-4 rounded-lg flex items-center justify-center cursor-pointer transition-colors text-[10px] font-extrabold uppercase tracking-wider"
             >
               Search
             </button>
           </div>
 
           {/* Popular tags below search bar */}
-          <div className="flex flex-wrap items-center gap-2.5 text-[9px] text-zinc-350 font-bold animate-fade-in-up animation-delay-200">
+          <div className="flex flex-wrap items-center gap-2.5 text-[9px] text-zinc-300 font-bold animate-fade-in-up animation-delay-200">
             <span className="text-zinc-400 uppercase tracking-widest text-[8px] font-extrabold mr-1">Popular Channels:</span>
             <button
               onClick={() => { setActiveFilter('all'); setSearchTerm(''); }}
-              className="px-4 py-2 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 transition-all text-white cursor-pointer shadow-sm"
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/15 hover:border-white/20 transition-all text-white cursor-pointer shadow-sm backdrop-blur-sm"
             >
               All Codebases
             </button>
             <button
               onClick={() => { setActiveFilter('SaaS'); setSearchTerm(''); }}
-              className="px-4 py-2 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 transition-all text-white cursor-pointer shadow-sm"
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/15 hover:border-white/20 transition-all text-white cursor-pointer shadow-sm backdrop-blur-sm"
             >
               SaaS Boilerplates
             </button>
             <button
               onClick={() => { setActiveFilter('Full Website'); setSearchTerm(''); }}
-              className="px-4 py-2 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 transition-all text-white cursor-pointer shadow-sm"
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/15 hover:border-white/20 transition-all text-white cursor-pointer shadow-sm backdrop-blur-sm"
             >
               Full Websites
             </button>
             <button
               onClick={onStartCustomProject}
-              className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 font-extrabold rounded-full transition-all flex items-center gap-1 cursor-pointer"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-extrabold rounded-full transition-all flex items-center gap-1 cursor-pointer shadow-md shadow-purple-900/20"
             >
-              Start Custom Workspace <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+              Start Custom Workspace <Zap className="w-3 h-3 text-amber-300 fill-amber-300 animate-pulse" />
             </button>
           </div>
 
           {/* Trusted by section */}
           <div className="w-full pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-12 animate-fade-in-up animation-delay-300">
-            <div className="flex flex-wrap items-center gap-6 md:gap-8 text-zinc-450 font-bold text-[9px] uppercase tracking-widest">
-              <span className="text-zinc-650 normal-case tracking-normal">Trusted by builders at:</span>
+            <div className="flex flex-wrap items-center gap-6 md:gap-8 text-zinc-400 font-bold text-[9px] uppercase tracking-widest">
+              <span className="text-zinc-550 normal-case tracking-normal">Trusted by builders at:</span>
               <span className="hover:text-white transition-colors cursor-default">Google</span>
               <span className="hover:text-white transition-colors cursor-default">Vercel</span>
               <span className="hover:text-white transition-colors cursor-default">Linear</span>
@@ -386,9 +386,9 @@ export default function LandingPage({
       {/* Services Grid (Capabilities) */}
       <section id="services" className="max-w-[1400px] mx-auto px-6 space-y-12 animate-fade-in">
         <div className="text-center space-y-2">
-          <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Expertise & Fields</span>
-          <h2 className="text-2xl md:text-4xl font-extrabold text-zinc-950 dark:text-white uppercase tracking-tight font-sans">Our Capabilities</h2>
-          <p className="text-zinc-500 dark:text-zinc-400 text-xs max-w-md mx-auto">High-performance production architectures tailored precisely for your business needs.</p>
+          <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">Expertise & Fields</span>
+          <h2 className="text-2xl md:text-4xl font-extrabold text-zinc-955 dark:text-white uppercase tracking-tight font-sans">Our Capabilities</h2>
+          <p className="text-zinc-500 dark:text-zinc-450 text-xs max-w-md mx-auto">High-performance production architectures tailored precisely for your business needs.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -396,13 +396,13 @@ export default function LandingPage({
             <Link
               key={ser.slug}
               href={`/services/${ser.slug}`}
-              className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-900 rounded-xl p-6 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl hover:bg-white dark:hover:bg-zinc-900/60 hover:border-zinc-300 dark:hover:border-zinc-800 block cursor-pointer group"
+              className="glass-panel rounded-2xl p-6 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.1)] hover:border-purple-500/30 dark:hover:border-purple-400/25 block cursor-pointer group"
             >
-              <div className="bg-white dark:bg-zinc-950 p-2.5 w-fit rounded-lg border border-zinc-200 dark:border-zinc-900 shadow-xs group-hover:border-zinc-300 dark:group-hover:border-zinc-700 transition-all">
-                <ServiceIcon name={ser.icon} className="w-5.5 h-5.5 text-zinc-900 dark:text-zinc-450" />
+              <div className="bg-zinc-100/50 dark:bg-zinc-950 p-2.5 w-fit rounded-xl border border-zinc-200/60 dark:border-zinc-850 shadow-xs group-hover:border-purple-500/30 transition-all">
+                <ServiceIcon name={ser.icon} className="w-5.5 h-5.5 text-zinc-800 dark:text-zinc-350 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
               </div>
-              <h3 className="text-xs font-bold text-zinc-900 dark:text-white mt-4 mb-2 group-hover:text-zinc-650 dark:group-hover:text-zinc-300 transition-colors tracking-wide uppercase">{ser.title}</h3>
-              <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-3">{ser.shortDesc}</p>
+              <h3 className="text-xs font-bold text-zinc-900 dark:text-white mt-5 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors tracking-wide uppercase">{ser.title}</h3>
+              <p className="text-zinc-550 dark:text-zinc-400 text-[11px] leading-relaxed line-clamp-3 font-medium">{ser.shortDesc}</p>
             </Link>
           ))}
         </div>
@@ -451,10 +451,11 @@ export default function LandingPage({
               onClick={() => onSelectProduct(prod)}
               onMouseEnter={() => setHoveredProductId(prod.id)}
               onMouseLeave={() => setHoveredProductId(null)}
-              className="digital-product-card rounded-xl cursor-pointer transition-all duration-500 hover:-translate-y-2 flex flex-col justify-between"
+              className="digital-product-card rounded-2xl cursor-pointer flex flex-col justify-between group"
             >
-              <div className="relative flex flex-col flex-1 overflow-hidden rounded-[10px] bg-white dark:bg-zinc-955 group">
-                <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+              <div className="relative flex flex-col flex-1 overflow-hidden rounded-[15px] bg-white/80 dark:bg-[#0d0d11]/85 backdrop-blur-md group-hover:bg-white dark:group-hover:bg-[#09090b] transition-colors duration-500">
+                {/* Media Section */}
+                <div className="relative aspect-video overflow-hidden bg-zinc-100 dark:bg-zinc-950 border-b border-zinc-150 dark:border-zinc-900/60">
                   {prod.videoUrl && (
                     <ProductCardVideo
                       src={prod.videoUrl}
@@ -464,18 +465,23 @@ export default function LandingPage({
                   <img
                     src={prod.images[0]}
                     alt={prod.name}
-                    className={`w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ${
-                      hoveredProductId === prod.id ? 'opacity-0 scale-105' : ''
+                    className={`w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 ease-out ${
+                      hoveredProductId === prod.id ? 'opacity-0' : 'opacity-95 group-hover:opacity-100'
                     }`}
                   />
-                  <span className="absolute top-3 left-3 bg-zinc-900/90 dark:bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white tracking-widest uppercase z-20 font-bold">
+                  <span className="absolute top-3 left-3 bg-zinc-950/85 dark:bg-black/75 backdrop-blur-md border border-zinc-800/30 dark:border-white/10 px-2.5 py-0.5 rounded text-[8px] font-mono text-zinc-100 dark:text-white tracking-widest uppercase z-20 font-extrabold shadow-sm">
                     {prod.category}
                   </span>
+                  <div className="absolute bottom-3 right-3 bg-zinc-950/85 dark:bg-black/70 backdrop-blur-sm border border-zinc-800/50 px-2 py-0.5 rounded flex items-center gap-1 z-20 shadow-xs">
+                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                    <span className="text-[9px] font-extrabold text-white font-mono">{(prod.rating || 5.0).toFixed(1)}</span>
+                  </div>
                 </div>
 
+                {/* Details Section */}
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div className="space-y-2">
-                    <h3 className="font-bold text-zinc-900 dark:text-white text-xs group-hover:text-zinc-650 dark:group-hover:text-zinc-350 transition-colors leading-snug line-clamp-2 uppercase tracking-wide">
+                    <h3 className="font-bold text-zinc-900 dark:text-white text-xs group-hover:text-purple-650 dark:group-hover:text-purple-400 transition-colors duration-300 leading-snug line-clamp-2 uppercase tracking-wide">
                       {prod.name}
                     </h3>
                     <p className="text-zinc-500 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-2">{prod.description}</p>
@@ -484,16 +490,19 @@ export default function LandingPage({
                   <div className="space-y-4 pt-2">
                     <div className="flex flex-wrap gap-1">
                       {prod.technologies.slice(0, 4).map((tech, idx) => (
-                        <span key={idx} className="bg-zinc-50 dark:bg-zinc-900 text-zinc-650 dark:text-zinc-450 border border-zinc-200 dark:border-zinc-850 px-2 py-0.5 rounded text-[8px] font-mono">
+                        <span key={idx} className="bg-zinc-100/70 dark:bg-zinc-900/60 text-zinc-650 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-850/60 px-2 py-0.5 rounded text-[8px] font-mono tracking-wide">
                           {tech}
                         </span>
                       ))}
                     </div>
 
-                    <div className="flex justify-between items-center border-t border-zinc-100 dark:border-zinc-900 pt-3">
-                      <span className="text-[11px] font-bold text-zinc-950 dark:text-white">{format(prod.price)}</span>
-                      <span className="text-zinc-950 dark:text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                        Explore Code <ArrowRight className="w-3.5 h-3.5" />
+                    <div className="flex justify-between items-center border-t border-zinc-150/80 dark:border-zinc-900/80 pt-3">
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mb-1">License Cost</span>
+                        <span className="text-[11px] font-bold text-zinc-950 dark:text-white">{format(prod.price)}</span>
+                      </div>
+                      <span className="text-zinc-950 dark:text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform duration-300">
+                        Explore Code <ArrowRight className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-550 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
                       </span>
                     </div>
                   </div>
@@ -579,7 +588,9 @@ export default function LandingPage({
                       ))}
                     </div>
                     <h3 className="font-bold text-zinc-900 dark:text-white text-xs mt-1.5 line-clamp-2 uppercase tracking-wide group-hover:text-zinc-650 dark:group-hover:text-zinc-350 transition-colors leading-snug">{blog.title}</h3>
-                    <p className="text-zinc-550 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-2">{blog.content}</p>
+                    <p className="text-zinc-550 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-2">
+                      {blog.excerpt || (blog.content ? blog.content.replace(/<[^>]*>/g, '') : '')}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between pt-4 mt-4 border-t border-zinc-100 dark:border-zinc-900 text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
                     <span>By {blog.author}</span>

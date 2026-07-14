@@ -196,7 +196,7 @@ export default function BlogsPage() {
                     </h2>
 
                     <p className="text-zinc-550 dark:text-zinc-400 text-xs md:text-sm leading-relaxed font-semibold">
-                      {featuredBlog.excerpt || 'Explore this featured technical walkthrough covering architecture optimization, database seeding schemas, and component builds.'}
+                      {featuredBlog.excerpt || (featuredBlog.content ? featuredBlog.content.replace(/<[^>]*>/g, '') : 'Explore this featured technical walkthrough covering architecture optimization, database seeding schemas, and component builds.')}
                     </p>
                   </div>
 
@@ -271,7 +271,7 @@ export default function BlogsPage() {
                       </h3>
 
                       <p className="text-zinc-555 dark:text-zinc-400 text-xs font-semibold leading-relaxed line-clamp-3">
-                        {blog.excerpt || 'No description summary details loaded.'}
+                        {blog.excerpt || (blog.content ? blog.content.replace(/<[^>]*>/g, '') : 'No description summary details loaded.')}
                       </p>
                     </div>
 
