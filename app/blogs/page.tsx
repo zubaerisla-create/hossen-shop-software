@@ -60,8 +60,8 @@ export default function BlogsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Identify Featured Post (oldest/newest marked isFeatured, or just the first post if none)
-  const featuredBlog = blogs.find(b => b.isFeatured) || blogs[0];
+  // Identify Featured Post (only if explicitly marked isFeatured)
+  const featuredBlog = blogs.find(b => b.isFeatured);
   const regularBlogs = featuredBlog 
     ? filteredBlogs.filter(b => b.id !== featuredBlog.id)
     : filteredBlogs;
