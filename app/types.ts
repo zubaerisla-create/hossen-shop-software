@@ -156,6 +156,26 @@ export interface SupportTicket {
   }[];
 }
 
+export interface BlogBlock {
+  id: string;
+  type: 'text' | 'image' | 'video' | 'code' | 'table' | 'faq' | 'gallery' | 'quote' | 'cta' | 'button' | 'newsletter' | 'divider' | 'callout' | 'accordion';
+  data: {
+    text?: string;
+    level?: number;
+    url?: string;
+    caption?: string;
+    code?: string;
+    language?: string;
+    columns?: string[];
+    rows?: string[][];
+    items?: { q: string; a: string; }[];
+    buttonText?: string;
+    buttonUrl?: string;
+    title?: string;
+    style?: string;
+  };
+}
+
 export interface Blog {
   id: string;
   title: string;
@@ -166,6 +186,66 @@ export interface Blog {
   author: string;
   createdAt: string;
   updatedAt: string;
+
+  // Basic Information
+  excerpt: string;
+  authorBio: string;
+  authorSocials?: { twitter?: string; linkedin?: string; github?: string; } | null;
+  status: 'Draft' | 'Published' | 'Scheduled' | 'Archived';
+  publishDate: string;
+  readingTime: number;
+  imageAlt: string;
+  imageCaption: string;
+  imageCredit: string;
+  
+  contentBlocks?: BlogBlock[] | null;
+  categories: string[];
+
+  // SEO Section
+  seoTitle: string;
+  seoDesc: string;
+  seoKeywords: string;
+  canonicalUrl: string;
+  robotsIndex: boolean;
+  ogTitle: string;
+  ogDesc: string;
+  ogImage: string;
+  twitterCardImage: string;
+
+  // Additional Sections
+  faqs?: { q: string; a: string; }[] | null;
+  tableOfContents?: { text: string; id: string; level: number; }[] | null;
+  relatedArticles?: { id: string; title: string; }[] | null;
+  cta?: { label: string; url: string; type: string; } | null;
+  attachments?: { name: string; url: string; type: string; }[] | null;
+  socialShareText?: { facebook?: string; linkedin?: string; twitter?: string; } | null;
+
+  allowComments: boolean;
+  comments?: { id: string; user: string; text: string; createdAt: string; }[] | null;
+  visibility: 'Public' | 'Private' | 'Members Only' | 'Premium';
+
+  // Hossen Academy / Promotional integrations
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  completionTime: string;
+  keyTakeaways: string[];
+  prerequisites: string[];
+  linkedCourseId: string;
+  linkedService: string;
+  productId?: string | null;
+
+  // Analytics Metrics
+  views: number;
+  uniqueVisitors: number;
+  shares: number;
+  likes: number;
+  saves: number;
+
+  // Extra options
+  isFeatured: boolean;
+  isTrending: boolean;
+  isPopular: boolean;
+  isEditorsPick: boolean;
+  sticky: boolean;
 }
 
 export interface CaseStudy {

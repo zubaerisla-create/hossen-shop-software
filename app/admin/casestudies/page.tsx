@@ -187,12 +187,31 @@ export default function AdminCaseStudiesPage() {
       showErrorToast('Case study title is required.');
       return;
     }
+    if (formTitle.trim().length < 2) {
+      showErrorToast('Case study title must be at least 2 characters.');
+      return;
+    }
     if (!formType.trim()) {
       showErrorToast('Type is required.');
       return;
     }
     if (!formDesc.trim()) {
       showErrorToast('Description is required.');
+      return;
+    }
+    if (formDesc.trim().length < 5) {
+      showErrorToast('Description must be at least 5 characters.');
+      return;
+    }
+
+    if (!formImage.trim()) {
+      showErrorToast('Cover image URL is required.');
+      return;
+    }
+    try {
+      new URL(formImage.trim());
+    } catch (_) {
+      showErrorToast('Cover image must be a valid URL.');
       return;
     }
 
@@ -229,6 +248,13 @@ export default function AdminCaseStudiesPage() {
       const resData = await response.json();
 
       if (!response.ok) {
+        if (resData.errors && Array.isArray(resData.errors)) {
+          const detailMsgs = resData.errors.map((err: any) => {
+            const field = err.path.replace('body.', '');
+            return `• ${field.charAt(0).toUpperCase() + field.slice(1)}: ${err.message}`;
+          }).join('\n');
+          throw new Error(`Validation failed:\n${detailMsgs}`);
+        }
         throw new Error(resData.message || 'Failed to save case study.');
       }
 

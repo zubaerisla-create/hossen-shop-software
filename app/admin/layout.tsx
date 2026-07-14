@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare, BookOpen, Briefcase } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare, BookOpen, Briefcase, Mail } from 'lucide-react';
 import { initializeStorage, syncWithBackend, clearUserSession } from '../utils/storage';
 import { API_BASE_URL } from '@/app/utils/api';
 
@@ -81,7 +81,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/deals', label: 'Custom Deals', icon: <FolderKanban className="w-4 h-4" /> },
     { href: '/admin/feedbacks', label: 'Manage Feedbacks', icon: <MessageSquare className="w-4 h-4" /> },
     { href: '/admin/support', label: 'Resolve Tickets', icon: <Wrench className="w-4 h-4" /> },
-    { href: '/admin/payments', label: 'bKash Invoices', icon: <Receipt className="w-4 h-4" /> }
+    { href: '/admin/payments', label: 'bKash Invoices', icon: <Receipt className="w-4 h-4" /> },
+    { href: '/admin/emails', label: 'Email Campaigns', icon: <Mail className="w-4 h-4" /> }
   ];
 
   const activeItem = navItems.find((item) => {
