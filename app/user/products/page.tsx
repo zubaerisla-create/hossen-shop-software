@@ -5,8 +5,10 @@ import { Product } from '../../types';
 import { getProducts, getPurchasedProducts, syncWithBackend } from '../../utils/storage';
 import { Download, ExternalLink, ArrowRight, Search, Shield, FileCode, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { useCurrency } from '../../utils/currency';
 
 export default function PurchasedTemplatesPage() {
+  const { format, currencyCode } = useCurrency();
   const [purchasedProducts, setPurchasedProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,7 @@ export default function PurchasedTemplatesPage() {
                   <th className="p-4 w-12 text-center">Preview</th>
                   <th className="p-4">Template Name</th>
                   <th className="p-4">License Type</th>
-                  <th className="p-4">Paid (BDT)</th>
+                  <th className="p-4">Paid ({currencyCode})</th>
                   <th className="p-4">Version</th>
                   <th className="p-4">Support Period</th>
                   <th className="p-4 text-center">Workspace</th>
@@ -130,7 +132,7 @@ export default function PurchasedTemplatesPage() {
 
                     {/* Price Paid */}
                     <td className="p-4 font-bold text-zinc-950 dark:text-white font-mono">
-                      {prod.price.toLocaleString()} BDT
+                      {format(prod.price)}
                     </td>
 
                     {/* Version */}

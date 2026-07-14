@@ -9,6 +9,7 @@ import {
   AlertCircle, Terminal, Send, Paperclip, Video, ExternalLink
 } from 'lucide-react';
 import GanttView from './GanttView';
+import { useCurrency } from '@/app/utils/currency';
 
 interface CustomerPortalProps {
   deals: CustomDeal[];
@@ -51,6 +52,7 @@ export default function CustomerPortal({
   const router = useRouter();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const { format, currencyCode, currencyConfig } = useCurrency();
 
   // Custom Project Form fields
   const [dealTitle, setDealTitle] = useState('');
@@ -102,7 +104,8 @@ export default function CustomerPortal({
 
   const handleSubmitDeal = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmitCustomDeal(dealTitle, dealDesc, dealType, dealBudget, dealDeadline, dealTech, dealPriority);
+    const budgetInBDT = Math.round(dealBudget / currencyConfig.rate);
+    onSubmitCustomDeal(dealTitle, dealDesc, dealType, budgetInBDT, dealDeadline, dealTech, dealPriority);
     setDealTitle('');
     setDealDesc('');
     setDealTech('');
@@ -146,7 +149,7 @@ export default function CustomerPortal({
       onPayMilestone(payingMilestone.dealId, payingMilestone.mil.id, payingMilestone.mil.cost, payingMilestone.mil.title);
       setPayingMilestone(null);
       setPaymentStep('none');
-      onToastNotification(`Milestone payment of ${payingMilestone.mil.cost.toLocaleString()} BDT confirmed!`);
+      onToastNotification(`Milestone payment of ${format(payingMilestone.mil.cost)} confirmed!`);
     }, 2000);
   };
 
@@ -256,7 +259,7 @@ export default function CustomerPortal({
                 <span className="text-zinc-500 dark:text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Paid Amount Value</span>
                 <div className="flex justify-between items-end">
                   <span className="text-2xl font-bold text-zinc-950 dark:text-white">
-                    {invoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.total, 0).toLocaleString()} BDT
+                    {format(invoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.total, 0))}
                   </span>
                   <button onClick={() => setActiveTab('invoices')} className="text-zinc-950 dark:text-white font-bold flex items-center gap-1 text-[10px]">
                     Invoices <ArrowRight className="w-3.5 h-3.5" />
@@ -370,7 +373,7 @@ export default function CustomerPortal({
 
                   <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-4 rounded space-y-1">
                     <span className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">Cost / Budget</span>
-                    <span className="text-zinc-950 dark:text-white font-bold block">{selectedDeal.quotation ? `${selectedDeal.quotation.totalCost.toLocaleString()} BDT` : `${selectedDeal.budget.toLocaleString()} BDT (Budget)`}</span>
+                    <span className="text-zinc-950 dark:text-white font-bold block">{selectedDeal.quotation ? format(selectedDeal.quotation.totalCost) : `${format(selectedDeal.budget)} (Budget)`}</span>
                   </div>
 
                   <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-4 rounded space-y-1">
@@ -445,7 +448,7 @@ export default function CustomerPortal({
                               <p className="text-zinc-500 text-[10px]">{mil.description}</p>
                               <div className="flex gap-4 text-[10px] font-medium text-zinc-500">
                                 <span>Due: {mil.dueDate}</span>
-                                <span className="font-bold text-zinc-700 dark:text-zinc-400">{mil.cost.toLocaleString()} BDT ({mil.percentage}%)</span>
+                                <span className="font-bold text-zinc-700 dark:text-zinc-400">{format(mil.cost)} ({mil.percentage}%)</span>
                               </div>
                             </div>
 
@@ -568,7 +571,7 @@ export default function CustomerPortal({
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-bold mb-1.5">Target Budget (BDT)</label>
+                      <label className="block text-zinc-500 text-[10px] uppercase font-bold mb-1.5">Target Budget ({currencyCode})</label>
                       <input
                         type="number"
                         required
@@ -772,7 +775,7 @@ export default function CustomerPortal({
                         <td className="p-4 font-mono font-bold text-zinc-950 dark:text-white">{inv.invoiceNumber}</td>
                         <td className="p-4 truncate max-w-[200px]">{inv.title}</td>
                         <td className="p-4">{inv.date}</td>
-                        <td className="p-4 font-semibold text-zinc-950 dark:text-white">{inv.total.toLocaleString()} BDT</td>
+                        <td className="p-4 font-semibold text-zinc-950 dark:text-white">{format(inv.total)}</td>
                         <td className="p-4">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${inv.status === 'Paid' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
                             }`}>
@@ -961,7 +964,7 @@ export default function CustomerPortal({
                 <div className="bg-pink-650/40 p-4 rounded space-y-1 text-center">
                   <span className="text-[10px] text-pink-200 block uppercase font-bold tracking-wider">Milestone Payout</span>
                   <span className="font-bold text-white text-sm block">{payingMilestone.mil.title}</span>
-                  <span className="text-xl font-black text-white block mt-1">{payingMilestone.mil.cost.toLocaleString()} BDT</span>
+                  <span className="text-xl font-black text-white block mt-1">{format(payingMilestone.mil.cost)}</span>
                 </div>
 
                 <div className="space-y-3">

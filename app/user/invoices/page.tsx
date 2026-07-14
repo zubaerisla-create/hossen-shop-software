@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { Invoice } from '../../types';
 import { getInvoices } from '../../utils/storage';
 import { useRouter } from 'next/navigation';
+import { useCurrency } from '../../utils/currency';
 
 export default function PortalInvoicesPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const { format } = useCurrency();
 
   useEffect(() => {
     setInvoices(getInvoices());
@@ -41,9 +43,9 @@ export default function PortalInvoicesPage() {
                     <td className="p-4 font-mono font-bold text-zinc-950 dark:text-white">{inv.invoiceNumber}</td>
                     <td className="p-4 truncate max-w-[200px]">{inv.title}</td>
                     <td className="p-4">{inv.date}</td>
-                    <td className="p-4">{inv.amount.toLocaleString()} BDT</td>
-                    <td className="p-4 text-zinc-500">{inv.tax.toLocaleString()} BDT</td>
-                    <td className="p-4 font-bold text-emerald-655 dark:text-emerald-400">{inv.total.toLocaleString()} BDT</td>
+                    <td className="p-4">{format(inv.amount)}</td>
+                    <td className="p-4 text-zinc-500">{format(inv.tax)}</td>
+                    <td className="p-4 font-bold text-emerald-655 dark:text-emerald-400">{format(inv.total)}</td>
                     <td className="p-4 text-center">
                       <button
                         onClick={() => router.push(`/invoices/${inv.id}`)}

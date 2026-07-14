@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Product } from '../../types';
 import { getProducts, purchaseProduct, addInvoice, saveProducts, getPurchasedProducts } from '../../utils/storage';
+import { useCurrency } from '@/app/utils/currency';
 import Header from '@/components/Header';
 import AuthModal from '@/components/AuthModal';
 import Link from 'next/link';
@@ -31,6 +32,18 @@ export default function ProductDetailPage() {
   const [bkashPIN, setBkashPIN] = useState('');
   const [bkashInvoiceId, setBkashInvoiceId] = useState('');
   const [bkashAmount, setBkashAmount] = useState(0);
+
+  const { format, currencyCode } = useCurrency();
+
+  useEffect(() => {
+    if (currencyCode === 'BDT') {
+      setSelectedCurrency('BDT');
+      setSelectedGateway('bkash');
+    } else {
+      setSelectedCurrency('USD');
+      setSelectedGateway('stripe');
+    }
+  }, [currencyCode]);
 
   const handleCurrencyChange = (curr: 'BDT' | 'USD') => {
     setSelectedCurrency(curr);
@@ -620,7 +633,7 @@ export default function ProductDetailPage() {
             <div className="border border-zinc-200 dark:border-zinc-800 p-6 rounded bg-zinc-50 dark:bg-[#121214] space-y-5">
               <div className="space-y-1">
                 <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Pricing</span>
-                <span className="text-xl font-extrabold text-zinc-950 dark:text-white block">{product.price.toLocaleString()} BDT</span>
+                <span className="text-xl font-extrabold text-zinc-950 dark:text-white block">{format(product.price)}</span>
               </div>
 
               {isPurchased ? (

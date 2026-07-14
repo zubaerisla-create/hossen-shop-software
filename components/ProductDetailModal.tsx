@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Product } from '@/app/types';
 import { X, ExternalLink, BookOpen, Shield, Download, Check, Star, RefreshCw, Smartphone, CreditCard, Gift, AlertCircle, ShoppingBag } from 'lucide-react';
+import { useCurrency } from '@/app/utils/currency';
 
 interface ProductDetailModalProps {
   product: Product;
@@ -21,6 +22,7 @@ export default function ProductDetailModal({
   onRequestCustomization,
   onOpenLogin
 }: ProductDetailModalProps) {
+  const { format } = useCurrency();
   const [activeTab, setActiveTab] = useState<'details' | 'docs' | 'changelog' | 'reviews' | 'faq'>('details');
   const [checkoutStep, setCheckoutStep] = useState<'none' | 'method' | 'paying' | 'success'>('none');
   const [paymentMethod, setPaymentMethod] = useState<'bkash' | 'card'>('bkash');
@@ -107,7 +109,7 @@ export default function ProductDetailModal({
             <div className="flex justify-between items-center mb-4">
               <div>
                 <span className="block text-xs text-zinc-500 font-medium">One-time payment</span>
-                <span className="text-2xl font-black text-white">{product.price.toLocaleString()} BDT</span>
+                <span className="text-2xl font-black text-white">{format(product.price)}</span>
               </div>
               <span className="text-[10px] text-zinc-500 flex items-center gap-1">
                 <Shield className="w-3 h-3 text-emerald-400" /> Secure checkout
@@ -292,17 +294,17 @@ export default function ProductDetailModal({
                 <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
                   <div className="flex justify-between text-zinc-400 mb-1">
                     <span>Product Cost</span>
-                    <span>{product.price.toLocaleString()} BDT</span>
+                    <span>{format(product.price)}</span>
                   </div>
                   {appliedDiscount > 0 && (
                     <div className="flex justify-between text-emerald-400 mb-1">
                       <span>Discount</span>
-                      <span>-{appliedDiscount.toLocaleString()} BDT</span>
+                      <span>-{format(appliedDiscount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-white font-bold text-sm border-t border-zinc-800 pt-2 mt-2">
                     <span>Total Amount</span>
-                    <span>{finalPrice.toLocaleString()} BDT</span>
+                    <span>{format(finalPrice)}</span>
                   </div>
                 </div>
 
@@ -427,7 +429,7 @@ export default function ProductDetailModal({
                     type="submit"
                     className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg transition-all mt-4"
                   >
-                    <span>Proceed & Pay {finalPrice.toLocaleString()} BDT</span>
+                    <span>Proceed & Pay {format(finalPrice)}</span>
                   </button>
                 </form>
               </div>
@@ -470,7 +472,7 @@ export default function ProductDetailModal({
                 </div>
                 <div className="flex justify-between border-t border-zinc-800 pt-2 mt-2">
                   <span className="text-zinc-400">Paid amount</span>
-                  <span className="text-white font-bold">{finalPrice.toLocaleString()} BDT</span>
+                  <span className="text-white font-bold">{format(finalPrice)}</span>
                 </div>
               </div>
 

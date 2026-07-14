@@ -7,6 +7,7 @@ import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, Ch
 import AuthModal from './AuthModal';
 import { servicesData } from '@/app/data/services';
 import { ServiceIcon } from '@/app/utils/icons';
+import { useCurrency, CURRENCIES } from '@/app/utils/currency';
 
 export default function Header() {
   const router = useRouter();
@@ -20,6 +21,8 @@ export default function Header() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { currencyCode, currencyConfig, setCurrency } = useCurrency();
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -773,6 +776,44 @@ export default function Header() {
 
           {/* ─── Right Controls ─── */}
           <div className="flex items-center gap-2">
+
+            {/* Currency Selector */}
+            <div 
+              className="relative"
+              onMouseLeave={() => setShowCurrencyDropdown(false)}
+            >
+              <button
+                onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+                className="theme-btn text-[10px] font-extrabold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60 px-2.5 flex items-center gap-1.5 select-none"
+                title="Select Currency"
+              >
+                <span className="font-mono">{currencyConfig.symbol}</span>
+                <span>{currencyCode}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showCurrencyDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCurrencyDropdown && (
+                <div className="absolute right-0 mt-1.5 w-48 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 z-[150] animate-fadeIn">
+                  {Object.values(CURRENCIES).map((curr) => (
+                    <button
+                      key={curr.code}
+                      onClick={() => {
+                        setCurrency(curr.code);
+                        setShowCurrencyDropdown(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-[10px] font-bold flex items-center justify-between transition-colors ${
+                        currencyCode === curr.code
+                          ? 'bg-zinc-55 dark:bg-zinc-900 text-[#6A2D3D] dark:text-[#fca5a5]'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-white'
+                      }`}
+                    >
+                      <span>{curr.label}</span>
+                      <span className="font-mono text-[9px] opacity-75">{curr.symbol}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Theme Toggle */}
             <button

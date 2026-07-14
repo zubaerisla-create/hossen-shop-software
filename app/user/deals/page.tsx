@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import { UploadCloud } from 'lucide-react';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 import { API_BASE_URL } from '@/app/utils/api';
+import { useCurrency } from '../../utils/currency';
 
 export default function UserDealsPage() {
   const [deals, setDeals] = useState<CustomDeal[]>([]);
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
   const [showRequestForm, setShowRequestForm] = useState(false);
   const router = useRouter();
+  const { format, currencyCode, currencyConfig } = useCurrency();
 
   // Custom Project Form fields
   const [dealTitle, setDealTitle] = useState('');
@@ -72,7 +74,7 @@ export default function UserDealsPage() {
           title: dealTitle,
           description: dealDesc,
           projectType: dealType,
-          budget: dealBudget,
+          budget: Math.round(dealBudget / currencyConfig.rate),
           deadline: dealDeadline,
           technology: dealTech,
           priority: dealPriority
@@ -179,7 +181,7 @@ export default function UserDealsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-zinc-600 dark:text-zinc-400 font-bold mb-1">Target Budget (BDT)</label>
+                    <label className="block text-zinc-600 dark:text-zinc-400 font-bold mb-1">Target Budget ({currencyCode})</label>
                     <input 
                       type="number" 
                       required 
@@ -241,7 +243,7 @@ export default function UserDealsPage() {
                     <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 text-zinc-500 dark:text-zinc-400 uppercase font-bold text-[9px] tracking-wider">
                       <th className="p-4">Project ID</th>
                       <th className="p-4">Title & Type</th>
-                      <th className="p-4 text-right">Target Budget</th>
+                      <th className="p-4 text-right">Target Budget ({currencyCode})</th>
                       <th className="p-4">Deadline</th>
                       <th className="p-4">Priority</th>
                       <th className="p-4">Progress</th>
@@ -265,7 +267,7 @@ export default function UserDealsPage() {
                           </div>
                         </td>
                         <td className="p-4 text-right font-bold text-zinc-950 dark:text-white">
-                          {d.budget.toLocaleString()} BDT
+                          {format(d.budget)}
                         </td>
                         <td className="p-4 text-zinc-600 dark:text-zinc-400">{d.deadline}</td>
                         <td className="p-4">

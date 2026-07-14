@@ -3,6 +3,7 @@
 import React from 'react';
 import { Invoice } from '@/app/types';
 import { Download, Printer, ShieldCheck, X } from 'lucide-react';
+import { useCurrency } from '@/app/utils/currency';
 
 interface InvoicePrintProps {
   invoice: Invoice;
@@ -10,6 +11,7 @@ interface InvoicePrintProps {
 }
 
 export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
+  const { format } = useCurrency();
   const handlePrint = () => {
     window.print();
   };
@@ -105,9 +107,9 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
                 <span className="font-bold text-zinc-800 block">{invoice.title}</span>
                 <span className="text-[10px] text-zinc-400">Includes lifetime updates and documentation support.</span>
               </td>
-              <td className="py-4 px-3 text-right font-medium text-zinc-700">{invoice.amount.toLocaleString()} BDT</td>
+              <td className="py-4 px-3 text-right font-medium text-zinc-700">{format(invoice.amount)}</td>
               <td className="py-4 px-3 text-center text-zinc-600">1</td>
-              <td className="py-4 px-3 text-right font-semibold text-zinc-800">{invoice.amount.toLocaleString()} BDT</td>
+              <td className="py-4 px-3 text-right font-semibold text-zinc-800">{format(invoice.amount)}</td>
             </tr>
           </tbody>
         </table>
@@ -117,21 +119,21 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
           <div className="w-64 space-y-2 text-xs">
             <div className="flex justify-between text-zinc-500">
               <span>Subtotal</span>
-              <span>{invoice.amount.toLocaleString()} BDT</span>
+              <span>{format(invoice.amount)}</span>
             </div>
             {invoice.discount > 0 && (
               <div className="flex justify-between text-emerald-600">
                 <span>Discount applied</span>
-                <span>-{invoice.discount.toLocaleString()} BDT</span>
+                <span>-{format(invoice.discount)}</span>
               </div>
             )}
             <div className="flex justify-between text-zinc-500 border-b border-zinc-100 pb-2">
               <span>Tax (5% VAT)</span>
-              <span>{invoice.tax.toLocaleString()} BDT</span>
+              <span>{format(invoice.tax)}</span>
             </div>
             <div className="flex justify-between text-zinc-900 font-extrabold text-sm pt-1">
               <span>Total Paid</span>
-              <span>{invoice.total.toLocaleString()} BDT</span>
+              <span>{format(invoice.total)}</span>
             </div>
           </div>
         </div>

@@ -8,11 +8,13 @@ import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../../utils/alert';
 import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
+import { useCurrency } from '@/app/utils/currency';
 
 export default function UserDealDetailWorkspace() {
   const params = useParams();
   const router = useRouter();
   const dealId = params.id as string;
+  const { format } = useCurrency();
 
   const [deals, setDeals] = useState<CustomDeal[]>([]);
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
@@ -513,7 +515,7 @@ export default function UserDealDetailWorkspace() {
       const payMsg: ChatMessage = {
         id: `msg-${Date.now()}`,
         sender: 'customer',
-        content: `💳 bKash Payment Successful: settled BDT ${payingMilestone.mil.cost.toLocaleString()} for "${payingMilestone.mil.title}". Receipt transaction ID: TXN${Math.floor(Math.random() * 900000) + 100000}`,
+        content: `💳 bKash Payment Successful: settled ${format(payingMilestone.mil.cost)} for "${payingMilestone.mil.title}". Receipt transaction ID: TXN${Math.floor(Math.random() * 900000) + 100000}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -526,7 +528,7 @@ export default function UserDealDetailWorkspace() {
 
       const paidCost = payingMilestone.mil.cost;
       setPayingMilestone(null);
-      showSuccessAlert('Payment Successful!', `Milestone payment of BDT ${paidCost.toLocaleString()} has been successfully processed via bKash.`);
+      showSuccessAlert('Payment Successful!', `Milestone payment of ${format(paidCost)} has been successfully processed.`);
     }, 2500);
   };
 
@@ -606,7 +608,7 @@ export default function UserDealDetailWorkspace() {
                     </div>
                     <div className="bg-white dark:bg-zinc-950 p-2.5 border border-zinc-200 dark:border-zinc-900 rounded">
                       <span className="text-zinc-500 font-bold uppercase text-[7px] block">Total Contract Cost</span>
-                      <span className="font-bold text-zinc-900 dark:text-white text-xs">{selectedDeal.quotation.totalCost.toLocaleString()} BDT</span>
+                      <span className="font-bold text-zinc-900 dark:text-white text-xs">{format(selectedDeal.quotation.totalCost)}</span>
                     </div>
                     <div className="bg-white dark:bg-zinc-950 p-2.5 border border-zinc-200 dark:border-zinc-900 rounded">
                       <span className="text-zinc-500 font-bold uppercase text-[7px] block">Post warranty support</span>
@@ -634,7 +636,7 @@ export default function UserDealDetailWorkspace() {
                               <div className="space-y-1 max-w-[70%]">
                                 <div className="flex items-center gap-2">
                                   <span className="font-extrabold text-zinc-900 dark:text-white text-xs">{m.title}</span>
-                                  <span className="text-[9px] bg-zinc-100 dark:bg-zinc-900 text-zinc-600 px-1.5 py-0.5 rounded font-mono font-bold">{m.cost.toLocaleString()} BDT</span>
+                                  <span className="text-[9px] bg-zinc-100 dark:bg-zinc-900 text-zinc-600 px-1.5 py-0.5 rounded font-mono font-bold">{format(m.cost)}</span>
                                 </div>
                                 <p className="text-[10px] text-zinc-500 leading-normal">{m.description}</p>
                                 <div className="flex gap-4 text-[9px] font-mono text-zinc-400">
@@ -661,12 +663,12 @@ export default function UserDealDetailWorkspace() {
                                       {m.status}
                                     </span>
 
-                                    {selectedDeal.contractSigned && isUnpaid && (
+                                      {selectedDeal.contractSigned && isUnpaid && (
                                       <button
                                         onClick={() => startMilestonePayment(m.id, m)}
                                         className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1 rounded text-[9px] cursor-pointer shadow-sm transition-colors"
                                       >
-                                        Pay BDT
+                                        Pay Milestone
                                       </button>
                                     )}
                                   </>
@@ -974,7 +976,7 @@ export default function UserDealDetailWorkspace() {
               <form onSubmit={executeMilestonePayment} className="space-y-4 text-xs">
                 <div className="bg-rose-800/40 p-4 rounded border border-rose-850 space-y-2">
                   <p className="font-bold text-center text-xs">Milestone Settlement Pay</p>
-                  <p className="text-center font-mono text-sm font-extrabold text-amber-350">{payingMilestone.mil.cost.toLocaleString()} BDT</p>
+                  <p className="text-center font-mono text-sm font-extrabold text-amber-350">{format(payingMilestone.mil.cost)}</p>
                   <p className="text-[10px] text-white/60 text-center">VAT included (5%)</p>
                 </div>
 

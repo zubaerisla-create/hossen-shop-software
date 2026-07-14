@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Product, ChatMessage } from '../../../types';
 import { getProducts, getPurchasedProducts } from '../../../utils/storage';
 import { io } from 'socket.io-client';
+import { useCurrency } from '@/app/utils/currency';
 import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
 import {
   ArrowLeft,
@@ -31,6 +32,7 @@ import {
 export default function PurchasedProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { format } = useCurrency();
   const [product, setProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'downloads' | 'docs' | 'support' | 'chat'>('overview');
   const [copiedKey, setCopiedKey] = useState(false);
@@ -910,7 +912,7 @@ export default function PurchasedProductDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Price Paid:</span>
-                  <span className="font-bold text-zinc-950 dark:text-white">{product.price.toLocaleString()} BDT</span>
+                  <span className="font-bold text-zinc-950 dark:text-white">{format(product.price)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Billing Gateway:</span>
@@ -918,11 +920,11 @@ export default function PurchasedProductDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Tax (5% included):</span>
-                  <span className="font-semibold">{Math.round(product.price * 0.05).toLocaleString()} BDT</span>
+                  <span className="font-semibold">{format(Math.round(product.price * 0.05))}</span>
                 </div>
                 <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-800/80 pt-2 font-bold text-zinc-950 dark:text-white text-xs">
                   <span>Total charged:</span>
-                  <span>{Math.round(product.price * 1.05).toLocaleString()} BDT</span>
+                  <span>{format(Math.round(product.price * 1.05))}</span>
                 </div>
               </div>
             </div>

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Product } from '@/app/types';
+import { Product, Blog, CaseStudy } from '@/app/types';
+import { useCurrency } from '@/app/utils/currency';
 import { Monitor, Code, Smartphone, Terminal, Cpu, Shield, HeartHandshake, Globe, DownloadCloud, Award, Users, HelpCircle, Mail, Phone, MessageSquare, ArrowRight, Star, CheckCircle2, Search, Sparkles, ShieldCheck, Zap } from 'lucide-react';
 import AiEstimator from './AiEstimator';
 import { servicesData } from '@/app/data/services';
@@ -57,6 +58,7 @@ export default function LandingPage({
   onImportToCustomForm
 }: LandingPageProps) {
   const router = useRouter();
+  const { format } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<'all' | 'SaaS' | 'Full Website' | 'Mobile App' | 'UI/UX'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
@@ -170,10 +172,35 @@ export default function LandingPage({
     return matchesFilter && matchesSearch;
   });
 
-  const [portfolio, setPortfolio] = useState<any[]>([
-    { title: 'RentKart - Vehicle Rental App', type: 'Mobile App', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=600&q=80', desc: 'A real-time ride booking and vehicle rental platform handling 50k+ bookings.', productId: 'prod-3' },
-    { title: 'DocSphere - Medical Consultation Portal', type: 'Web App', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80', desc: 'Telemedicine web platform with calendar scheduling and WebRTC live calls.', productId: 'prod-7' },
-    { title: 'AuraShop - Minimalist Fashion Store', type: 'Full Website', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80', desc: 'High-conversion, clean e-commerce system with custom animations and bKash.', productId: 'prod-2' }
+  const [portfolio, setPortfolio] = useState<CaseStudy[]>([
+    { id: '4d9b2d0c-6121-46b8-a9aa-c35bb7590b08', title: 'RentKart - Vehicle Rental App', type: 'Mobile App', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=600&q=80', desc: 'A real-time ride booking and vehicle rental platform handling 50k+ bookings.', productId: 'bf7d7c00-ec52-4003-a4d4-73288979644f', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: 'f8696de2-fe37-4eb3-a652-0893e625f97e', title: 'DocSphere - Medical Consultation Portal', type: 'Web App', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80', desc: 'Telemedicine web platform with calendar scheduling and WebRTC live calls.', productId: '34f7c97a-6035-48b9-8390-53ee94602f1d', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: '38814a28-0115-4711-82f0-ecd383dff8ce', title: 'AuraShop - Minimalist Fashion Store', type: 'Full Website', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80', desc: 'High-conversion, clean e-commerce system with custom animations and bKash.', productId: '3fcea59e-0a24-4e44-927a-abf931a88623', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  ]);
+
+  const [blogs, setBlogs] = useState<Blog[]>([
+    {
+      id: '39bb598f-5b52-4996-a742-9ccdeed780b1',
+      title: 'Next.js 15 App Router: A Deep Dive into Server Components',
+      slug: 'nextjs-15-app-router-deep-dive',
+      content: 'Next.js 15 has brought major enhancements to the App Router. The React 19 integration brings a whole new level of performance, server actions are now more mature, and caching behavior has changed to be dynamic by default.',
+      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+      tags: ['Next.js', 'React', 'Web Development'],
+      author: 'Hossen Shop Team',
+      createdAt: '2026-07-13T18:20:44.416Z',
+      updatedAt: '2026-07-13T18:20:44.416Z'
+    },
+    {
+      id: '6a4ed8c6-9726-4bab-bde0-d958e1d3a2c7',
+      title: 'Building Scalable SaaS Architectures with Node.js and PostgreSQL',
+      slug: 'building-scalable-saas-architectures',
+      content: 'Scaling a Software-as-a-Service (SaaS) application requires careful planning. Database structure, multi-tenancy models, connection pooling, and job queues are critical components. In this guide, we discuss row-level security in PostgreSQL, setting up Prisma ORM for efficient queries, caching frequently used endpoints using Redis, and handling scaling events with microservices or robust background workers.',
+      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+      tags: ['SaaS', 'Node.js', 'PostgreSQL'],
+      author: 'Hossen Shop Team',
+      createdAt: '2026-07-13T18:20:44.757Z',
+      updatedAt: '2026-07-13T18:20:44.757Z'
+    }
   ]);
 
   useEffect(() => {
@@ -192,7 +219,25 @@ export default function LandingPage({
         console.error('Failed to fetch case studies:', err);
       }
     };
+
+    const fetchBlogs = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/blogs`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success' && data.data && data.data.blogs) {
+            if (data.data.blogs.length > 0) {
+              setBlogs(data.data.blogs);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch blogs:', err);
+      }
+    };
+
     fetchCaseStudies();
+    fetchBlogs();
   }, []);
 
   const [reviewsList, setReviewsList] = useState<any[]>([
@@ -477,7 +522,7 @@ export default function LandingPage({
                     </div>
 
                     <div className="flex justify-between items-center border-t border-zinc-100 dark:border-zinc-900 pt-3">
-                      <span className="text-[11px] font-bold text-zinc-950 dark:text-white">{prod.price.toLocaleString()} BDT</span>
+                      <span className="text-[11px] font-bold text-zinc-950 dark:text-white">{format(prod.price)}</span>
                       <span className="text-zinc-950 dark:text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
                         Explore Code <ArrowRight className="w-3.5 h-3.5" />
                       </span>
@@ -528,17 +573,66 @@ export default function LandingPage({
 
             const cardClasses = "bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-850 block cursor-pointer";
 
-            return port.productId ? (
-              <Link key={i} href={`/products/${port.productId}`} className={cardClasses}>
+            return (
+              <Link key={port.id || i} href={`/casestudies/${port.id}`} className={cardClasses}>
                 {cardContent}
               </Link>
-            ) : (
-              <div key={i} className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group transition-all duration-500 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-850 block">
-                {cardContent}
-              </div>
             );
           })}
         </div>
+      </section>
+
+      {/* Blogs Section */}
+      <section id="blogs" className="max-w-[1400px] mx-auto px-6 space-y-12 animate-fade-in">
+        <div className="text-center space-y-2">
+          <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest font-sans">Articles & News</span>
+          <h2 className="text-2xl md:text-4xl font-extrabold text-zinc-955 dark:text-white uppercase tracking-tight">Recent Insights</h2>
+          <p className="text-zinc-500 dark:text-zinc-400 text-xs max-w-md mx-auto">Stay up to date with the latest industry news, technology trends, and development strategies.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {blogs.slice(0, 3).map((blog, i) => (
+            <Link
+              key={blog.id || i}
+              href={`/blogs/${blog.slug}`}
+              className="bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden group transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-zinc-300 dark:hover:border-zinc-850 block cursor-pointer flex flex-col justify-between"
+            >
+              <div className="flex flex-col flex-1">
+                <div className="overflow-hidden aspect-video bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-900">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={blog.image} alt={blog.title} className="w-full h-full object-cover opacity-95 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700" />
+                </div>
+                <div className="p-5 space-y-2.5 flex-1 flex flex-col justify-between">
+                  <div className="space-y-2.5">
+                    <div className="flex flex-wrap gap-1">
+                      {blog.tags && blog.tags.slice(0, 3).map((tag: string, idx: number) => (
+                        <span key={idx} className="bg-zinc-50 dark:bg-zinc-900 text-zinc-650 dark:text-zinc-450 font-mono text-[8px] uppercase tracking-widest px-2 py-0.5 rounded font-extrabold border border-zinc-200 dark:border-zinc-850">{tag}</span>
+                      ))}
+                    </div>
+                    <h3 className="font-bold text-zinc-900 dark:text-white text-xs mt-1.5 line-clamp-2 uppercase tracking-wide group-hover:text-zinc-650 dark:group-hover:text-zinc-350 transition-colors leading-snug">{blog.title}</h3>
+                    <p className="text-zinc-550 dark:text-zinc-450 text-[11px] leading-relaxed line-clamp-2">{blog.content}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-zinc-100 dark:border-zinc-900 text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
+                    <span>By {blog.author}</span>
+                    <span>{new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        
+        {blogs.length > 3 && (
+          <div className="flex justify-center pt-6">
+            <Link
+              href="/blogs"
+              className="px-6 py-3 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+            >
+              <span>View All Blogs</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Why Choose Us & Statistics */}

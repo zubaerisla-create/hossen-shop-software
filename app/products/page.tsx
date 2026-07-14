@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import { Product } from '../types';
+import { useCurrency } from '../utils/currency';
 import { getProducts, initializeStorage } from '../utils/storage';
 import { Search, ArrowRight, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen } from 'lucide-react';
 
@@ -39,6 +40,7 @@ function ProductCardVideo({ src, isHovered }: { src: string; isHovered: boolean 
 function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { format } = useCurrency();
   
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -199,7 +201,7 @@ function ProductsContent() {
                         </div>
 
                         <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-900/80 pt-2.5">
-                          <span className="text-xs font-bold text-zinc-950 dark:text-white">{prod.price.toLocaleString()} BDT</span>
+                          <span className="text-xs font-bold text-zinc-950 dark:text-white">{format(prod.price)}</span>
                           <span className="text-zinc-950 dark:text-white text-[10px] font-bold flex items-center gap-1">
                             Details <ArrowRight className="w-3 h-3" />
                           </span>

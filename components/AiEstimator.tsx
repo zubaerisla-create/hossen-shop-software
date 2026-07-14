@@ -21,6 +21,7 @@ import {
   HelpCircle,
   Plus
 } from 'lucide-react';
+import { useCurrency } from '@/app/utils/currency';
 
 interface EstimatorResult {
   costRange: string;
@@ -33,6 +34,7 @@ interface EstimatorResult {
 }
 
 export default function AiEstimator({ onImport }: { onImport?: (title: string, desc: string, budget: number, tech: string) => void }) {
+  const { format } = useCurrency();
   const [desc, setDesc] = useState('');
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
@@ -165,7 +167,7 @@ export default function AiEstimator({ onImport }: { onImport?: (title: string, d
     ];
 
     setResult({
-      costRange: `${minCost.toLocaleString()} BDT - ${maxCost.toLocaleString()} BDT`,
+      costRange: `${format(minCost)} - ${format(maxCost)}`,
       minCost,
       maxCost,
       timeRange,
@@ -440,7 +442,7 @@ export default function AiEstimator({ onImport }: { onImport?: (title: string, d
                         <h4 className="text-[11.5px] font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{mil.title}</h4>
                         <p className="text-[9px] text-zinc-400 dark:text-zinc-500 mt-0.5">{mil.percentage}% of project deliverables</p>
                       </div>
-                      <span className="text-[11.5px] font-extrabold text-zinc-950 dark:text-white flex-shrink-0 text-right">{mil.cost.toLocaleString()} BDT</span>
+                      <span className="text-[11.5px] font-extrabold text-zinc-950 dark:text-white flex-shrink-0 text-right">{format(mil.cost)}</span>
                     </div>
                   </div>
                 ))}
