@@ -28,6 +28,7 @@ export default function UserDealDetailWorkspace() {
 
   const [chatWidth, setChatWidth] = useState(420);
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileView, setMobileView] = useState<'overview' | 'chat'>('overview');
   const resizingRef = useRef(false);
 
   useEffect(() => {
@@ -560,11 +561,36 @@ export default function UserDealDetailWorkspace() {
 
         <div className="p-6 md:p-8 flex-1 space-y-6">
 
+          {/* Mobile Tab Switcher */}
+          <div className="lg:hidden flex bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-1 mb-4 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+            <button
+              type="button"
+              onClick={() => setMobileView('overview')}
+              className={`flex-1 py-2 text-center rounded-md transition-all cursor-pointer ${
+                mobileView === 'overview'
+                  ? 'text-zinc-955 dark:text-white bg-white dark:bg-zinc-950 shadow-sm'
+                  : 'hover:text-zinc-800 dark:hover:text-zinc-300'
+              }`}
+            >
+              Milestones & Scope
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileView('chat')}
+              className={`flex-1 py-2 text-center rounded-md transition-all cursor-pointer ${
+                mobileView === 'chat'
+                  ? 'text-zinc-955 dark:text-white bg-white dark:bg-zinc-950 shadow-sm'
+                  : 'hover:text-zinc-800 dark:hover:text-zinc-300'
+              }`}
+            >
+              Developer Chat Room
+            </button>
+          </div>
 
           <div className="flex flex-col lg:flex-row gap-8 items-start h-full relative">
             
             {/* Left Column: Details, files, contract */}
-            <div className="flex-1 lg:max-h-[calc(100vh-210px)] lg:overflow-y-auto pr-2 space-y-6 w-full" style={{ minWidth: 200 }}>
+            <div className={`flex-1 lg:max-h-[calc(100vh-210px)] lg:overflow-y-auto pr-2 space-y-6 w-full ${mobileView === 'overview' ? 'block' : 'hidden lg:block'}`} style={{ minWidth: 200 }}>
               
               {/* Scope requirements overview */}
               <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-5 rounded space-y-3">
@@ -786,7 +812,6 @@ export default function UserDealDetailWorkspace() {
                       </div>
                     </div>
                   )}
-
                 </div>
               )}
 
@@ -795,7 +820,7 @@ export default function UserDealDetailWorkspace() {
             {/* Resizer Handle */}
             <div 
               onMouseDown={handleMouseDown}
-              className="hidden lg:block w-3 cursor-col-resize self-stretch relative z-10 group flex items-center justify-center"
+              className="hidden lg:flex w-3 cursor-col-resize self-stretch relative z-10 group items-center justify-center"
               style={{ marginLeft: -22, marginRight: -22 }}
             >
               {/* Thin Vertical Line */}
@@ -811,7 +836,9 @@ export default function UserDealDetailWorkspace() {
 
             {/* Right Column: Chat messages discuss room */}
             <div 
-              className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between shrink-0 overflow-hidden"
+              className={`bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between shrink-0 overflow-hidden ${
+                mobileView === 'chat' ? 'block' : 'hidden lg:flex'
+              }`}
               style={{
                 width: isMobile ? '100%' : `${chatWidth}px`,
                 minWidth: 280,

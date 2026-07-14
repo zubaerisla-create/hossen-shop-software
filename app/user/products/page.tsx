@@ -80,89 +80,146 @@ export default function PurchasedTemplatesPage() {
       <div className="p-6 md:p-8 space-y-6 flex-1">
         
         {filteredProducts.length > 0 ? (
-          <div className="rounded-lg overflow-hidden bg-white dark:bg-zinc-950 shadow-sm">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 text-zinc-500 font-bold uppercase text-[9px] tracking-wider">
-                  <th className="p-4 w-12 text-center">Preview</th>
-                  <th className="p-4">Template Name</th>
-                  <th className="p-4">License Type</th>
-                  <th className="p-4">Paid ({currencyCode})</th>
-                  <th className="p-4">Version</th>
-                  <th className="p-4">Support Period</th>
-                  <th className="p-4 text-center">Workspace</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((prod) => (
-                  <tr 
-                    key={prod.id} 
-                    className="border-b border-zinc-200 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 text-zinc-700 dark:text-zinc-300 transition-colors"
-                  >
-                    {/* Thumbnail */}
-                    <td className="p-4 text-center">
-                      <div className="w-10 h-6 rounded bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800 shrink-0 mx-auto">
-                        <img 
-                          src={prod.images[0] || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'} 
-                          alt={prod.name} 
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                    </td>
-
-                    {/* Name & Category */}
-                    <td className="p-4">
-                      <div className="space-y-0.5">
-                        <span className="font-bold text-zinc-950 dark:text-white block hover:text-zinc-800 dark:hover:text-zinc-200">
-                          {prod.name}
-                        </span>
-                        <span className="inline-block bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 px-1 py-0.2 rounded text-[8px] font-mono font-semibold uppercase">
-                          {prod.category}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* License */}
-                    <td className="p-4">
-                      <div className="flex items-center gap-1">
-                        <Shield className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                        <span className="truncate max-w-[150px] block" title={prod.license}>{prod.license}</span>
-                      </div>
-                    </td>
-
-                    {/* Price Paid */}
-                    <td className="p-4 font-bold text-zinc-950 dark:text-white font-mono">
-                      {format(prod.price)}
-                    </td>
-
-                    {/* Version */}
-                    <td className="p-4 font-mono text-[10px] text-zinc-550 dark:text-zinc-400">
-                      v{prod.version}
-                    </td>
-
-                    {/* Support validity */}
-                    <td className="p-4">
-                      <div className="space-y-0.5">
-                        <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-450 border border-emerald-250 dark:border-emerald-900 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase block w-fit">
-                          6 Months Active
-                        </span>
-                        <span className="text-[9px] text-zinc-450 font-medium block">Expires: 2027-01-01</span>
-                      </div>
-                    </td>
-
-                    {/* Link workspace */}
-                    <td className="p-4 text-center">
-                      <Link 
-                        href={`/user/products/${prod.id}`}
-                        className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded inline-flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-sm text-[10px]"
-                      >
-                        Workspace <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </td>
+          <div className="space-y-4">
+            {/* Desktop Table View */}
+            <div className="hidden md:block rounded-lg overflow-hidden bg-white dark:bg-zinc-950 shadow-sm border border-zinc-200 dark:border-zinc-900">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-900 text-zinc-500 font-bold uppercase text-[9px] tracking-wider">
+                    <th className="p-4 w-12 text-center">Preview</th>
+                    <th className="p-4">Template Name</th>
+                    <th className="p-4">License Type</th>
+                    <th className="p-4">Paid ({currencyCode})</th>
+                    <th className="p-4">Version</th>
+                    <th className="p-4">Support Period</th>
+                    <th className="p-4 text-center">Workspace</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((prod) => (
+                    <tr 
+                      key={prod.id} 
+                      className="border-b border-zinc-200 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 text-zinc-700 dark:text-zinc-300 transition-colors"
+                    >
+                      {/* Thumbnail */}
+                      <td className="p-4 text-center">
+                        <div className="w-10 h-6 rounded bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800 shrink-0 mx-auto">
+                          <img 
+                            src={prod.images[0] || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'} 
+                            alt={prod.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                      </td>
+
+                      {/* Name & Category */}
+                      <td className="p-4">
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-zinc-950 dark:text-white block hover:text-zinc-800 dark:hover:text-zinc-200">
+                            {prod.name}
+                          </span>
+                          <span className="inline-block bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 px-1 py-0.2 rounded text-[8px] font-mono font-semibold uppercase">
+                            {prod.category}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* License */}
+                      <td className="p-4">
+                        <div className="flex items-center gap-1">
+                          <Shield className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          <span className="truncate max-w-[150px] block" title={prod.license}>{prod.license}</span>
+                        </div>
+                      </td>
+
+                      {/* Price Paid */}
+                      <td className="p-4 font-bold text-zinc-950 dark:text-white font-mono">
+                        {format(prod.price)}
+                      </td>
+
+                      {/* Version */}
+                      <td className="p-4 font-mono text-[10px] text-zinc-550 dark:text-zinc-400">
+                        v{prod.version}
+                      </td>
+
+                      {/* Support validity */}
+                      <td className="p-4">
+                        <div className="space-y-0.5">
+                          <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-450 border border-emerald-250 dark:border-emerald-900 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase block w-fit">
+                            6 Months Active
+                          </span>
+                          <span className="text-[9px] text-zinc-450 font-medium block">Expires: 2027-01-01</span>
+                        </div>
+                      </td>
+
+                      {/* Link workspace */}
+                      <td className="p-4 text-center">
+                        <Link 
+                          href={`/user/products/${prod.id}`}
+                          className="px-3 py-1.5 bg-zinc-955 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded inline-flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-sm text-[10px]"
+                        >
+                          Workspace <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="md:hidden space-y-4">
+              {filteredProducts.map((prod) => (
+                <div 
+                  key={prod.id} 
+                  className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-4 rounded-lg space-y-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-8 rounded bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800 shrink-0">
+                      <img 
+                        src={prod.images[0] || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'} 
+                        alt={prod.name} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="font-bold text-zinc-950 dark:text-white block truncate text-xs">{prod.name}</span>
+                      <span className="inline-block bg-zinc-200/50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold uppercase mt-0.5">
+                        {prod.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[10px] border-t border-zinc-200/50 dark:border-zinc-800/50 pt-2.5 text-zinc-650 dark:text-zinc-400">
+                    <div>
+                      <span className="text-zinc-400 dark:text-zinc-500 uppercase text-[7px] font-bold block">Paid ({currencyCode})</span>
+                      <span className="font-bold text-zinc-950 dark:text-white font-mono">{format(prod.price)}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 dark:text-zinc-500 uppercase text-[7px] font-bold block">Version</span>
+                      <span className="font-mono">v{prod.version}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 dark:text-zinc-500 uppercase text-[7px] font-bold block">License Type</span>
+                      <span className="truncate block">{prod.license}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400 dark:text-zinc-500 uppercase text-[7px] font-bold block">Support status</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold block">6 Months Active</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                    <Link 
+                      href={`/user/products/${prod.id}`}
+                      className="w-full text-center py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-bold rounded text-[10px] transition-colors shadow-sm block"
+                    >
+                      Open Workspace Workspace →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="border border-zinc-200 dark:border-zinc-900 rounded-lg p-10 bg-zinc-50 dark:bg-zinc-900/10 text-center space-y-4 max-w-lg mx-auto">

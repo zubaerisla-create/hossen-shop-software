@@ -388,7 +388,7 @@ export default function PurchasedProductDetailPage() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                     <div className="space-y-2.5">
                       <span className="font-bold text-zinc-900 dark:text-white block uppercase tracking-wider text-[9px] border-b border-zinc-200 dark:border-zinc-800 pb-1">Included Functional Features</span>
                       <ul className="space-y-2 text-zinc-650 dark:text-zinc-400">
@@ -417,7 +417,7 @@ export default function PurchasedProductDetailPage() {
                   {/* Image gallery */}
                   <div className="space-y-2 pt-2">
                     <span className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider">Template Gallery Screenshots</span>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {product.images.map((img, idx) => (
                         <div key={idx} className="aspect-video rounded overflow-hidden bg-zinc-150 border border-zinc-200 dark:border-zinc-850">
                           <img src={img} alt={`${product.name} screenshot`} className="w-full h-full object-cover" />

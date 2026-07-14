@@ -10,6 +10,7 @@ import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
 export default function UserSupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<'tickets' | 'chat'>('tickets');
 
   // Ticket Form fields
   const [tktSubject, setTktSubject] = useState('');
@@ -177,10 +178,43 @@ export default function UserSupportPage() {
       </div>
 
       <div className="p-6 md:p-8 space-y-6 flex-1">
+        
+        {/* Mobile Tab Switcher */}
+        <div className="lg:hidden flex bg-zinc-50 dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-lg p-1 mb-4 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+          <button
+            type="button"
+            onClick={() => setMobileView('tickets')}
+            className={`flex-1 py-2 text-center rounded-md transition-all cursor-pointer ${
+              mobileView === 'tickets'
+                ? 'text-zinc-950 dark:text-white bg-white dark:bg-zinc-950 shadow-sm'
+                : 'hover:text-zinc-800 dark:hover:text-zinc-300'
+            }`}
+          >
+            Tickets List & Form
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (selectedTicketId) {
+                setMobileView('chat');
+              } else {
+                triggerToast('Please select or file a ticket first.');
+              }
+            }}
+            className={`flex-1 py-2 text-center rounded-md transition-all cursor-pointer ${
+              mobileView === 'chat'
+                ? 'text-zinc-950 dark:text-white bg-white dark:bg-zinc-950 shadow-sm'
+                : 'hover:text-zinc-800 dark:hover:text-zinc-300'
+            }`}
+          >
+            Chat Room {selectedTicket && `(${selectedTicket.subject.slice(0, 10)}...)`}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left panel: Create Ticket & History */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className={`lg:col-span-7 space-y-6 ${mobileView === 'tickets' ? 'block' : 'hidden lg:block'}`}>
             
             {/* Create ticket form */}
             <form onSubmit={handleCreateTicket} className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 p-6 rounded space-y-4">
@@ -189,18 +223,18 @@ export default function UserSupportPage() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-zinc-600 dark:text-zinc-400 mb-1">Ticket Subject</label>
-                  <input type="text" required placeholder="e.g. Next.js database config issue" value={tktSubject} onChange={(e) => setTktSubject(e.target.value)} className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded px-3 py-2 text-xs focus:outline-none" />
+                  <input type="text" required placeholder="e.g. Next.js database config issue" value={tktSubject} onChange={(e) => setTktSubject(e.target.value)} className="w-full bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded px-3 py-2 text-xs focus:outline-none" />
                 </div>
 
                 <div>
                   <label className="block text-zinc-600 dark:text-zinc-400 mb-1">Query Description</label>
-                  <textarea rows={3} required placeholder="Detailed message explaining the issue..." value={tktDesc} onChange={(e) => setTktDesc(e.target.value)} className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded p-3 text-xs resize-none focus:outline-none" />
+                  <textarea rows={3} required placeholder="Detailed message explaining the issue..." value={tktDesc} onChange={(e) => setTktDesc(e.target.value)} className="w-full bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded p-3 text-xs resize-none focus:outline-none" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-zinc-600 dark:text-zinc-400 mb-1">Category</label>
-                    <select value={tktCategory} onChange={(e) => setTktCategory(e.target.value as any)} className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded px-3 py-2 text-xs focus:outline-none">
+                    <select value={tktCategory} onChange={(e) => setTktCategory(e.target.value as any)} className="w-full bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded px-3 py-2 text-xs focus:outline-none">
                       <option>Technical</option>
                       <option>Billing</option>
                       <option>Customization</option>
@@ -209,7 +243,7 @@ export default function UserSupportPage() {
                   </div>
                   <div>
                     <label className="block text-zinc-600 dark:text-zinc-400 mb-1">Priority</label>
-                    <select value={tktPriority} onChange={(e) => setTktPriority(e.target.value as any)} className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded px-3 py-2 text-xs focus:outline-none">
+                    <select value={tktPriority} onChange={(e) => setTktPriority(e.target.value as any)} className="w-full bg-white dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 text-zinc-955 dark:text-white rounded px-3 py-2 text-xs focus:outline-none">
                       <option>Low</option>
                       <option>Medium</option>
                       <option>High</option>
@@ -231,17 +265,20 @@ export default function UserSupportPage() {
                   {tickets.map(t => (
                     <div
                       key={t.id}
-                      onClick={() => setSelectedTicketId(t.id)}
+                      onClick={() => {
+                        setSelectedTicketId(t.id);
+                        setMobileView('chat');
+                      }}
                       className={`p-3 rounded border cursor-pointer transition-colors ${
                         selectedTicketId === t.id
-                          ? 'bg-white dark:bg-zinc-950 border-zinc-400 dark:border-zinc-800'
-                          : 'bg-white/40 dark:bg-zinc-950/40 border-zinc-200 dark:border-zinc-900 hover:border-zinc-800'
+                          ? 'bg-white dark:bg-zinc-955 border-zinc-400 dark:border-zinc-850'
+                          : 'bg-white/40 dark:bg-zinc-955/40 border-zinc-200 dark:border-zinc-900 hover:border-zinc-800'
                       }`}
                     >
                       <div className="flex justify-between items-center text-[10px]">
                         <span className="font-bold text-zinc-955 dark:text-white">{t.subject}</span>
                         <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold uppercase ${
-                          t.status === 'Open' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-450' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
+                          t.status === 'Open' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-455' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
                         }`}>{t.status}</span>
                       </div>
                     </div>
@@ -254,7 +291,7 @@ export default function UserSupportPage() {
           </div>
 
           {/* Right panel: Active ticket reply messages */}
-          <div className="lg:col-span-5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between h-[520px] overflow-hidden">
+          <div className={`lg:col-span-5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-md flex flex-col justify-between h-[520px] overflow-hidden ${mobileView === 'chat' ? 'block' : 'hidden lg:flex'}`}>
             {selectedTicket ? (
               <div className="flex flex-col h-full justify-between">
                 {/* Header */}
