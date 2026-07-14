@@ -31,7 +31,7 @@ export async function generateMetadata(
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hossenacademy.com';
+  const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hossen-software-shop.solutionsquad.tech';
 
   return {
     title: blog.seoTitle || `${blog.title} | Hossen Academy`,
