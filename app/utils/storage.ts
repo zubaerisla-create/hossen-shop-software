@@ -1,7 +1,6 @@
 'use client';
 
 import { Product, CustomDeal, ChatMessage, Invoice, SupportTicket } from '../types';
-import { mockProducts } from '../mockData';
 import { API_BASE_URL } from '@/app/utils/api';
 
 // Standard keys
@@ -33,22 +32,7 @@ export function initializeStorage() {
 
   const storedProductsStr = localStorage.getItem(PRODUCTS_KEY);
   if (!storedProductsStr) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(mockProducts));
-  } else {
-    try {
-      const stored = JSON.parse(storedProductsStr) as Product[];
-      if (stored.length < mockProducts.length) {
-        const merged = [...stored];
-        mockProducts.forEach(mp => {
-          if (!merged.some(p => p.id === mp.id)) {
-            merged.push(mp);
-          }
-        });
-        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(merged));
-      }
-    } catch (e) {
-      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(mockProducts));
-    }
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify([]));
   }
   if (!localStorage.getItem(DEALS_KEY)) {
     localStorage.setItem(DEALS_KEY, JSON.stringify([]));
@@ -69,9 +53,9 @@ export function initializeStorage() {
 
 // Products
 export function getProducts(): Product[] {
-  if (typeof window === 'undefined') return mockProducts;
+  if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(PRODUCTS_KEY);
-  return data ? JSON.parse(data) : mockProducts;
+  return data ? JSON.parse(data) : [];
 }
 
 export function saveProducts(products: Product[]) {

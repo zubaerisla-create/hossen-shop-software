@@ -172,36 +172,9 @@ export default function LandingPage({
     return matchesFilter && matchesSearch;
   });
 
-  const [portfolio, setPortfolio] = useState<CaseStudy[]>([
-    { id: '4d9b2d0c-6121-46b8-a9aa-c35bb7590b08', title: 'RentKart - Vehicle Rental App', type: 'Mobile App', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=600&q=80', desc: 'A real-time ride booking and vehicle rental platform handling 50k+ bookings.', productId: 'bf7d7c00-ec52-4003-a4d4-73288979644f', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: 'f8696de2-fe37-4eb3-a652-0893e625f97e', title: 'DocSphere - Medical Consultation Portal', type: 'Web App', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80', desc: 'Telemedicine web platform with calendar scheduling and WebRTC live calls.', productId: '34f7c97a-6035-48b9-8390-53ee94602f1d', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: '38814a28-0115-4711-82f0-ecd383dff8ce', title: 'AuraShop - Minimalist Fashion Store', type: 'Full Website', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80', desc: 'High-conversion, clean e-commerce system with custom animations and bKash.', productId: '3fcea59e-0a24-4e44-927a-abf931a88623', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-  ]);
+  const [portfolio, setPortfolio] = useState<CaseStudy[]>([]);
 
-  const [blogs, setBlogs] = useState<Blog[]>([
-    {
-      id: '39bb598f-5b52-4996-a742-9ccdeed780b1',
-      title: 'Next.js 15 App Router: A Deep Dive into Server Components',
-      slug: 'nextjs-15-app-router-deep-dive',
-      content: 'Next.js 15 has brought major enhancements to the App Router. The React 19 integration brings a whole new level of performance, server actions are now more mature, and caching behavior has changed to be dynamic by default.',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
-      tags: ['Next.js', 'React', 'Web Development'],
-      author: 'Hossen Shop Team',
-      createdAt: '2026-07-13T18:20:44.416Z',
-      updatedAt: '2026-07-13T18:20:44.416Z'
-    },
-    {
-      id: '6a4ed8c6-9726-4bab-bde0-d958e1d3a2c7',
-      title: 'Building Scalable SaaS Architectures with Node.js and PostgreSQL',
-      slug: 'building-scalable-saas-architectures',
-      content: 'Scaling a Software-as-a-Service (SaaS) application requires careful planning. Database structure, multi-tenancy models, connection pooling, and job queues are critical components. In this guide, we discuss row-level security in PostgreSQL, setting up Prisma ORM for efficient queries, caching frequently used endpoints using Redis, and handling scaling events with microservices or robust background workers.',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
-      tags: ['SaaS', 'Node.js', 'PostgreSQL'],
-      author: 'Hossen Shop Team',
-      createdAt: '2026-07-13T18:20:44.757Z',
-      updatedAt: '2026-07-13T18:20:44.757Z'
-    }
-  ]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
 
   useEffect(() => {
     const fetchCaseStudies = async () => {
@@ -210,9 +183,7 @@ export default function LandingPage({
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success' && data.data && data.data.caseStudies) {
-            if (data.data.caseStudies.length > 0) {
-              setPortfolio(data.data.caseStudies);
-            }
+            setPortfolio(data.data.caseStudies);
           }
         }
       } catch (err) {
@@ -226,9 +197,7 @@ export default function LandingPage({
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success' && data.data && data.data.blogs) {
-            if (data.data.blogs.length > 0) {
-              setBlogs(data.data.blogs);
-            }
+            setBlogs(data.data.blogs);
           }
         }
       } catch (err) {

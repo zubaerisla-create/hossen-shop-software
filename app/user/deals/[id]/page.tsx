@@ -91,41 +91,6 @@ export default function UserDealDetailWorkspace() {
   useEffect(() => {
     const initializeDeal = async () => {
       let loadedDeals = getDeals();
-      let modified = false;
-
-      // Ensure mock data for deal-101 contains deliverables for verification demo
-      loadedDeals = loadedDeals.map(d => {
-        if (d.id === 'deal-101' && d.quotation) {
-          const hasM1Deliverables = d.quotation.milestones.some(m => m.id === 'm1' && m.deliverables && m.deliverables.length > 0);
-          if (!hasM1Deliverables) {
-            modified = true;
-            return {
-              ...d,
-              quotation: {
-                ...d.quotation,
-                milestones: d.quotation.milestones.map(m => {
-                  if (m.id === 'm1') {
-                    return {
-                      ...m,
-                      progress: 100,
-                      deliverables: [
-                        { name: 'Figma_Branding_Prototypes.pdf', size: '4.8 MB', url: 'https://figma.com/file/mock-hospital-layout', type: 'pdf' },
-                        { name: 'Wireframes_Specification_PRD.pdf', size: '1.5 MB', url: 'https://drive.google.com/mock-prd.pdf', type: 'pdf' }
-                      ]
-                    };
-                  }
-                  return m;
-                })
-              }
-            };
-          }
-        }
-        return d;
-      });
-
-      if (modified) {
-        saveDeals(loadedDeals);
-      }
 
       // If deal doesn't exist in local storage, query the backend
       // Always fetch latest deal details from database on page load
