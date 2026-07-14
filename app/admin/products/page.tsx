@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Product, FAQItem, ChangelogItem } from '../../types';
-import { getProducts, saveProducts } from '../../utils/storage';
+import { getProducts, saveProducts, syncWithBackend } from '../../utils/storage';
 import Swal from 'sweetalert2';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
 import { API_BASE_URL } from '@/app/utils/api';
@@ -26,11 +26,69 @@ import {
   Calendar,
   AlertCircle,
   ExternalLink,
-  Download
+  Download,
+  GripVertical
 } from 'lucide-react';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const reorderedProducts = [...products];
+    const [draggedItem] = reorderedProducts.splice(draggedIndex, 1);
+    reorderedProducts.splice(targetIndex, 0, draggedItem);
+
+    // Optimistically update local state & storage
+    setProducts(reorderedProducts);
+    saveProducts(reorderedProducts);
+
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      showErrorToast('Authentication token not found. Please log in.');
+      return;
+    }
+
+    try {
+      const productIds = reorderedProducts.map(p => p.id);
+      const res = await fetch(`${API_BASE_URL}/api/products/reorder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ productIds })
+      });
+
+      if (res.ok) {
+        showSuccessToast('Product sequence updated successfully!');
+      } else {
+        const resData = await res.json();
+        throw new Error(resData.message || 'Failed to sync product positions.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      showErrorToast(err.message || 'Failed to update order on server.');
+      setProducts(getProducts());
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
   
   // Modals state
   const [showModal, setShowModal] = useState(false);
@@ -126,7 +184,11 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
-    setProducts(getProducts());
+    const loadProducts = async () => {
+      await syncWithBackend();
+      setProducts(getProducts());
+    };
+    loadProducts();
   }, []);
 
   const triggerToast = (text: string) => {
@@ -398,6 +460,7 @@ export default function AdminProductsPage() {
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 uppercase font-bold tracking-wider text-[10px] bg-zinc-50 dark:bg-zinc-900/60">
+                <th className="p-4 w-[50px] text-center">Order</th>
                 <th className="p-4 w-[80px]">Preview</th>
                 <th className="p-4">Product details</th>
                 <th className="p-4">Category</th>
@@ -409,9 +472,25 @@ export default function AdminProductsPage() {
             </thead>
             <tbody>
               {products.length > 0 ? (
-                products.map((prod) => (
-                  <tr key={prod.id} className="border-b border-zinc-200 dark:border-zinc-900/80 hover:bg-zinc-50 dark:hover:bg-zinc-900/20 text-zinc-700 dark:text-zinc-300 transition-colors">
+                products.map((prod, idx) => (
+                  <tr 
+                    key={prod.id} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    onDrop={(e) => handleDrop(e, idx)}
+                    className={`border-b border-zinc-200 dark:border-zinc-900/80 hover:bg-zinc-50 dark:hover:bg-zinc-900/20 text-zinc-700 dark:text-zinc-300 transition-all duration-200 ${draggedIndex === idx ? 'opacity-40 bg-zinc-100 dark:bg-zinc-800' : ''}`}
+                  >
                     
+                    {/* Order & Drag Handle cell */}
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing text-zinc-400 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-300">
+                        <GripVertical className="w-3.5 h-3.5" />
+                        <span className="font-mono text-[10px] font-bold">{idx + 1}</span>
+                      </div>
+                    </td>
+
                     {/* Image cell */}
                     <td className="p-4">
                       <div className="w-12 h-8 rounded overflow-hidden bg-zinc-100 dark:bg-zinc-850 border border-zinc-200 dark:border-zinc-800">
@@ -496,7 +575,7 @@ export default function AdminProductsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-zinc-450 dark:text-zinc-555 font-bold">
+                  <td colSpan={8} className="p-8 text-center text-zinc-450 dark:text-zinc-555 font-bold">
                     No products added yet. Click &quot;Add Product&quot; to list a new digital product.
                   </td>
                 </tr>
