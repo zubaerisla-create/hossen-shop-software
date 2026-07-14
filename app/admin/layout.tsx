@@ -169,7 +169,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-white dark:bg-zinc-950 transition-colors">
           
           {/* Mobile Dropdown Navigation */}
-          <div className="md:hidden bg-zinc-50/90 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-900 p-4 flex flex-col gap-2 relative">
+          <div className="md:hidden bg-zinc-50/90 dark:bg-zinc-955/85 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-900 p-4 flex flex-col gap-2 relative z-30">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer">
                 <div className="bg-gradient-to-r from-purple-600 to-indigo-650 dark:from-purple-500 dark:to-indigo-500 text-white font-extrabold text-[9px] px-2 py-0.5 rounded shadow-sm tracking-wider uppercase">
