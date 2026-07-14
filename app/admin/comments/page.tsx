@@ -25,6 +25,26 @@ export default function AdminCommentsPage() {
   const [editText, setEditText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'N/A';
+      return d.toLocaleDateString();
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleTimeString();
+    } catch {
+      return '';
+    }
+  };
+
   useEffect(() => {
     fetchComments();
   }, []);
@@ -231,9 +251,9 @@ export default function AdminCommentsPage() {
                     <td className="p-4 text-zinc-450 dark:text-zinc-400 font-mono text-[10px] space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 opacity-60" />
-                        <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                        <span>{formatDate(comment.createdAt)}</span>
                       </div>
-                      <span className="text-[9px] opacity-75">{new Date(comment.createdAt).toLocaleTimeString()}</span>
+                      <span className="text-[9px] opacity-75">{formatTime(comment.createdAt)}</span>
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-2">

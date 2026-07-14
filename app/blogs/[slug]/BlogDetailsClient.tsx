@@ -455,13 +455,22 @@ export default function BlogDetailsClient({ initialBlog: blog }: BlogDetailsClie
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-xs text-zinc-955 dark:text-white">{c.user}</span>
                         <span className="text-[10px] text-zinc-450 font-mono">
-                          {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          }) : 'Just now'}
+                          {(() => {
+                            if (!c.createdAt) return 'Just now';
+                            try {
+                              const d = new Date(c.createdAt);
+                              if (isNaN(d.getTime())) return 'Just now';
+                              return d.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              });
+                            } catch {
+                              return 'Just now';
+                            }
+                          })()}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-655 dark:text-zinc-400 leading-relaxed font-medium">

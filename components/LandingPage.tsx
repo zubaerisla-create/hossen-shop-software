@@ -372,11 +372,9 @@ export default function LandingPage({
           <div className="w-full pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-12 animate-fade-in-up animation-delay-300">
             <div className="flex flex-wrap items-center gap-6 md:gap-8 text-zinc-400 font-bold text-[9px] uppercase tracking-widest">
               <span className="text-zinc-550 normal-case tracking-normal">Trusted by builders at:</span>
-              <span className="hover:text-white transition-colors cursor-default">Google</span>
-              <span className="hover:text-white transition-colors cursor-default">Vercel</span>
-              <span className="hover:text-white transition-colors cursor-default">Linear</span>
-              <span className="hover:text-white transition-colors cursor-default">Stripe</span>
-              <span className="hover:text-white transition-colors cursor-default">Retool</span>
+              <span className="hover:text-white transition-colors cursor-default">Hossen Academy</span>
+             
+              
             </div>
           </div>
 
