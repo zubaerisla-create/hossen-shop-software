@@ -4,7 +4,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
-import { ArrowLeft, Cpu, Globe, MobileIcon, Layers, Server, Zap, Database, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Cpu, Globe, Layers, Server, Zap, Database, ArrowRight } from 'lucide-react';
 
 export default function DetailsPage() {
   const serviceCategories = [
