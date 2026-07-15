@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { initializeStorage, clearUserSession } from '@/app/utils/storage';
-import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers, Handshake } from 'lucide-react';
+import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers, Handshake, Building, Shield, Scale, RefreshCcw, Users, MessageSquare } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { servicesData } from '@/app/data/services';
 import { ServiceIcon } from '@/app/utils/icons';
@@ -25,10 +26,22 @@ export default function Header() {
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [showCompanyMenu, setShowCompanyMenu] = useState(false);
+  const [mobileCompanyOpen, setMobileCompanyOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const servicesRef = useRef<HTMLDivElement>(null);
   const servicesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const companyRef = useRef<HTMLDivElement>(null);
+  const companyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCompanyEnter = () => {
+    if (companyTimeoutRef.current) clearTimeout(companyTimeoutRef.current);
+    setShowCompanyMenu(true);
+  };
+  const handleCompanyLeave = () => {
+    companyTimeoutRef.current = setTimeout(() => setShowCompanyMenu(false), 120);
+  };
 
   // Scroll detection
   useEffect(() => {
@@ -743,6 +756,84 @@ export default function Header() {
               )}
             </div>
 
+            {/* Company Dropdown */}
+            <div
+              ref={companyRef}
+              className="relative"
+              onMouseEnter={handleCompanyEnter}
+              onMouseLeave={handleCompanyLeave}
+            >
+              <button
+                className={`nav-link-pill inline-flex items-center gap-1 ${
+                  ['/details', '/contact', '/privacy', '/terms', '/refund', '/about'].includes(pathname)
+                    ? 'active'
+                    : ''
+                }`}
+                onClick={() => setShowCompanyMenu((v) => !v)}
+              >
+                Company
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showCompanyMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCompanyMenu && (
+                <div
+                  className="absolute top-full left-0 mt-1 w-60 bg-white dark:bg-[#18181b] border border-zinc-250 dark:border-zinc-850 rounded-xl shadow-xl py-1.5 z-[200] animate-fadeIn"
+                  onMouseEnter={handleCompanyEnter}
+                  onMouseLeave={handleCompanyLeave}
+                >
+                  <Link
+                    href="/about"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-750 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-xs font-semibold transition-colors"
+                  >
+                    <Users className="w-3.5 h-3.5 text-zinc-500" />
+                    <span>About Us</span>
+                  </Link>
+                  <Link
+                    href="/details"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-750 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-xs font-semibold transition-colors"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-zinc-500" />
+                    <span>Product/Service Details</span>
+                  </Link>
+                  <Link
+                    href="/contact"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-750 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-xs font-semibold transition-colors"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-zinc-500" />
+                    <span>Contact Us</span>
+                  </Link>
+                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1" />
+                  <Link
+                    href="/privacy"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-750 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-[11px] font-medium transition-colors"
+                  >
+                    <Shield className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Privacy Policy</span>
+                  </Link>
+                  <Link
+                    href="/terms"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-750 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-[11px] font-medium transition-colors"
+                  >
+                    <Scale className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Terms & Conditions</span>
+                  </Link>
+                  <Link
+                    href="/refund"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-750 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-[11px] font-medium transition-colors"
+                  >
+                    <RefreshCcw className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Refund & Cancellation</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
             {/* Other nav links */}
             {otherNavLinks.map((link) => {
               const isHighlightPurple = link.highlight === 'purple';
@@ -957,6 +1048,76 @@ export default function Header() {
                         {svc.title}
                       </a>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Company accordion */}
+              <div>
+                <button
+                  onClick={() => setMobileCompanyOpen((v) => !v)}
+                  className={`mobile-nav-item w-full justify-between ${
+                    ['/details', '/contact', '/privacy', '/terms', '/refund', '/about'].includes(pathname)
+                      ? 'active'
+                      : ''
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Building className="w-4 h-4 text-zinc-500" /> Company
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0 ${mobileCompanyOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {mobileCompanyOpen && (
+                  <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-zinc-100 dark:border-zinc-800 pl-3 animate-fadeIn">
+                    <Link
+                      href="/about"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 px-2 rounded-lg text-[12px] font-medium text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <Users className="w-3.5 h-3.5 text-zinc-550 flex-shrink-0" />
+                      About Us
+                    </Link>
+                    <Link
+                      href="/details"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 px-2 rounded-lg text-[12px] font-medium text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <Layers className="w-3.5 h-3.5 text-zinc-555 flex-shrink-0" />
+                      Product/Service Details
+                    </Link>
+                    <Link
+                      href="/contact"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 px-2 rounded-lg text-[12px] font-medium text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-zinc-555 flex-shrink-0" />
+                      Contact Us
+                    </Link>
+                    <Link
+                      href="/privacy"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 px-2 rounded-lg text-[12px] font-medium text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-zinc-555 flex-shrink-0" />
+                      Privacy Policy
+                    </Link>
+                    <Link
+                      href="/terms"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 px-2 rounded-lg text-[12px] font-medium text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <Scale className="w-3.5 h-3.5 text-zinc-555 flex-shrink-0" />
+                      Terms & Conditions
+                    </Link>
+                    <Link
+                      href="/refund"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 px-2 rounded-lg text-[12px] font-medium text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <RefreshCcw className="w-3.5 h-3.5 text-zinc-555 flex-shrink-0" />
+                      Refund & Cancellation
+                    </Link>
                   </div>
                 )}
               </div>

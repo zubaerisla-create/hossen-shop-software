@@ -14,11 +14,13 @@ function SuccessPageContent() {
   const invoiceId = searchParams.get('invoice_id');
   const [loading, setLoading] = useState(true);
   const [productId, setProductId] = useState<string | null>(null);
+  const [dealId, setDealId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     async function sync() {
       let fetchedProductId: string | null = null;
+      let fetchedDealId: string | null = null;
       if (invoiceId) {
         const token = localStorage.getItem('apex_user_token');
         if (token) {
@@ -46,6 +48,12 @@ function SuccessPageContent() {
                   setProductId(fetchedProductId);
                 }
               }
+              if (resData.data?.invoice?.dealId) {
+                fetchedDealId = resData.data.invoice.dealId;
+                if (active) {
+                  setDealId(fetchedDealId);
+                }
+              }
             }
           } catch (e) {
             console.error('Failed to confirm payment or fetch invoice:', e);
@@ -58,8 +66,10 @@ function SuccessPageContent() {
       
       if (active) {
         setLoading(false);
-        // Automatically redirect to the specific purchased template page after 2.5 seconds
-        const targetPath = fetchedProductId ? `/user/products/${fetchedProductId}` : '/user/products';
+        // Automatically redirect to the specific purchased template page or deal workspace after 2.5 seconds
+        const targetPath = fetchedProductId 
+          ? `/user/products/${fetchedProductId}` 
+          : (fetchedDealId ? `/user/deals/${fetchedDealId}` : '/user/deals');
         setTimeout(() => {
           if (active) {
             router.push(targetPath);

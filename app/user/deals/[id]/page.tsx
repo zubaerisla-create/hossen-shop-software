@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
-import { FileText, Paperclip, Send } from 'lucide-react';
+import { FileText, Paperclip, Send, Shield, ArrowRight, CreditCard, Check } from 'lucide-react';
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
 import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../../utils/alert';
@@ -69,9 +69,13 @@ export default function UserDealDetailWorkspace() {
 
   // Payment Sim modal state
   const [payingMilestone, setPayingMilestone] = useState<{ milId: string; mil: any } | null>(null);
-  const [paymentStep, setPaymentStep] = useState<'details' | 'processing'>('details');
+  const [paymentStep, setPaymentStep] = useState<'select_method' | 'bkash_details' | 'processing'>('select_method');
+  const [selectedGateway, setSelectedGateway] = useState<'bkash' | 'stripe'>('bkash');
+  const [selectedCurrency, setSelectedCurrency] = useState<'BDT' | 'USD'>('BDT');
   const [phoneNum, setPhoneNum] = useState('');
   const [pin, setPin] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const [viewingDeliverablesMilestone, setViewingDeliverablesMilestone] = useState<any | null>(null);
 
   useEffect(() => {
@@ -422,80 +426,198 @@ export default function UserDealDetailWorkspace() {
 
   const startMilestonePayment = (milId: string, mil: any) => {
     setPayingMilestone({ milId, mil });
-    setPaymentStep('details');
+    setPaymentStep('select_method');
+    setSelectedGateway('bkash');
+    setSelectedCurrency('BDT');
     setPhoneNum('');
     setPin('');
+    setPaymentError('');
+    setIsProcessing(false);
   };
 
-  const executeMilestonePayment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phoneNum || pin.length < 4) return;
+  const findInvoiceForMilestone = async (milTitle: string) => {
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) return null;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/invoices`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok && data.data?.invoices) {
+        const invoicesList = data.data.invoices;
+        // Find matching unpaid invoice for this deal and milestone
+        const matched = invoicesList.find((inv: any) => 
+          inv.dealId === dealId &&
+          inv.status === 'Unpaid' &&
+          (inv.title === `Milestone Payment: ${milTitle}` || inv.title.includes(milTitle))
+        );
+        return matched || null;
+      }
+    } catch (err) {
+      console.error('Failed to find invoice for milestone:', err);
+    }
+    return null;
+  };
 
+  const handleStripeMilestonePayment = async () => {
+    if (!payingMilestone) return;
+    setIsProcessing(true);
+    setPaymentError('');
     setPaymentStep('processing');
 
-    setTimeout(() => {
-      if (!payingMilestone) return;
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      setPaymentError('Authentication token missing. Please log in again.');
+      setPaymentStep('select_method');
+      setIsProcessing(false);
+      return;
+    }
 
-      const updatedDeals = deals.map(d => {
-        if (d.id === dealId && d.quotation) {
-          const milestones = d.quotation.milestones.map(m => {
-            if (m.id === payingMilestone.milId) {
-              return {
-                ...m,
-                paymentStatus: 'Paid' as const,
-                status: 'Approved' as const
-              };
-            }
-            return m;
-          });
-          return {
-            ...d,
-            unreadAdmin: true,
-            quotation: {
-              ...d.quotation,
-              milestones
-            }
-          };
-        }
-        return d;
-      });
-
-      const token = localStorage.getItem('apex_user_token');
-      if (token) {
-        const updatedDeal = updatedDeals.find(d => d.id === dealId);
-        if (updatedDeal && updatedDeal.quotation) {
-          fetch(`${API_BASE_URL}/api/deals/${dealId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ quotation: updatedDeal.quotation })
-          }).catch(err => console.error('Failed to save milestone payment on backend:', err));
-        }
+    try {
+      const matchedInvoice = await findInvoiceForMilestone(payingMilestone.mil.title);
+      if (!matchedInvoice) {
+        throw new Error('Unpaid invoice for this milestone was not found on the server. Please contact admin.');
       }
 
-      saveDeals(updatedDeals);
-      setDeals(updatedDeals);
+      // Initialize Stripe Checkout session
+      const payResponse = await fetch(`${API_BASE_URL}/api/invoices/${matchedInvoice.id}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          gateway: 'stripe',
+          currency: selectedCurrency
+        })
+      });
 
-      const payMsg: ChatMessage = {
-        id: `msg-${Date.now()}`,
-        sender: 'customer',
-        content: `💳 bKash Payment Successful: settled ${format(payingMilestone.mil.cost)} for "${payingMilestone.mil.title}". Receipt transaction ID: TXN${Math.floor(Math.random() * 900000) + 100000}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
+      const payData = await payResponse.json();
+      if (!payResponse.ok) {
+        throw new Error(payData.message || 'Failed to start Stripe checkout session');
+      }
 
-      const updatedChats = {
-        ...chatMessages,
-        [dealId]: [...(chatMessages[dealId] || []), payMsg]
-      };
-      saveChats(updatedChats);
-      setChatMessages(updatedChats);
+      const checkoutUrl = payData.data.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        throw new Error('Payment gateway session URL was not returned');
+      }
+    } catch (err: any) {
+      console.error(err);
+      const errMsg = err?.message || 'Failed to initialize Stripe payment.';
+      setPaymentError(errMsg);
+      setPaymentStep('select_method');
+      setIsProcessing(false);
+      showErrorAlert('Payment Failed', errMsg);
+    }
+  };
+
+  const executeMilestonePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNum || pin.length < 4 || !payingMilestone) return;
+
+    setIsProcessing(true);
+    setPaymentError('');
+    setPaymentStep('processing');
+
+    const token = localStorage.getItem('apex_user_token');
+    if (!token) {
+      setPaymentError('Authentication token missing. Please log in again.');
+      setPaymentStep('bkash_details');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      const matchedInvoice = await findInvoiceForMilestone(payingMilestone.mil.title);
+      if (!matchedInvoice) {
+        throw new Error('Unpaid invoice for this milestone was not found on the server.');
+      }
+
+      // 1. Initialize bKash Pay (Mock session generation on server)
+      const payResponse = await fetch(`${API_BASE_URL}/api/invoices/${matchedInvoice.id}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          gateway: 'bkash',
+          currency: 'BDT'
+        })
+      });
+
+      const payData = await payResponse.json();
+      if (!payResponse.ok) {
+        throw new Error(payData.message || 'Failed to initiate bKash payment.');
+      }
+
+      // 2. Confirm Payment on server
+      const confirmResponse = await fetch(`${API_BASE_URL}/api/invoices/${matchedInvoice.id}/confirm-payment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!confirmResponse.ok) {
+        const confirmData = await confirmResponse.json();
+        throw new Error(confirmData.message || 'Failed to confirm payment on server.');
+      }
+
+      // Now sync backend changes
+      await syncWithBackend();
+
+      // Send chat message in the channel automatically
+      try {
+        await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ 
+            content: `💳 bKash Payment Successful: settled ${format(payingMilestone.mil.cost)} for "${payingMilestone.mil.title}". Receipt transaction ID: TXN${Math.floor(Math.random() * 900000) + 100000}` 
+          }),
+        });
+      } catch (chatErr) {
+        console.error('Failed to post payment chat message:', chatErr);
+      }
+
+      // Re-fetch deal details
+      const dealResponse = await fetch(`${API_BASE_URL}/api/deals/${dealId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const dealResData = await dealResponse.json();
+      if (dealResponse.ok && dealResData.data?.deal) {
+        const backendDeal = dealResData.data.deal;
+        setDeals(prev => prev.map(d => d.id === dealId ? backendDeal : d));
+      }
+
+      // Re-fetch chat messages
+      const msgsResponse = await fetch(`${API_BASE_URL}/api/deals/${dealId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const msgsResData = await msgsResponse.json();
+      if (msgsResponse.ok && msgsResData.data?.messages) {
+        setChatMessages(prev => ({
+          ...prev,
+          [dealId]: msgsResData.data.messages
+        }));
+      }
 
       const paidCost = payingMilestone.mil.cost;
       setPayingMilestone(null);
-      showSuccessAlert('Payment Successful!', `Milestone payment of ${format(paidCost)} has been successfully processed.`);
-    }, 2500);
+      showSuccessAlert('Payment Successful!', `Milestone payment of ${format(paidCost)} has been successfully processed via bKash.`);
+
+    } catch (err: any) {
+      console.error(err);
+      const errMsg = err?.message || 'bKash payment simulation failed.';
+      setPaymentError(errMsg);
+      setPaymentStep('bkash_details');
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -948,67 +1070,275 @@ export default function UserDealDetailWorkspace() {
         </div>
       </div>
 
-      {/* bKash Payment Simulation Gateway Modal */}
+      {/* Secure Checkout / Payment Modal */}
       {payingMilestone && (
         <div className="fixed inset-0 z-55 overflow-y-auto flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-rose-700 border border-rose-800 w-full max-w-sm rounded-lg overflow-hidden shadow-2xl p-6 text-white space-y-6">
-            
-            {/* bKash Header Logo */}
-            <div className="flex justify-between items-center border-b border-rose-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="bg-white text-rose-700 rounded px-2.5 py-1 font-extrabold text-sm uppercase italic">
-                  bKash
+          <div className="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl relative font-sans">
+            <button 
+              onClick={() => setPayingMilestone(null)} 
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer z-10"
+            >
+              ✕
+            </button>
+
+            {paymentStep === 'select_method' && (
+              <>
+                <div className="bg-zinc-50 dark:bg-zinc-950 py-3.5 px-6 border-b border-zinc-200 dark:border-zinc-850 flex justify-between items-center">
+                  <span className="font-extrabold text-[10px] text-zinc-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-zinc-400" /> Secure Milestone Pay
+                  </span>
+                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wide">Phase Payment</span>
                 </div>
-                <span className="font-extrabold text-xs uppercase tracking-wider">Merchant Pay</span>
+
+                <div className="p-6 space-y-5 text-xs">
+                  {paymentError && (
+                    <div className="bg-red-55 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 p-3 rounded text-[10px] font-semibold">
+                      {paymentError}
+                    </div>
+                  )}
+
+                  {/* Currency & Payment Gateway Selectors */}
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-450 dark:text-zinc-400 block mb-1.5">Select Currency</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCurrency('BDT');
+                          }}
+                          className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] ${
+                            selectedCurrency === 'BDT'
+                              ? 'bg-zinc-950 dark:bg-white text-white dark:text-black border-transparent'
+                              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                          }`}
+                        >
+                          🇧🇩 BDT (৳)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCurrency('USD');
+                            setSelectedGateway('stripe');
+                          }}
+                          className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] ${
+                            selectedCurrency === 'USD'
+                              ? 'bg-zinc-950 dark:bg-white text-white dark:text-black border-transparent'
+                              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                          }`}
+                        >
+                          🇺🇸 USD ($)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-450 dark:text-zinc-400 block mb-1.5">Payment Method</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedGateway('bkash')}
+                          disabled={selectedCurrency === 'USD'}
+                          className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] flex items-center justify-center gap-1.5 ${
+                            selectedGateway === 'bkash'
+                              ? 'bg-[#e2136e] text-white border-transparent'
+                              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed'
+                          }`}
+                        >
+                          <span>bKash</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedGateway('stripe')}
+                          className={`py-1.5 px-3 rounded-lg font-bold border transition-all text-center cursor-pointer text-[10px] flex items-center justify-center gap-1.5 ${
+                            selectedGateway === 'stripe'
+                              ? 'bg-[#635bff] text-white border-transparent'
+                              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <span>Stripe</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Order Invoice Breakdown */}
+                  <div className="border border-zinc-205 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-950/60 p-4 rounded-lg space-y-2">
+                    <div className="text-center pb-2 border-b border-zinc-200/60 dark:border-zinc-900/60">
+                      <span className="text-zinc-500 text-[9px] block uppercase tracking-wider">Milestone Description</span>
+                      <span className="font-bold text-zinc-950 dark:text-white text-xs block truncate mt-0.5">{payingMilestone.mil.title}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-zinc-500">
+                      <span>Base Amount</span>
+                      <span className="font-semibold text-zinc-900 dark:text-white">
+                        {selectedCurrency === 'USD' 
+                          ? `$${Math.round(payingMilestone.mil.cost / 120).toLocaleString()}` 
+                          : `৳ ${payingMilestone.mil.cost.toLocaleString()}`
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs pt-1.5 border-t border-zinc-200/60 dark:border-zinc-900/60 font-bold">
+                      <span className="text-zinc-900 dark:text-white">Total Settlement</span>
+                      <span className="text-emerald-605 dark:text-emerald-400">
+                        {selectedCurrency === 'USD' 
+                          ? `$${Math.round(payingMilestone.mil.cost / 120).toLocaleString()}` 
+                          : `৳ ${payingMilestone.mil.cost.toLocaleString()}`
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Gateway decoration banner */}
+                  <div className="relative h-20 bg-gradient-to-br from-violet-600/10 to-indigo-600/10 dark:from-violet-600/5 dark:to-indigo-600/5 border border-zinc-200/50 dark:border-zinc-850 rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300">
+                    <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                    {selectedGateway === 'stripe' ? (
+                      <div className="flex items-center gap-3 z-10 text-zinc-800 dark:text-zinc-200">
+                        <div className="w-10 h-6 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded flex flex-col justify-between p-1 shadow-md border border-zinc-800 dark:border-zinc-200">
+                          <span className="text-[4px] font-bold tracking-widest font-mono">STRIPE</span>
+                          <span className="text-[5px] text-right font-mono mt-1">••••</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-zinc-900 dark:text-white text-[10px] block">Pay Securely with Card</span>
+                          <span className="text-zinc-400 text-[8px] block">Visa, Mastercard, Amex, Apple Pay</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 z-10 text-zinc-800 dark:text-zinc-200">
+                        <div className="w-10 h-6 bg-[#e2136e] text-white rounded flex items-center justify-center font-bold text-[8px] tracking-wide shadow-md border border-[#d12053]">
+                          bKash
+                        </div>
+                        <div>
+                          <span className="font-bold text-zinc-900 dark:text-white text-[10px] block">Pay Securely with bKash</span>
+                          <span className="text-zinc-400 text-[8px] block">Instant mobile wallet verification</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedGateway === 'stripe' ? (
+                    <button
+                      onClick={handleStripeMilestonePayment}
+                      className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black rounded-lg font-bold transition-all hover:scale-[1.01] cursor-pointer text-center text-[10px] uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5"
+                    >
+                      Proceed to Stripe Checkout <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setPaymentStep('bkash_details')}
+                      className="w-full py-2.5 bg-[#e2136e] hover:bg-[#d12053] text-white rounded-lg font-bold transition-all hover:scale-[1.01] cursor-pointer text-center text-[10px] uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5"
+                    >
+                      Proceed to bKash Pay <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {paymentStep === 'bkash_details' && (
+              <div className="bg-[#e2136e] text-white flex flex-col items-center rounded-xl overflow-hidden shadow-2xl">
+                {/* bKash branding header */}
+                <div className="w-full bg-[#d12053] py-4 px-6 flex justify-between items-center border-b border-[#e2136e]/20">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold tracking-wider text-sm">bKash</span>
+                    <span className="text-[10px] bg-white text-[#e2136e] font-extrabold px-1.5 py-0.5 rounded">Checkout</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setPaymentStep('select_method');
+                      setPhoneNum('');
+                      setPin('');
+                    }} 
+                    className="text-white hover:opacity-80 font-bold text-sm cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Merchant Details Block */}
+                <div className="w-full bg-white text-zinc-900 px-6 py-4 flex justify-between items-center text-xs border-b border-zinc-100 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#e2136e]/10 flex items-center justify-center font-bold text-[#e2136e] text-[10px]">
+                      AP
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-950 text-[11px]">Apex Software Shop</p>
+                      <p className="text-zinc-500 text-[9px] font-mono truncate max-w-[120px]">{payingMilestone.mil.title}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-wide">Amount</p>
+                    <p className="font-extrabold text-[#e2136e] text-xs">৳ {payingMilestone.mil.cost.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="w-full p-6 flex-1 flex flex-col justify-between min-h-[220px]">
+                  <form onSubmit={executeMilestonePayment} className="space-y-4 text-xs">
+                    {paymentError && (
+                      <div className="bg-rose-800 border border-rose-900 text-white p-2.5 rounded text-[10px] font-semibold">
+                        {paymentError}
+                      </div>
+                    )}
+
+                    <div className="text-center space-y-1.5">
+                      <p className="text-xs font-semibold">Your bKash Account Number</p>
+                      <p className="text-[10px] text-white/80">Enter your 11-digit mobile number</p>
+                    </div>
+
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">+88</span>
+                      <input
+                        type="text"
+                        maxLength={11}
+                        required
+                        placeholder="017XXXXXXXX"
+                        value={phoneNum}
+                        onChange={(e) => setPhoneNum(e.target.value.replace(/\D/g, ''))}
+                        className="w-full pl-12 pr-4 py-2.5 bg-white text-zinc-950 font-bold rounded-lg text-xs tracking-widest text-center shadow-inner focus:outline-none focus:ring-2 focus:ring-[#d12053]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white/80 font-bold mb-1 text-center">Enter 5-digit PIN</label>
+                      <input
+                        type="password"
+                        maxLength={5}
+                        required
+                        placeholder="XXXXX"
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                        className="w-full bg-rose-800 border border-rose-900 rounded p-2.5 text-white placeholder:text-white/40 focus:outline-none tracking-widest font-mono text-center"
+                      />
+                    </div>
+
+                    <div className="flex gap-2.5 pt-3 border-t border-rose-800">
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setPaymentStep('select_method');
+                          setPhoneNum('');
+                          setPin('');
+                        }} 
+                        className="flex-1 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded font-bold cursor-pointer transition-colors"
+                      >
+                        Back
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="flex-1 py-2 bg-white text-rose-700 hover:bg-[#d12053] rounded font-bold cursor-pointer transition-colors"
+                      >
+                        Confirm Pay
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-              <button onClick={() => setPayingMilestone(null)} className="text-white/80 hover:text-white text-base">✕</button>
-            </div>
+            )}
 
-            {paymentStep === 'details' ? (
-              <form onSubmit={executeMilestonePayment} className="space-y-4 text-xs">
-                <div className="bg-rose-800/40 p-4 rounded border border-rose-850 space-y-2">
-                  <p className="font-bold text-center text-xs">Milestone Settlement Pay</p>
-                  <p className="text-center font-mono text-sm font-extrabold text-amber-350">{format(payingMilestone.mil.cost)}</p>
-                  <p className="text-[10px] text-white/60 text-center">VAT included (5%)</p>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-white/80 font-bold mb-1">Your bKash Account Number</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 017XXXXXXXX"
-                      value={phoneNum}
-                      onChange={(e) => setPhoneNum(e.target.value)}
-                      className="w-full bg-rose-800 border border-rose-900 rounded p-2 text-white placeholder:text-white/40 focus:outline-none font-mono"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-white/80 font-bold mb-1">Enter 5-digit PIN</label>
-                    <input
-                      type="password"
-                      maxLength={5}
-                      required
-                      placeholder="XXXXX"
-                      value={pin}
-                      onChange={(e) => setPin(e.target.value)}
-                      className="w-full bg-rose-800 border border-rose-900 rounded p-2 text-white placeholder:text-white/40 focus:outline-none tracking-widest font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-2.5 pt-3 border-t border-rose-800">
-                  <button type="button" onClick={() => setPayingMilestone(null)} className="flex-1 py-2 bg-rose-800 hover:bg-rose-900 text-white rounded font-bold cursor-pointer transition-colors">Cancel</button>
-                  <button type="submit" className="flex-1 py-2 bg-white text-rose-700 hover:bg-rose-100 rounded font-bold cursor-pointer transition-colors">Confirm Pay</button>
-                </div>
-              </form>
-            ) : (
-              <div className="py-8 text-center space-y-4">
-                <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="font-bold text-xs uppercase tracking-wider animate-pulse">Processing gateway payment...</p>
-                <p className="text-[10px] text-white/60">Do not close window or refresh.</p>
+            {paymentStep === 'processing' && (
+              <div className="p-8 text-center space-y-4 text-zinc-900 dark:text-white">
+                <div className="w-10 h-10 border-4 border-[#635bff] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="font-bold text-xs uppercase tracking-wider animate-pulse">Connecting Gateway...</p>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Securing payment connection. Do not close or refresh.</p>
               </div>
             )}
           </div>
