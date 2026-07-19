@@ -565,7 +565,7 @@ export default function PurchasedProductDetailPage() {
                             <td className="p-3 font-semibold text-zinc-950 dark:text-white">Superuser Credentials</td>
                             <td className="p-3 font-mono">admin@agency-client.com</td>
                             <td className="p-3 font-mono flex items-center gap-1.5">
-                              <span>Hossen ShopDemo2026!</span>
+                              <span>Hosen ShopDemo2026!</span>
                             </td>
                           </tr>
                           <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 text-zinc-700 dark:text-zinc-300">

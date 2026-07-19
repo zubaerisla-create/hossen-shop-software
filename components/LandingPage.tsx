@@ -210,7 +210,7 @@ export default function LandingPage({
   }, []);
 
   const [reviewsList, setReviewsList] = useState<any[]>([
-    { name: 'Dr. Mahbubul Alam', role: 'Director, CareHospital', comment: 'Hossen Shop designed our entire consultation portal. The milestone system kept us aligned, and the Gantt timeline was 100% accurate. Highly recommended!', rating: 5, productName: 'AI SmartWriter - Automated SEO Content Creator', productId: '92d3c302-e80f-4970-95b8-6402af24c1f1', date: '2026-06-20' },
+    { name: 'Dr. Mahbubul Alam', role: 'Director, CareHospital', comment: 'Hosen Shop designed our entire consultation portal. The milestone system kept us aligned, and the Gantt timeline was 100% accurate. Highly recommended!', rating: 5, productName: 'AI SmartWriter - Automated SEO Content Creator', productId: '92d3c302-e80f-4970-95b8-6402af24c1f1', date: '2026-06-20' },
     { name: 'Sajid Mahmud', role: 'Founder, DevLaunch', comment: 'Purchased their SaaS boilerplate. The code structure is incredibly clean, saving us at least 3 weeks of work. Lifetime support is excellent!', rating: 5, productName: 'DevFlow - Next.js 15 SaaS Boilerplate & Starter Kit', productId: 'e74014c7-44e9-48a3-849d-782b62adeec9', date: '2026-06-20' },
     { name: 'Maria K.', role: 'Product Lead, FinSolve', comment: 'Their custom development flow is seamless. The electronic signing and milestone approval payments made the whole project feel highly secure.', rating: 5, productName: 'EcoShop - High-Conversion Next.js E-Commerce Storefront', productId: '36115d79-22fb-47f5-a034-bf7b45c62519', date: '2026-06-20' }
   ]);
@@ -372,7 +372,7 @@ export default function LandingPage({
           <div className="w-full pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mt-12 animate-fade-in-up animation-delay-300">
             <div className="flex flex-wrap items-center gap-6 md:gap-8 text-zinc-400 font-bold text-[9px] uppercase tracking-widest">
               <span className="text-zinc-550 normal-case tracking-normal">Trusted by builders at:</span>
-              <span className="hover:text-white transition-colors cursor-default">Hossen Academy</span>
+              <span className="hover:text-white transition-colors cursor-default">Hosen Academy</span>
              
               
             </div>

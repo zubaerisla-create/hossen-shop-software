@@ -26,16 +26,16 @@ export async function generateMetadata(
   const blog = await getBlog(slug);
   if (!blog) {
     return {
-      title: 'Article Not Found | Hossen Academy',
+      title: 'Article Not Found | Hosen Academy',
       description: 'The requested publishing article was not found.'
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hossen-software-shop.solutionsquad.tech';
+  const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hosen-software-shop.solutionsquad.tech';
 
   return {
-    title: blog.seoTitle || `${blog.title} | Hossen Academy`,
-    description: blog.seoDesc || blog.excerpt || 'Technical guide from Hossen Academy',
+    title: blog.seoTitle || `${blog.title} | Hosen Academy`,
+    description: blog.seoDesc || blog.excerpt || 'Technical guide from Hosen Academy',
     keywords: blog.seoKeywords || blog.tags.join(', '),
     alternates: {
       canonical: blog.canonicalUrl || `${siteUrl}/blogs/${blog.slug}`

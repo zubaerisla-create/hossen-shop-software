@@ -255,7 +255,7 @@ function ProductsContent() {
       </main>
 
       <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-950/40 py-8 text-center text-xs text-zinc-500">
-        <p>© 2026 Hossen Shop Hybrid Marketplace & Software Engineering Firm. Uttara Sector 11 Dhaka BD.</p>
+        <p>© 2026 Hosen Shop Hybrid Marketplace & Software Engineering Firm. Uttara Sector 11 Dhaka BD.</p>
       </footer>
     </div>
   );

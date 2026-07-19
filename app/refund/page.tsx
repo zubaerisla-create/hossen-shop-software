@@ -120,7 +120,7 @@ export default function RefundPolicyPage() {
                 To submit an exception refund claim or cancellation notice, please open a support ticket under the **Billing** category or send a message to:
               </p>
               <p className="text-xs font-bold text-[#6A2D3D] dark:text-[#fca5a5] block">
-                billing@hossenshop.com
+                billing@hosenshop.com
               </p>
             </div>
 

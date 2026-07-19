@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { API_BASE_URL } from '@/app/utils/api';
 
-const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hossen-software-shop.solutionsquad.tech';
+const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hosen-software-shop.solutionsquad.tech';
 
 async function getBlogs(): Promise<{ slug: string; updatedAt: string }[]> {
   try {

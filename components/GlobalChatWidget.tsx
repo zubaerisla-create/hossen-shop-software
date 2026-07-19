@@ -128,7 +128,7 @@ export default function GlobalChatWidget() {
       {
         id: 'welcome',
         sender: 'assistant',
-        content: 'Hello! I am your Hossen Software Shop Asistant. How can I help you today? You can ask me about our readymade templates, custom software services, pricing, or support tickets!',
+        content: 'Hello! I am your Hosen Software Shop Assistant. How can I help you today? You can ask me about our readymade templates, custom software services, pricing, or support tickets!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -214,7 +214,7 @@ export default function GlobalChatWidget() {
       const assistantMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         sender: 'assistant',
-        content: "I apologize, but I am currently offline. Please check your internet connection or email us at support@hossen-software.com.",
+        content: "I apologize, but I am currently offline. Please check your internet connection or email us at support@hosen-software.com.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, assistantMsg]);
@@ -287,7 +287,7 @@ export default function GlobalChatWidget() {
                 <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-zinc-950" />
               </div>
               <div>
-                <span className="font-bold text-zinc-950 dark:text-white block">Hossen Software Shop Assistant</span>
+                <span className="font-bold text-zinc-950 dark:text-white block">Hosen Software Shop Assistant</span>
                 <span className="text-[9px] text-zinc-505 flex items-center gap-1">
                   <span>AI Agent Online</span>
                 </span>

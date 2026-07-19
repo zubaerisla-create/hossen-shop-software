@@ -54,7 +54,7 @@ export default function PaymentCancelPage() {
       </main>
 
       <footer className="border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#09090b] py-8 text-center text-xs text-zinc-500 mt-auto">
-        <p>© 2026 Hossen Shop. All rights reserved.</p>
+        <p>© 2026 Hosen Shop. All rights reserved.</p>
       </footer>
     </div>
   );

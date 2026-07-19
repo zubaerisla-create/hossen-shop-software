@@ -358,7 +358,7 @@ export default function AdminEmailsPage() {
                 <label className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block">Message Body</label>
                 <textarea
                   rows={9}
-                  placeholder="Type your message content here. This message will be formatted into a high-quality announcement email with Hossen Software Shop logo and structure."
+                  placeholder="Type your message content here. This message will be formatted into a high-quality announcement email with Hosen Software Shop logo and structure."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
@@ -505,7 +505,7 @@ export default function AdminEmailsPage() {
                 <span className="font-mono text-zinc-500 block mt-1">
                   shakil@gmail.com,<br />
                   rakib@yahoo.com;<br />
-                  tanvir@hossenshop.com
+                  tanvir@hosenshop.com
                 </span>
               </div>
             </div>

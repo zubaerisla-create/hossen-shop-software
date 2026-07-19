@@ -695,7 +695,7 @@ export default function Header() {
             onClick={() => router.push('/')}
             className="flex items-center gap-2.5 cursor-pointer select-none flex-shrink-0 group"
           >
-            <span className="logo-badge transition-transform duration-300 group-hover:scale-105">HOSSEN</span>
+            <span className="logo-badge transition-transform duration-300 group-hover:scale-105">HOSEN</span>
             <span className="text-[13px] font-extrabold text-zinc-800 dark:text-zinc-100 logo-text tracking-tight hidden sm:block transition-all duration-300 group-hover:translate-x-0.5">
               Software<span className="text-[#6A2D3D] dark:text-[#fca5a5] logo-dot mx-0.5 transition-colors font-black">·</span><span className="text-[#6A2D3D] dark:text-[#fca5a5] font-black">Shop</span>
             </span>

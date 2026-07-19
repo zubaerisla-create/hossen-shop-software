@@ -46,12 +46,12 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
               <div className="bg-violet-600 text-white p-1.5 rounded-lg font-black text-sm tracking-wider uppercase">
                 AGENCY
               </div>
-              <span className="font-extrabold text-lg text-zinc-900 tracking-tight">Hossen Shop</span>
+              <span className="font-extrabold text-lg text-zinc-900 tracking-tight">Hosen Shop</span>
             </div>
-            <p className="text-[11px] text-zinc-500 leading-normal">
+            <p className="text-[11px] text-zinc-505 leading-normal">
               Road 4, Sector 11, Uttara<br />
               Dhaka 1230, Bangladesh<br />
-              billing@Hossen Shop.com | +880 1711 000000
+              billing@hosenshop.com | +880 1711 000000
             </p>
           </div>
           <div className="text-right">

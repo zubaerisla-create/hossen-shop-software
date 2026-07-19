@@ -46,7 +46,7 @@ export default function TermsConditionsPage() {
               Conditions of Use
             </h1>
             <p className="text-zinc-550 dark:text-zinc-400 text-xs md:text-sm leading-relaxed font-semibold">
-              Last Updated: July 15, 2026. By accessing Hossen Software Shop, purchasing templates, or signing custom milestone agreements, you consent to these terms.
+              Last Updated: July 15, 2026. By accessing Hosen Software Shop, purchasing templates, or signing custom milestone agreements, you consent to these terms.
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export default function TermsConditionsPage() {
                 2. Software Licensing Models
               </h3>
               <p className="text-xs md:text-sm text-zinc-650 dark:text-zinc-400 leading-relaxed font-semibold">
-                All templates, source code files, and custom delivery assets remain the intellectual property of Hossen Software Shop. When purchasing ready products, the following terms apply:
+                All templates, source code files, and custom delivery assets remain the intellectual property of Hosen Software Shop. When purchasing ready products, the following terms apply:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">

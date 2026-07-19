@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-extrabold tracking-tight uppercase">Admin Terminal</h1>
-            <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Hossen Software Shop Internal Staff</p>
+            <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Hosen Software Shop Internal Staff</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@ export default function AdminLoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@hossenshop.com"
+                  placeholder="admin@hosenshop.com"
                   className="w-full bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-700 border border-zinc-200 dark:border-zinc-800 focus:border-zinc-400 dark:focus:border-zinc-700 rounded-lg pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none transition-colors"
                   required
                 />

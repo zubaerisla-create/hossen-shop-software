@@ -83,8 +83,8 @@ export default function ContactPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Email Address</p>
-                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">support@hossenshop.com</p>
-                  <p className="text-[11px] text-zinc-500 font-semibold">Average response under 2 hours</p>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">support@hosenshop.com</p>
+                  <p className="text-[11px] text-zinc-505 font-semibold">Average response under 2 hours</p>
                 </div>
               </div>
 
@@ -95,7 +95,7 @@ export default function ContactPage() {
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Phone Hotline</p>
                   <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">+880 1712-345678</p>
-                  <p className="text-[11px] text-zinc-500 font-semibold">Active Mon - Sat, 9 AM - 6 PM</p>
+                  <p className="text-[11px] text-zinc-505 font-semibold">Active Mon - Sat, 9 AM - 6 PM</p>
                 </div>
               </div>
 
@@ -105,7 +105,7 @@ export default function ContactPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Corporate Address</p>
-                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Hossen Software Tower, Level 8</p>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Hosen Software Tower, Level 8</p>
                   <p className="text-[11px] text-zinc-550 dark:text-zinc-400 font-semibold">Banani, Dhaka-1213, Bangladesh</p>
                 </div>
               </div>

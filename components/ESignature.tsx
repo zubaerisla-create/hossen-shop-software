@@ -110,7 +110,7 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
           </div>
           <div>
             <h3 className="text-base font-bold text-white">Online Service Contract & Agreement</h3>
-            <p className="text-[10px] text-zinc-400">Hossen Shop Digital Agency Proposal Approval</p>
+            <p className="text-[10px] text-zinc-400">Hosen Shop Digital Agency Proposal Approval</p>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
             <p className="font-bold text-white text-sm uppercase border-b border-zinc-800 pb-2">CONTRACT FOR SERVICES</p>
             <p>
               This Digital Services Agreement (the "Agreement") is entered into as of the date of signing, by and between{' '}
-              <strong className="text-white">Hossen Shop Digital Agency</strong> ("Agency") and the{' '}
+              <strong className="text-white">Hosen Shop Digital Agency</strong> ("Agency") and the{' '}
               <strong className="text-white">Client</strong> signing below, for development of:{' '}
               <strong className="text-violet-400">{dealTitle}</strong>.
             </p>
@@ -210,7 +210,7 @@ export default function ESignature({ dealTitle, totalCost, onSign, onCancel }: E
                 className="mt-0.5 accent-violet-600"
               />
               <span className="text-zinc-400 group-hover:text-zinc-300">
-                I hereby declare that I have read the terms, understand the milestone payment schedule, and authorize Hossen Shop to initiate development upon signing.
+                I hereby declare that I have read the terms, understand the milestone payment schedule, and authorize Hosen Shop to initiate development upon signing.
               </span>
             </label>
 

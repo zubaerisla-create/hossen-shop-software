@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Software Development Services | Custom Web, Mobile & SaaS Solutions',
-  description: 'Professional software development services from Hossen Software Shop — custom web apps, mobile applications, SaaS platforms, UI/UX design, and full-stack development for businesses.',
+  description: 'Professional software development services from Hosen Software Shop — custom web apps, mobile applications, SaaS platforms, UI/UX design, and full-stack development for businesses.',
   keywords: [
     'custom software development services',
     'web app development',
@@ -10,14 +10,14 @@ export const metadata: Metadata = {
     'SaaS development company',
     'full stack developer Bangladesh',
     'hire software developer',
-    'Hossen Software Shop services',
+    'Hosen Software Shop services',
     'custom website development',
   ],
   alternates: {
     canonical: '/services',
   },
   openGraph: {
-    title: 'Software Development Services | Hossen Software Shop',
+    title: 'Software Development Services | Hosen Software Shop',
     description: 'Custom web apps, mobile apps, SaaS platforms, and full-stack development services.',
     url: '/services',
     type: 'website',

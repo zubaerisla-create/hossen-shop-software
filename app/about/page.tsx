@@ -34,14 +34,14 @@ export default function AboutPage() {
               Digital Excellence
             </h1>
             <p className="text-zinc-650 dark:text-zinc-400 text-sm md:text-base leading-relaxed font-medium">
-              Hossen Software Shop is an elite engineering agency and digital product marketplace. We craft state-of-the-art SaaS boilerplates, mobile apps, web storeフロントs, and custom software systems designed to turn complex business logic into smooth, scalable, and profit-generating operations.
+              Hosen Software Shop is an elite engineering agency and digital product marketplace. We craft state-of-the-art SaaS boilerplates, mobile apps, web storeフロントs, and custom software systems designed to turn complex business logic into smooth, scalable, and profit-generating operations.
             </p>
           </div>
           <div className="md:w-2/5 flex justify-center relative">
             <div className="w-72 h-72 rounded-3xl bg-gradient-to-tr from-[#6A2D3D]/10 to-[#8B3A50]/20 absolute -z-10 blur-xl animate-pulse" />
             <img
               src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"
-              alt="Hossen Software Shop Team"
+              alt="Hosen Software Shop Team"
               className="w-full max-w-[340px] aspect-[4/3] object-cover rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl"
             />
           </div>
@@ -88,7 +88,7 @@ export default function AboutPage() {
             </h2>
             <div className="space-y-6 text-zinc-650 dark:text-zinc-400 text-sm leading-relaxed font-semibold">
               <p>
-                Founded in 2023, Hossen Software Shop started as a small collective of senior developers dedicated to solving the redundancy of bootstrapping web applications. We realized that teams were wasting weeks setting up authentication, setting up databases, designing UI components, and connecting payment integrations like Stripe and bKash over and over.
+                Founded in 2023, Hosen Software Shop started as a small collective of senior developers dedicated to solving the redundancy of bootstrapping web applications. We realized that teams were wasting weeks setting up authentication, setting up databases, designing UI components, and connecting payment integrations like Stripe and bKash over and over.
               </p>
               <p>
                 To address this, we developed our curated marketplace of starter kits and SaaS boilerplates. Every template we publish is vetted for performance, SEO friendliness, clean directory structures, and responsive layouts. From there, we expanded our offerings to full custom software consulting, delivering production-ready platforms for e-commerce, tele-health, and AI workflow automation.

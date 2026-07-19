@@ -430,7 +430,7 @@ export default function AuthModal({
         <div className="text-[9px] text-zinc-400 dark:text-zinc-500 leading-relaxed pt-6 border-t border-zinc-100 dark:border-zinc-900/60 mt-4">
           <p className="text-center mb-1">Additional verification may be required at a later stage</p>
           <p className="text-left">
-            By joining, you agree to the Hossen Shop <a href="#" className="underline font-bold hover:text-zinc-700">Terms of Service</a> and to occasionally receive emails from us. Please read our <a href="#" className="underline font-bold hover:text-zinc-700">Privacy Policy</a> to learn how we use your personal data.
+            By joining, you agree to the Hosen Shop <a href="#" className="underline font-bold hover:text-zinc-700">Terms of Service</a> and to occasionally receive emails from us. Please read our <a href="#" className="underline font-bold hover:text-zinc-700">Privacy Policy</a> to learn how we use your personal data.
           </p>
         </div>
 

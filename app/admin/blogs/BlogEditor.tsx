@@ -56,7 +56,7 @@ export default function BlogEditor({ blogId }: BlogEditorProps) {
   const [formTitle, setFormTitle] = useState('');
   const [formSlug, setFormSlug] = useState('');
   const [formExcerpt, setFormExcerpt] = useState('');
-  const [formAuthor, setFormAuthor] = useState('Hossen Shop Team');
+  const [formAuthor, setFormAuthor] = useState('Hosen Shop Team');
   const [formAuthorBio, setFormAuthorBio] = useState('Technical Writer and software engineer.');
   const [formTwitter, setFormTwitter] = useState('');
   const [formLinkedin, setFormLinkedin] = useState('');
@@ -104,7 +104,7 @@ export default function BlogEditor({ blogId }: BlogEditorProps) {
   const [formAllowComments, setFormAllowComments] = useState(true);
   const [formVisibility, setFormVisibility] = useState<Blog['visibility']>('Public');
 
-  // Hossen Academy / Promotional integrations
+  // Hosen Academy / Promotional integrations
   const [formDifficulty, setFormDifficulty] = useState<Blog['difficulty']>('Beginner');
   const [formCompletionTime, setFormCompletionTime] = useState('');
   const [formKeyTakeaways, setFormKeyTakeaways] = useState<string[]>([]);
@@ -463,7 +463,7 @@ export default function BlogEditor({ blogId }: BlogEditorProps) {
       content: compiledHtml || 'No text content provided.',
       image: formImage.trim(),
       tags: tagsArray,
-      author: formAuthor.trim() || 'Hossen Shop Team',
+      author: formAuthor.trim() || 'Hosen Shop Team',
       
       excerpt: formExcerpt.trim() || formTitle,
       authorBio: formAuthorBio.trim(),
@@ -620,8 +620,8 @@ export default function BlogEditor({ blogId }: BlogEditorProps) {
         setFormTags(`${formTitle.split(' ')[0]}, Development, Tech`);
         showSuccessToast('AI successfully drafted a structural article outline!');
       } else if (action === 'seo') {
-        setFormSeoTitle(`${formTitle} | Hossen Software Shop Insights`);
-        setFormSeoDesc(`Read the latest developer guide about ${formTitle} published by the software engineering team at Hossen Software Shop.`);
+        setFormSeoTitle(`${formTitle} | Hosen Software Shop Insights`);
+        setFormSeoDesc(`Read the latest developer guide about ${formTitle} published by the software engineering team at Hosen Software Shop.`);
         setFormSeoKeywords(`${formTitle.toLowerCase().split(' ').join(', ')}, software development, web app`);
         showSuccessToast('AI optimized all SEO and Meta Tags!');
       } else if (action === 'faq') {
@@ -1225,7 +1225,7 @@ export default function BlogEditor({ blogId }: BlogEditorProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-zinc-550 dark:text-zinc-400 font-extrabold mb-1 uppercase tracking-wider text-[9px]">Canonical URL link</label>
-                  <input type="url" value={formCanonicalUrl} onChange={(e) => setFormCanonicalUrl(e.target.value)} placeholder="https://hossenshop.com/blogs/..." className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2.5 text-xs" />
+                  <input type="url" value={formCanonicalUrl} onChange={(e) => setFormCanonicalUrl(e.target.value)} placeholder="https://hosenshop.com/blogs/..." className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2.5 text-xs" />
                 </div>
                 <div>
                   <label className="block text-zinc-550 dark:text-zinc-400 font-extrabold mb-1.5 uppercase tracking-wider text-[9px]">Robots Index Permission</label>
@@ -1267,7 +1267,7 @@ export default function BlogEditor({ blogId }: BlogEditorProps) {
           {/* TAB 4: ACADEMY LINKS */}
           {formTab === 'academy' && (
             <div className="space-y-5 animate-fadeIn w-full">
-              <h3 className="text-xs font-extrabold text-zinc-900 dark:text-white uppercase tracking-wider">Hossen Academy / Service Promotion Linkages</h3>
+              <h3 className="text-xs font-extrabold text-zinc-900 dark:text-white uppercase tracking-wider">Hosen Academy / Service Promotion Linkages</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

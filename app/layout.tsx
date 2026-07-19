@@ -13,18 +13,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hossen-software-shop.solutionsquad.tech';
+const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hosen-software-shop.solutionsquad.tech';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Hossen Software Shop | Premium Web Solutions & SaaS Templates",
-    template: "%s | Hossen Software Shop"
+    default: "Hosen Software Shop | Premium Web Solutions & SaaS Templates",
+    template: "%s | Hosen Software Shop"
   },
-  description: "Hossen Software Shop offers premium website templates, full-stack web apps, SaaS products, mobile apps, and custom software development services. Buy ready-made source code or order a custom project.",
+  description: "Hosen Software Shop offers premium website templates, full-stack web apps, SaaS products, mobile apps, and custom software development services. Buy ready-made source code or order a custom project.",
   keywords: [
-    "Hossen Software Shop",
-    "hossen software shop",
+    "Hosen Software Shop",
+    "hosen software shop",
     "premium website templates",
     "custom software development",
     "full stack web development",
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
     "React Next.js templates",
     "mobile app development",
   ],
-  authors: [{ name: "Hossen Software Shop", url: siteUrl }],
-  creator: "Hossen Software Shop",
-  publisher: "Hossen Software Shop",
+  authors: [{ name: "Hosen Software Shop", url: siteUrl }],
+  creator: "Hosen Software Shop",
+  publisher: "Hosen Software Shop",
   robots: {
     index: true,
     follow: true,
@@ -57,24 +57,24 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: siteUrl,
-    siteName: 'Hossen Software Shop',
-    title: 'Hossen Software Shop | Premium Web Solutions & SaaS Templates',
-    description: 'Buy premium website templates, full-stack web apps, SaaS products, and custom software from Hossen Software Shop.',
+    siteName: 'Hosen Software Shop',
+    title: 'Hosen Software Shop | Premium Web Solutions & SaaS Templates',
+    description: 'Buy premium website templates, full-stack web apps, SaaS products, and custom software from Hosen Software Shop.',
     images: [
       {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Hossen Software Shop - Premium Web Solutions',
+        alt: 'Hosen Software Shop - Premium Web Solutions',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@hossensoftware',
-    creator: '@hossensoftware',
-    title: 'Hossen Software Shop | Premium Web Solutions',
-    description: 'Buy premium website templates, full-stack apps, and custom software from Hossen Software Shop.',
+    site: '@hosensoftware',
+    creator: '@hosensoftware',
+    title: 'Hosen Software Shop | Premium Web Solutions',
+    description: 'Buy premium website templates, full-stack apps, and custom software from Hosen Software Shop.',
     images: [`${siteUrl}/og-image.png`],
   },
   icons: {
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
 const jsonLdOrganization = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'Hossen Software Shop',
+  name: 'Hosen Software Shop',
   url: siteUrl,
   logo: `${siteUrl}/icon.png`,
   description: 'Premium web solutions, SaaS templates, and custom software development agency.',
@@ -105,7 +105,7 @@ const jsonLdOrganization = {
 const jsonLdWebsite = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Hossen Software Shop',
+  name: 'Hosen Software Shop',
   url: siteUrl,
   potentialAction: {
     '@type': 'SearchAction',

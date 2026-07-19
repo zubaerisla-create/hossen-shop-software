@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
                       We comply with international data security standards and regional IT regulations. In addition to transactional security, our team uses automated vulnerability checks on code repository outputs.
                     </p>
                     <p>
-                      If you have specific compliance requirements (e.g. GDPR, CCPA, or HIPAA for customized setups), please reach out to our legal officer at legal@hossenshop.com.
+                      If you have specific compliance requirements (e.g. GDPR, CCPA, or HIPAA for customized setups), please reach out to our legal officer at legal@hosenshop.com.
                     </p>
                   </div>
                 </section>

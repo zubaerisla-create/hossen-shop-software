@@ -28,7 +28,7 @@ interface FooterData {
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [data, setData] = useState<FooterData>({
-    brandName: "Hossen Software Shop",
+    brandName: "Hosen Software Shop",
     brandDesc: "Elite engineering agency and template marketplace turning complex business ideas into high-performance, production-ready full-stack software.",
     githubUrl: "https://github.com",
     twitterUrl: "https://twitter.com",
@@ -36,7 +36,7 @@ export default function Footer() {
     facebookUrl: "https://www.facebook.com/share/1Jbp8cBFKk/",
     whatsapp: "+8801560047265",
     address: "Gulshan 01, Dhaka , Bangladesh",
-    copyright: "Hossen Software Shop. All Rights Reserved.",
+    copyright: "Hosen Software Shop. All Rights Reserved.",
     marketplace: [
       { label: "SaaS Boilerplates", url: "/products" },
       { label: "Mobile App Templates", url: "/products" },
@@ -81,11 +81,13 @@ export default function Footer() {
         {/* Brand & Mission */}
         <div className="md:col-span-4 space-y-6">
           <div className="space-y-4">
-            <Link href="/" className="inline-flex items-center gap-2 text-white font-extrabold text-sm uppercase tracking-widest">
-              <div className="w-6 h-6 bg-white dark:bg-white rounded-md flex items-center justify-center text-black font-black text-xs">
-                {data.brandName ? data.brandName.charAt(0) : 'H'}
-              </div>
-              <span>{data.brandName}</span>
+            <Link href="/" className="flex items-center gap-2.5 cursor-pointer select-none flex-shrink-0 group">
+              <span className="bg-gradient-to-r from-[#6A2D3D] to-[#8b3c4f] dark:from-rose-600 dark:to-rose-400 text-white dark:text-zinc-950 font-black text-[10px] tracking-widest px-2.5 py-1 rounded-md transition-transform duration-300 group-hover:scale-105">
+                HOSEN
+              </span>
+              <span className="text-[13px] font-extrabold text-white logo-text tracking-tight transition-all duration-300 group-hover:translate-x-0.5">
+                Software<span className="text-[#6A2D3D] dark:text-[#fca5a5] logo-dot mx-0.5 font-black">·</span><span className="text-[#6A2D3D] dark:text-[#fca5a5] font-black">Shop</span>
+              </span>
             </Link>
             <p className="text-zinc-500 text-xs leading-relaxed max-w-sm">
               {data.brandDesc}

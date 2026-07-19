@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: ServicePageProps) {
   const { slug } = await params;
   const service = getServiceBySlug(slug);
   return {
-    title: service ? `${service.title} — HOSSEN Software Shop` : 'Service Not Found',
+    title: service ? `${service.title} — HOSEN Software Shop` : 'Service Not Found',
     description: service?.shortDesc ?? '',
   };
 }

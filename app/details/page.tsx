@@ -68,7 +68,7 @@ export default function DetailsPage() {
             <div className="w-72 h-72 rounded-3xl bg-gradient-to-tr from-[#6A2D3D]/10 to-[#8B3A50]/20 absolute -z-10 blur-xl animate-pulse" />
             <img
               src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"
-              alt="Hossen Software Shop Coding"
+              alt="Hosen Software Shop Coding"
               className="w-full max-w-[340px] aspect-[4/3] object-cover rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl"
             />
           </div>

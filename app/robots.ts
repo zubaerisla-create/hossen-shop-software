@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hossen-software-shop.solutionsquad.tech';
+  const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://hosen-software-shop.solutionsquad.tech';
 
   return {
     rules: [

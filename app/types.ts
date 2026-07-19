@@ -224,7 +224,7 @@ export interface Blog {
   comments?: { id: string; user: string; text: string; createdAt: string; }[] | null;
   visibility: 'Public' | 'Private' | 'Members Only' | 'Premium';
 
-  // Hossen Academy / Promotional integrations
+  // Hosen Academy / Promotional integrations
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   completionTime: string;
   keyTakeaways: string[];
