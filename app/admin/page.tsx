@@ -54,6 +54,9 @@ export default function AdminDashboardPage() {
     githubUrl: '',
     twitterUrl: '',
     linkedinUrl: '',
+    facebookUrl: '',
+    whatsapp: '',
+    address: '',
     copyright: '',
     marketplace: [],
     services: [],
@@ -66,6 +69,9 @@ export default function AdminDashboardPage() {
     githubUrl: '',
     twitterUrl: '',
     linkedinUrl: '',
+    facebookUrl: '',
+    whatsapp: '',
+    address: '',
     copyright: '',
     marketplace: [],
     services: [],
@@ -359,6 +365,20 @@ export default function AdminDashboardPage() {
                   <span className="font-mono text-zinc-550 break-all">{footerData.linkedinUrl || '-'}</span>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-zinc-100 dark:border-zinc-900">
+                <div>
+                  <span className="text-zinc-450 block font-semibold text-[9px] uppercase tracking-wider">Facebook Page:</span>
+                  <span className="font-mono text-zinc-550 break-all">{footerData.facebookUrl || '-'}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-450 block font-semibold text-[9px] uppercase tracking-wider">WhatsApp:</span>
+                  <span className="font-mono text-zinc-550 break-all">{footerData.whatsapp || '-'}</span>
+                </div>
+              </div>
+              <div className="pt-1.5 border-t border-zinc-100 dark:border-zinc-900">
+                <span className="text-zinc-450 block font-semibold text-[9px] uppercase tracking-wider">Office Address:</span>
+                <span className="font-bold text-zinc-850 dark:text-zinc-200">{footerData.address || '-'}</span>
+              </div>
               <div className="pt-2 border-t border-zinc-100 dark:border-zinc-900">
                 <span className="text-zinc-450 block font-semibold text-[9px] uppercase tracking-wider">Copyright Line:</span>
                 <span className="font-bold text-zinc-850 dark:text-zinc-200">{footerData.copyright}</span>
@@ -368,7 +388,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-3 gap-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-4 rounded">
               {['marketplace', 'services', 'platform'].map((key) => (
                 <div key={key} className="space-y-2">
-                  <span className="font-extrabold text-zinc-950 dark:text-white uppercase tracking-wider block border-b border-zinc-100 dark:border-zinc-900 pb-1.5 mb-2 capitalize text-[10px]">{key} Links</span>
+                  <span className="font-extrabold text-zinc-955 dark:text-white uppercase tracking-wider block border-b border-zinc-100 dark:border-zinc-900 pb-1.5 mb-2 capitalize text-[10px]">{key} Links</span>
                   <ul className="space-y-2 text-zinc-500 font-semibold">
                     {footerData[key] && footerData[key].map((item: any, idx: number) => (
                       <li key={idx} className="line-clamp-2">
@@ -412,6 +432,15 @@ export default function AdminDashboardPage() {
                     className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 focus:outline-none focus:border-zinc-400 font-bold"
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-zinc-500 font-bold uppercase tracking-wider">Office Address</label>
+                  <input
+                    type="text"
+                    value={footerBuffer.address}
+                    onChange={(e) => updateFooterField('address', e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-3 py-2 focus:outline-none focus:border-zinc-400 font-bold"
+                  />
+                </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="space-y-1">
                     <label className="text-zinc-500 font-bold uppercase tracking-wider text-[9px]">GitHub URL</label>
@@ -437,6 +466,26 @@ export default function AdminDashboardPage() {
                       type="text"
                       value={footerBuffer.linkedinUrl}
                       onChange={(e) => updateFooterField('linkedinUrl', e.target.value)}
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-2 py-1.5 focus:outline-none focus:border-zinc-400 font-mono text-[10px]"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-zinc-500 font-bold uppercase tracking-wider text-[9px]">Facebook Page URL</label>
+                    <input
+                      type="text"
+                      value={footerBuffer.facebookUrl}
+                      onChange={(e) => updateFooterField('facebookUrl', e.target.value)}
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-2 py-1.5 focus:outline-none focus:border-zinc-400 font-mono text-[10px]"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-zinc-500 font-bold uppercase tracking-wider text-[9px]">WhatsApp Number</label>
+                    <input
+                      type="text"
+                      value={footerBuffer.whatsapp}
+                      onChange={(e) => updateFooterField('whatsapp', e.target.value)}
                       className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white rounded px-2 py-1.5 focus:outline-none focus:border-zinc-400 font-mono text-[10px]"
                     />
                   </div>
