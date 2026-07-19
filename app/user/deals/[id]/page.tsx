@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
 import { FileText, Paperclip, Send, Shield, ArrowRight, CreditCard, Check } from 'lucide-react';
 import { CustomDeal, ChatMessage, Milestone } from '../../../types';
-import { getDeals, saveDeals, getChats, saveChats } from '../../../utils/storage';
+import { getDeals, saveDeals, getChats, saveChats, syncWithBackend } from '../../../utils/storage';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../../utils/alert';
 import { API_BASE_URL, SOCKET_URL } from '@/app/utils/api';
 import { useCurrency } from '@/app/utils/currency';
