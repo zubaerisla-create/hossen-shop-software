@@ -59,6 +59,8 @@ const detectTimeZoneCurrency = (): string => {
   return 'USD'; // global fallback
 };
 
+
+
 export const getPreferredCurrency = (): string => {
   if (typeof window === 'undefined') return 'USD';
   const stored = localStorage.getItem('preferred_currency');
@@ -116,14 +118,25 @@ export const formatPrice = (priceInBDT: number, showSecondary: boolean = true): 
     maximumFractionDigits: 2,
   }).format(convertedPrice);
 
-  if (showSecondary && config.code !== 'BDT') {
-    const formattedOriginal = new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(priceInBDT);
-    return `${formattedConverted} (${formattedOriginal})`;
+  if (showSecondary) {
+    if (config.code === 'BDT') {
+      const usdPrice = priceInBDT * CURRENCIES.USD.rate;
+      const formattedUSD = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(usdPrice);
+      return `${formattedConverted} (${formattedUSD})`;
+    } else {
+      const formattedOriginal = new Intl.NumberFormat('en-BD', {
+        style: 'currency',
+        currency: 'BDT',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(priceInBDT);
+      return `${formattedConverted} (${formattedOriginal})`;
+    }
   }
 
   return formattedConverted;

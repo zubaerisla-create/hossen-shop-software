@@ -7,6 +7,7 @@ import { getProducts, purchaseProduct, addInvoice, saveProducts, getPurchasedPro
 import { useCurrency } from '@/app/utils/currency';
 import Header from '@/components/Header';
 import AuthModal from '@/components/AuthModal';
+import PreOrderModal from '@/components/PreOrderModal';
 import Link from 'next/link';
 import { Check, ArrowLeft, Terminal, Shield, ExternalLink, ArrowRight } from 'lucide-react';
 import { showSuccessAlert, showErrorAlert, showSuccessToast, showErrorToast } from '../../utils/alert';
@@ -19,6 +20,7 @@ export default function ProductDetailPage() {
 
   // Checkout States
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showPreOrderModal, setShowPreOrderModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -241,12 +243,7 @@ export default function ProductDetailPage() {
   const currencySymbol = selectedCurrency === 'USD' ? '$' : 'BDT';
 
   const handleBuyClick = () => {
-    const token = localStorage.getItem('apex_user_token');
-    if (!token) {
-      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-    setShowCheckout(true);
+    setShowPreOrderModal(true);
   };
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
@@ -1084,6 +1081,15 @@ export default function ProductDetailPage() {
           initialMode="signin"
           isModal={true}
           redirectUrl={authRedirectUrl}
+        />
+      )}
+
+      {showPreOrderModal && (
+        <PreOrderModal
+          isOpen={showPreOrderModal}
+          onClose={() => setShowPreOrderModal(false)}
+          productName={product.name}
+          productPrice={product.price}
         />
       )}
 
