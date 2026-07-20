@@ -69,13 +69,13 @@ export default function ContactPage() {
 
         {/* Info Grid & Form */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
+
           {/* Info cards (Left) */}
           <div className="lg:col-span-5 space-y-6">
             <h3 className="text-xl font-bold uppercase tracking-tight text-zinc-950 dark:text-white">
               Office Channels
             </h3>
-            
+
             <div className="space-y-4">
               <div className="p-6 border border-zinc-200/60 dark:border-zinc-900 rounded-2xl bg-zinc-50/20 dark:bg-zinc-900/10 flex gap-4">
                 <div className="w-10 h-10 rounded-xl bg-[#6A2D3D]/10 dark:bg-[#6A2D3D]/20 flex items-center justify-center text-[#6A2D3D] dark:text-[#fca5a5] flex-shrink-0">
@@ -83,7 +83,7 @@ export default function ContactPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Email Address</p>
-                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">support@hosenshop.com</p>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">hr@hosenacademy.com</p>
                   <p className="text-[11px] text-zinc-505 font-semibold">Average response under 2 hours</p>
                 </div>
               </div>
@@ -94,8 +94,8 @@ export default function ContactPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Phone Hotline</p>
-                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">+880 1712-345678</p>
-                  <p className="text-[11px] text-zinc-505 font-semibold">Active Mon - Sat, 9 AM - 6 PM</p>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">+8801560047265</p>
+                  <p className="text-[11px] text-zinc-505 font-semibold">Active - 24/7 </p>
                 </div>
               </div>
 
@@ -105,8 +105,8 @@ export default function ContactPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Corporate Address</p>
-                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Hosen Software Tower, Level 8</p>
-                  <p className="text-[11px] text-zinc-550 dark:text-zinc-400 font-semibold">Banani, Dhaka-1213, Bangladesh</p>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Gulshan 01</p>
+                  <p className="text-[11px] text-zinc-550 dark:text-zinc-400 font-semibold">Dhaka, Bangladesh</p>
                 </div>
               </div>
 

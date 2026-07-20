@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { initializeStorage, clearUserSession } from '@/app/utils/storage';
-import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers, Handshake, Building, Shield, Scale, RefreshCcw, Users, MessageSquare } from 'lucide-react';
+import { Sun, Moon, Menu, X, User, LogOut, LayoutDashboard, Zap, ChevronDown, ChevronRight, Layers, Handshake, Building, Shield, Scale, RefreshCcw, Users, MessageSquare, Calendar } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { servicesData } from '@/app/data/services';
 import { ServiceIcon } from '@/app/utils/icons';
@@ -138,7 +138,7 @@ export default function Header() {
       highlight: 'purple'
     },
     { label: 'Blogs', action: () => { setIsMobileMenuOpen(false); router.push('/blogs'); }, path: '/blogs' },
-    { label: 'Feedback', action: () => { setIsMobileMenuOpen(false); router.push('/reviews'); }, path: '/reviews' },
+    { label: 'Free Consultation', action: () => { setIsMobileMenuOpen(false); router.push('/free-consultation'); }, path: '/free-consultation' },
     { label: 'AI Estimator', action: () => { setIsMobileMenuOpen(false); router.push('/estimator'); }, path: '/estimator' },
     { 
       label: 'Custom Deals', 
@@ -854,6 +854,11 @@ export default function Header() {
                       <Zap className="w-3 h-3 text-amber-500" />
                       {link.label}
                     </span>
+                  ) : link.label === 'Free Consultation' ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                      {link.label}
+                    </span>
                   ) : link.label === 'Custom Deals' ? (
                     <span className="inline-flex items-center gap-1.5">
                       <Handshake className="w-3.5 h-3.5 text-inherit" />
@@ -1138,6 +1143,7 @@ export default function Header() {
                     className={`mobile-nav-item ${'path' in link && link.path && pathname === link.path ? 'active' : ''} ${highlightClass}`}
                   >
                     {link.label === 'AI Estimator' && <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
+                    {link.label === 'Free Consultation' && <Calendar className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />}
                     {link.label === 'Custom Deals' && <Handshake className="w-3.5 h-3.5 text-inherit flex-shrink-0" />}
                     {link.label}
                   </button>
