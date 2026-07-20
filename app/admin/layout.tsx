@@ -52,22 +52,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       try {
         const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            'Authorization': `Bearer ${token}`,
+          },
         });
-        const resData = await response.json();
-        if (response.ok && resData.data?.user?.role === 'ADMIN') {
-          await syncWithBackend();
-          setIsAdmin(true);
-        } else {
+
+        // Only logout on explicit auth failures (401 Unauthorized, 403 Forbidden)
+        // Do NOT logout on 429 (rate limit), 5xx server errors, or network issues
+        if (response.status === 401 || response.status === 403) {
           localStorage.removeItem('apex_user_token');
           localStorage.removeItem('apex_user_role');
           setIsAdmin(false);
           router.push('/admin/login');
+          return;
+        }
+
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData.data?.user?.role === 'ADMIN') {
+            await syncWithBackend();
+            setIsAdmin(true);
+          } else {
+            // Authenticated but not admin role
+            localStorage.removeItem('apex_user_token');
+            localStorage.removeItem('apex_user_role');
+            setIsAdmin(false);
+            router.push('/admin/login');
+          }
+        } else {
+          // Non-fatal errors (429, 5xx) — trust the local token and keep session alive
+          setIsAdmin(true);
         }
       } catch (err) {
-        // Fallback to local role if backend is offline to preserve developer experience
-        await syncWithBackend();
+        // Network error or backend offline — preserve local session
         setIsAdmin(true);
       }
     };
@@ -83,7 +99,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     window.addEventListener('apex-admin-toast', handleToast);
     return () => window.removeEventListener('apex-admin-toast', handleToast);
-  }, [pathname, router]);
+    // Run ONLY once on mount — re-running on every route change causes logout
+    // when rate-limit (429) hits due to analytics page's many API calls
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const navItems = [
     { href: '/admin', label: 'Agency Analytics', icon: <LayoutDashboard className="w-4 h-4" /> },
