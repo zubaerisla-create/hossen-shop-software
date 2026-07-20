@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare, BookOpen, Briefcase, Mail, MessageCircle, ChevronDown, Users, Clipboard, Calendar } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare, BookOpen, Briefcase, Mail, MessageCircle, ChevronDown, Users, Clipboard, Calendar, Activity } from 'lucide-react';
 import { initializeStorage, syncWithBackend, clearUserSession } from '../utils/storage';
 import { API_BASE_URL } from '@/app/utils/api';
 
@@ -87,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { href: '/admin', label: 'Agency Analytics', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { href: '/admin/analytics', label: 'Visitor Analytics', icon: <Activity className="w-4 h-4" /> },
     { href: '/admin/products', label: 'Ready Products', icon: <ShoppingCart className="w-4 h-4" /> },
     { href: '/admin/blogs', label: 'Manage Blogs', icon: <BookOpen className="w-4 h-4" /> },
     { href: '/admin/casestudies', label: 'Case Studies', icon: <Briefcase className="w-4 h-4" /> },
@@ -108,9 +109,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: 'Overview & Reports',
       items: [
         { href: '/admin', label: 'Agency Analytics', icon: <LayoutDashboard className="w-4 h-4" /> },
+        { href: '/admin/analytics', label: 'Visitor Analytics', icon: <Activity className="w-4 h-4" /> },
         { href: '/admin/users', label: 'User Management', icon: <Users className="w-4 h-4" /> }
       ]
     },
+
     {
       id: 'sales',
       title: 'Sales & Products',
