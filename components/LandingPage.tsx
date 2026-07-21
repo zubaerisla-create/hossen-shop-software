@@ -176,6 +176,28 @@ export default function LandingPage({
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
 
+  const [videoConfig, setVideoConfig] = useState<{
+    title: string;
+    subtitle: string;
+    badgeText: string;
+    videoUrl: string;
+    thumbnailUrl: string;
+    isEnabled: boolean;
+    autoPlay: boolean;
+    loop: boolean;
+    muted: boolean;
+  }>({
+    title: 'Experience Our Engineering Showcase',
+    subtitle: 'Watch our full-stack capabilities in action and explore how we craft state-of-the-art web architectures.',
+    badgeText: 'FEATURED SHOWCASE',
+    videoUrl: '',
+    thumbnailUrl: '',
+    isEnabled: true,
+    autoPlay: false,
+    loop: true,
+    muted: true,
+  });
+
   useEffect(() => {
     const fetchCaseStudies = async () => {
       try {
@@ -205,8 +227,23 @@ export default function LandingPage({
       }
     };
 
+    const fetchVideoConfig = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/landing-video`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success' && data.data && data.data.videoConfig) {
+            setVideoConfig(data.data.videoConfig);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch video config for landing page:', err);
+      }
+    };
+
     fetchCaseStudies();
     fetchBlogs();
+    fetchVideoConfig();
   }, []);
 
   const [reviewsList, setReviewsList] = useState<any[]>([
@@ -405,6 +442,43 @@ export default function LandingPage({
           ))}
         </div>
       </section>
+
+      {/* Landing Showcase Video Section (Below Capabilities) */}
+      {videoConfig.isEnabled && (
+        <section id="showcase-video" className="max-w-[1400px] mx-auto px-6 space-y-8 animate-fade-in scroll-mt-24">
+          <div className="text-center space-y-3">
+            {videoConfig.badgeText && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-extrabold tracking-widest uppercase">
+                <Sparkles className="w-3 h-3 animate-pulse" /> {videoConfig.badgeText}
+              </span>
+            )}
+            <h2 className="text-2xl md:text-4xl font-extrabold text-zinc-950 dark:text-white uppercase tracking-tight font-sans">
+              {videoConfig.title || 'Experience Our Engineering Showcase'}
+            </h2>
+            <p className="text-zinc-500 dark:text-zinc-400 text-xs max-w-xl mx-auto font-medium leading-relaxed">
+              {videoConfig.subtitle || 'Watch our full-stack capabilities in action and explore how we craft state-of-the-art web architectures.'}
+            </p>
+          </div>
+
+          <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden bg-black/90 border border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_20px_60px_-15px_rgba(168,85,247,0.15)] dark:shadow-[0_20px_80px_-20px_rgba(168,85,247,0.25)] group">
+            {/* Ambient Background Glow behind Video Container */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 via-pink-500/20 to-indigo-600/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-700 pointer-events-none" />
+
+            <div className="relative z-10 aspect-video w-full overflow-hidden bg-zinc-950 flex items-center justify-center">
+              <video
+                src={videoConfig.videoUrl || '/Create_a_premium_cinematic_her.mp4'}
+                controls
+                autoPlay={videoConfig.autoPlay}
+                loop={videoConfig.loop}
+                muted={videoConfig.muted}
+                playsInline
+                poster={videoConfig.thumbnailUrl || undefined}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Products Section */}
       <section id="products" className="max-w-[1400px] mx-auto px-6 space-y-12 scroll-mt-24">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare, BookOpen, Briefcase, Mail, MessageCircle, ChevronDown, Users, Clipboard, Calendar, Activity } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, FolderKanban, Wrench, Receipt, Settings, ArrowRight, ArrowLeft, LogOut, Package, MessageSquare, BookOpen, Briefcase, Mail, MessageCircle, ChevronDown, Users, Clipboard, Calendar, Activity, Video } from 'lucide-react';
 import { initializeStorage, syncWithBackend, clearUserSession } from '../utils/storage';
 import { API_BASE_URL } from '@/app/utils/api';
 
@@ -109,6 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/analytics', label: 'Visitor Analytics', icon: <Activity className="w-4 h-4" /> },
     { href: '/admin/products', label: 'Ready Products', icon: <ShoppingCart className="w-4 h-4" /> },
     { href: '/admin/blogs', label: 'Manage Blogs', icon: <BookOpen className="w-4 h-4" /> },
+    { href: '/admin/video', label: 'Landing Video', icon: <Video className="w-4 h-4" /> },
     { href: '/admin/casestudies', label: 'Case Studies', icon: <Briefcase className="w-4 h-4" /> },
     { href: '/admin/orders', label: 'Client Orders', icon: <Package className="w-4 h-4" /> },
     { href: '/admin/pre-orders', label: 'Pre-Orders', icon: <Clipboard className="w-4 h-4" /> },
@@ -149,6 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       id: 'content',
       title: 'Content Engine',
       items: [
+        { href: '/admin/video', label: 'Landing Video', icon: <Video className="w-4 h-4" /> },
         { href: '/admin/blogs', label: 'Manage Blogs', icon: <BookOpen className="w-4 h-4" /> },
         { href: '/admin/comments', label: 'Blog Comments', icon: <MessageCircle className="w-4 h-4" /> },
         { href: '/admin/casestudies', label: 'Case Studies', icon: <Briefcase className="w-4 h-4" /> },
