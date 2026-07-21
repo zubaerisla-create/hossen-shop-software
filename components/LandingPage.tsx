@@ -229,7 +229,13 @@ export default function LandingPage({
 
     const fetchVideoConfig = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/landing-video`);
+        const res = await fetch(`${API_BASE_URL}/api/landing-video`, {
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success' && data.data && data.data.videoConfig) {
@@ -466,6 +472,7 @@ export default function LandingPage({
 
             <div className="relative z-10 aspect-video w-full overflow-hidden bg-zinc-950 flex items-center justify-center">
               <video
+                key={videoConfig.videoUrl || 'default-video'}
                 src={videoConfig.videoUrl || '/Create_a_premium_cinematic_her.mp4'}
                 controls
                 autoPlay={videoConfig.autoPlay}
