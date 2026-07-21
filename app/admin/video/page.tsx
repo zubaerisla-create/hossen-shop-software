@@ -27,7 +27,7 @@ export default function AdminLandingVideoPage() {
     title: 'Experience Our Engineering Showcase',
     subtitle: 'Watch our full-stack capabilities in action and explore how we craft state-of-the-art web architectures.',
     badgeText: 'FEATURED SHOWCASE',
-    videoUrl: '',
+    videoUrl: 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4',
     thumbnailUrl: '',
     isEnabled: true,
     autoPlay: false,

@@ -190,7 +190,7 @@ export default function LandingPage({
     title: 'Experience Our Engineering Showcase',
     subtitle: 'Watch our full-stack capabilities in action and explore how we craft state-of-the-art web architectures.',
     badgeText: 'FEATURED SHOWCASE',
-    videoUrl: '',
+    videoUrl: 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4',
     thumbnailUrl: '',
     isEnabled: true,
     autoPlay: false,
@@ -236,7 +236,9 @@ export default function LandingPage({
             const config = data.data.videoConfig;
             setVideoConfig({
               ...config,
-              videoUrl: config.videoUrl && config.videoUrl.trim() !== '' ? config.videoUrl : '/Create_a_premium_cinematic_her.mp4'
+              videoUrl: config.videoUrl && config.videoUrl.trim() !== '' && config.videoUrl !== '/Create_a_premium_cinematic_her.mp4'
+                ? config.videoUrl
+                : 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4'
             });
           }
         }
