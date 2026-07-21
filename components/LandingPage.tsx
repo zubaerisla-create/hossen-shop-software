@@ -229,17 +229,15 @@ export default function LandingPage({
 
     const fetchVideoConfig = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/landing-video`, {
-          cache: 'no-store',
-          headers: {
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache'
-          }
-        });
+        const res = await fetch(`${API_BASE_URL}/api/landing-video?t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success' && data.data && data.data.videoConfig) {
-            setVideoConfig(data.data.videoConfig);
+            const config = data.data.videoConfig;
+            setVideoConfig({
+              ...config,
+              videoUrl: config.videoUrl && config.videoUrl.trim() !== '' ? config.videoUrl : '/Create_a_premium_cinematic_her.mp4'
+            });
           }
         }
       } catch (err) {
@@ -449,39 +447,50 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* Landing Showcase Video Section (Below Capabilities) */}
+      {/* Landing Showcase Video Section (Vibrant Distinct Eye-Catching Background) */}
       {videoConfig.isEnabled && (
-        <section id="showcase-video" className="max-w-[1400px] mx-auto px-6 space-y-8 animate-fade-in scroll-mt-24">
-          <div className="text-center space-y-3">
-            {videoConfig.badgeText && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-extrabold tracking-widest uppercase">
-                <Sparkles className="w-3 h-3 animate-pulse" /> {videoConfig.badgeText}
-              </span>
-            )}
-            <h2 className="text-2xl md:text-4xl font-extrabold text-zinc-950 dark:text-white uppercase tracking-tight font-sans">
-              {videoConfig.title || 'Experience Our Engineering Showcase'}
-            </h2>
-            <p className="text-zinc-500 dark:text-zinc-400 text-xs max-w-xl mx-auto font-medium leading-relaxed">
-              {videoConfig.subtitle || 'Watch our full-stack capabilities in action and explore how we craft state-of-the-art web architectures.'}
-            </p>
-          </div>
+        <section id="showcase-video" className="w-full relative py-20 md:py-28 my-12 bg-[#06060c] text-white border-y border-purple-500/30 overflow-hidden scroll-mt-24 shadow-[0_0_90px_-20px_rgba(168,85,247,0.25)]">
+          
+          {/* Eye-Catching Neon Ambient Flares */}
+          <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-purple-600/25 rounded-full blur-[140px] pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-indigo-600/25 rounded-full blur-[140px] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_0.75px,transparent_0.75px)] [background-size:32px_32px] opacity-15 pointer-events-none" />
 
-          <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden bg-black/90 border border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_20px_60px_-15px_rgba(168,85,247,0.15)] dark:shadow-[0_20px_80px_-20px_rgba(168,85,247,0.25)] group">
-            {/* Ambient Background Glow behind Video Container */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 via-pink-500/20 to-indigo-600/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-700 pointer-events-none" />
+          <div className="relative z-10 max-w-6xl mx-auto px-6 space-y-10">
+            {/* Header Content */}
+            <div className="text-center space-y-3.5">
+              {videoConfig.badgeText && (
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/15 border border-purple-400/40 text-purple-300 text-[11px] font-black tracking-widest uppercase shadow-lg shadow-purple-950/50">
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" /> {videoConfig.badgeText}
+                </span>
+              )}
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight font-sans drop-shadow-md">
+                {videoConfig.title || 'Experience Our Engineering Showcase'}
+              </h2>
+              <p className="text-zinc-300 text-xs sm:text-sm max-w-2xl mx-auto font-medium leading-relaxed">
+                {videoConfig.subtitle || 'Watch our full-stack capabilities in action and explore how we craft state-of-the-art web architectures.'}
+              </p>
+            </div>
 
-            <div className="relative z-10 aspect-video w-full overflow-hidden bg-zinc-950 flex items-center justify-center">
-              <video
-                key={videoConfig.videoUrl || 'default-video'}
-                src={videoConfig.videoUrl || '/Create_a_premium_cinematic_her.mp4'}
-                controls
-                autoPlay={videoConfig.autoPlay}
-                loop={videoConfig.loop}
-                muted={videoConfig.muted}
-                playsInline
-                poster={videoConfig.thumbnailUrl || undefined}
-                className="w-full h-full object-cover"
-              />
+            {/* Video Container Box with Glowing Border */}
+            <div className="relative max-w-4xl mx-auto rounded-3xl overflow-hidden bg-black border-2 border-purple-500/40 shadow-[0_0_60px_-10px_rgba(168,85,247,0.4)] group transition-all">
+              
+              {/* Backlight Ambient Glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/40 via-cyan-500/30 to-indigo-600/40 rounded-3xl blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+              <div className="relative z-10 aspect-video w-full overflow-hidden bg-black flex items-center justify-center">
+                <video
+                  key={videoConfig.videoUrl || 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4'}
+                  src={videoConfig.videoUrl || 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4'}
+                  controls
+                  autoPlay={videoConfig.autoPlay}
+                  loop={videoConfig.loop}
+                  muted={videoConfig.muted}
+                  playsInline
+                  poster={videoConfig.thumbnailUrl || undefined}
+                  className="w-full h-full object-cover rounded-3xl"
+                />
+              </div>
             </div>
           </div>
         </section>

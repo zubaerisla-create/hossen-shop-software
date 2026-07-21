@@ -46,7 +46,7 @@ export default function AdminLandingVideoPage() {
   const fetchVideoSettings = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/landing-video`);
+      const res = await fetch(`${API_BASE_URL}/api/landing-video?t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         if (data.status === 'success' && data.data && data.data.videoConfig) {
