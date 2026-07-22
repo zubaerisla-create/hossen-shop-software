@@ -17,7 +17,25 @@ export default function GlobalChatWidget() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(1);
+  const [whatsappNumber, setWhatsappNumber] = useState('+8801560047265');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchWhatsapp = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/footer`);
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.status === 'success' && resData.data && resData.data.footer && resData.data.footer.whatsapp) {
+            setWhatsappNumber(resData.data.footer.whatsapp);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch whatsapp config in chat widget:", err);
+      }
+    };
+    fetchWhatsapp();
+  }, []);
 
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; posX: number; posY: number; hasMoved: boolean } | null>(null);
@@ -238,7 +256,7 @@ export default function GlobalChatWidget() {
   return (
     <div
       ref={widgetRef}
-      className="fixed z-[9999] font-sans text-xs select-none"
+      className="fixed z-[9999] font-sans text-xs select-none flex flex-col items-end gap-3.5"
       style={
         position
           ? {
@@ -253,6 +271,27 @@ export default function GlobalChatWidget() {
             }
       }
     >
+      {/* WhatsApp Floating Button */}
+      <a
+        href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}`}
+        target="_blank"
+        rel="noreferrer"
+        className="w-14 h-14 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer group relative border border-emerald-400/20 select-none animate-fadeIn"
+        title="Chat on WhatsApp"
+      >
+        {/* Pulse Ring Effect */}
+        <span className="absolute -inset-1 bg-[#25D366]/30 rounded-full blur-sm opacity-70 animate-ping pointer-events-none" />
+        
+        <svg className="w-7 h-7 text-white relative z-10 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.528 2.01 14.069.99 11.443.99c-5.438 0-9.866 4.372-9.87 9.802 0 1.706.467 3.371 1.354 4.887l-.997 3.639 3.72-.984zm11.087-7.425c-.29-.145-1.72-.848-1.986-.944-.266-.096-.46-.145-.654.145-.193.29-.747.944-.916 1.137-.168.193-.337.217-.627.072-1.29-.646-2.18-.178-3.085-.97-1.123-.983-1.884-2.197-2.104-2.584-.22-.386-.023-.595.17-.738.175-.13.387-.458.58-.687.193-.228.258-.39.387-.651.129-.26.065-.487-.033-.681-.097-.193-.654-1.579-.896-2.16-.236-.569-.475-.491-.654-.5l-.558-.007c-.193 0-.507.072-.773.361-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.182 2.995.145.193 2.043 3.12 4.949 4.373.69.298 1.23.476 1.65.61.693.22 1.325.19 1.824.115.556-.084 1.72-.702 1.962-1.381.242-.678.242-1.26.17-1.38-.073-.12-.266-.192-.556-.337z"/>
+        </svg>
+
+        {/* Hover Tooltip */}
+        <span className="absolute right-16 scale-0 group-hover:scale-100 transition-all duration-200 bg-zinc-950 text-white font-bold text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-lg border border-zinc-800 shadow-xl whitespace-nowrap z-20 pointer-events-none">
+          Chat on WhatsApp
+        </span>
+      </a>
+
       {/* Floating Chat Bubble */}
       {!isOpen && (
         <button

@@ -63,6 +63,7 @@ export default function LandingPage({
   const [searchTerm, setSearchTerm] = useState('');
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const showcaseVideoRef = useRef<HTMLVideoElement>(null);
 
   // Interactive FAQ & Contact Form State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -193,10 +194,62 @@ export default function LandingPage({
     videoUrl: 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4',
     thumbnailUrl: '',
     isEnabled: true,
-    autoPlay: false,
+    autoPlay: true,
     loop: true,
-    muted: true,
+    muted: false,
   });
+
+  useEffect(() => {
+    const v = showcaseVideoRef.current;
+    if (!v) return;
+
+    v.loop = videoConfig.loop;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Attempt unmuted play first
+            v.muted = false;
+            v.defaultMuted = false;
+
+            const playPromise = v.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                // If browser blocks unmuted playback, play muted so it autoplays
+                v.muted = true;
+                v.play().catch((err) => console.warn("Fallback muted autoplay failed:", err));
+              });
+            }
+          } else {
+            // Pause playback when scrolled out of view
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(v);
+
+    // Dynamic unmuter upon first click/touch interaction on the document
+    const handleFirstInteraction = () => {
+      if (v.muted) {
+        v.muted = false;
+      }
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, [videoConfig.videoUrl, videoConfig.loop]);
 
   useEffect(() => {
     const fetchCaseStudies = async () => {
@@ -482,12 +535,13 @@ export default function LandingPage({
 
               <div className="relative z-10 aspect-video w-full overflow-hidden bg-black flex items-center justify-center">
                 <video
+                  ref={showcaseVideoRef}
                   key={videoConfig.videoUrl || 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4'}
                   src={videoConfig.videoUrl || 'https://res.cloudinary.com/dpjxjbhrb/video/upload/v1784651527/hosen-software-landing-video1_rx8mii.mp4'}
                   controls
                   autoPlay={videoConfig.autoPlay}
                   loop={videoConfig.loop}
-                  muted={videoConfig.muted}
+                  muted={false}
                   playsInline
                   poster={videoConfig.thumbnailUrl || undefined}
                   className="w-full h-full object-cover rounded-3xl"
